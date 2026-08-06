@@ -1,0 +1,743 @@
+{
+  "resumo": {
+    "SEM_PENDENCIA": 52,
+    "COM_PENDENCIA": 29
+  },
+  "pastas": {
+    "sem_pendencias": 52,
+    "pendencias": 29
+  },
+  "total_empresas": 81,
+  "moves": [],
+  "empresas": [
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "2B IMPORTACAO, EXPORTACAO E SERVICOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\2B IMPORTACAO, EXPORTACAO E SERVICOS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "89-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "AF DA SILVA REPRESENTACAO",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\AF DA SILVA REPRESENTACAO",
+      "qtd_arquivos": 2,
+      "arquivos": "86-AGENCIANET.pdf, 86-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "ANTONIO MARCOS RIBEIRO 149DF-ME",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\ANTONIO MARCOS RIBEIRO 149DF-ME",
+      "qtd_arquivos": 1,
+      "arquivos": "211-AGENCIANET.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "ANW EMPREENDIMENTOS IMOBILIARIOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\ANW EMPREENDIMENTOS IMOBILIARIOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "164-AGENCIANET.pdf, 164-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "ANW PARTICIPACOES SOCIETARIAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\ANW PARTICIPACOES SOCIETARIAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "163-AGENCIANET.pdf, 163-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "AP ENGENHARIA E CONSULTORIA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\AP ENGENHARIA E CONSULTORIA LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "716-AGENCIANET.pdf, 716-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "AQB HOLDINGS & INVESTIMENTOS GESTORA DE PARTICIPACOES SOCIEDADE",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\AQB HOLDINGS & INVESTIMENTOS GESTORA DE PARTICIPACOES SOCIEDADE",
+      "qtd_arquivos": 1,
+      "arquivos": "22-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "ART FORT COMERCIO E IMPORTACAO LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\ART FORT COMERCIO E IMPORTACAO LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "132-ECAC.pdf, 134-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "ASSOCIACAO SULAMERICANA DOS PRODUTORES DE GELATINA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\ASSOCIACAO SULAMERICANA DOS PRODUTORES DE GELATINA",
+      "qtd_arquivos": 2,
+      "arquivos": "30-AGENCIANET.pdf, 30-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "AUTOBRAS COMERCIO DE IMPORTACAO E EXPORTACAO DE PRODUTOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\AUTOBRAS COMERCIO DE IMPORTACAO E EXPORTACAO DE PRODUTOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "59-AGENCIANET.pdf, 59-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "B&F COMERCIO E SERVICO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\B&F COMERCIO E SERVICO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "160-AGENCIANET.pdf, 160-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "BAIFER DISTRIBUIDORA DE FERRAMENTAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\BAIFER DISTRIBUIDORA DE FERRAMENTAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "11-AGENCIANET.pdf, 11-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "BELEZA MARKET COSMETICOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\BELEZA MARKET COSMETICOS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "91-AGENCIANET.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "BELEZA MARKET SERVICO ESTETICA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\BELEZA MARKET SERVICO ESTETICA LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "27-AGENCIANET.pdf, 27-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "BEM MAIS TECNOLOGIA E SEGURANCA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\BEM MAIS TECNOLOGIA E SEGURANCA LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "168-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "BR BRAZ IMPORTADORA E DISTRIBUIDORA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\BR BRAZ IMPORTADORA E DISTRIBUIDORA LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "38-AGENCIANET.pdf, 38-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "BR IMPORTACAO EXPORTACAO CONSULTORIA E ASSESSORIA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\BR IMPORTACAO EXPORTACAO CONSULTORIA E ASSESSORIA LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "167-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "BRUNNA LETTIERI ATELIER LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\BRUNNA LETTIERI ATELIER LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "39-AGENCIANET.pdf, 39-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "BUFFET CHA DAS DUAS SERVICOS E LOCACAO PARA EVENTOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\BUFFET CHA DAS DUAS SERVICOS E LOCACAO PARA EVENTOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "87-AGENCIANET.pdf, 87-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "CENTRO MEDICO ESPECIALIZADO TJJ LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\CENTRO MEDICO ESPECIALIZADO TJJ LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "715-AGENCIANET.pdf, 715-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "CERGILIO & CASTRO AUTOCENTER LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\CERGILIO & CASTRO AUTOCENTER LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "133-AGENCIANET.pdf, 133-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "COELHO E MENDES COMERCIO VAREJISTA DE DOCES LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\COELHO E MENDES COMERCIO VAREJISTA DE DOCES LTDA",
+      "qtd_arquivos": 4,
+      "arquivos": "13-AGENCIANET.pdf, 13-ECAC.pdf, 88-AGENCIANET.pdf, 88-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "COMERCIAL AVICOLA PROGRESSO LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\COMERCIAL AVICOLA PROGRESSO LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "80-AGENCIANET.pdf, 80-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "CUSTOMS IMPORTACAO EXPORTACAO CONSULTORIA E ASSESSORIA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\CUSTOMS IMPORTACAO EXPORTACAO CONSULTORIA E ASSESSORIA LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "97-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "DALMAR EMPREENDIMENTOS IMOBILIARIOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\DALMAR EMPREENDIMENTOS IMOBILIARIOS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "71-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "DAMASCENO PARTICIPACOES LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\DAMASCENO PARTICIPACOES LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "15-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "DAUTO TINTAS LTDA EPP",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\DAUTO TINTAS LTDA EPP",
+      "qtd_arquivos": 1,
+      "arquivos": "52-AGENCIANET.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "DAUTO TINTAS PARACATU LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\DAUTO TINTAS PARACATU LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "205-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "DAUTO TINTAS SERVICOS E PRODUTOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\DAUTO TINTAS SERVICOS E PRODUTOS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "44-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "DIAS & DIAS DISTRIBUICAO E REPRESENTACAO COMERCIAL LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\DIAS & DIAS DISTRIBUICAO E REPRESENTACAO COMERCIAL LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "28-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "DIGITAL COMERCIO COSMETICOS BRASIL LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\DIGITAL COMERCIO COSMETICOS BRASIL LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "74-AGENCIANET.pdf, 74-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "136-AGENCIANET.pdf, 136-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "DT TINTAS COMERCIO VAREJISTA LIMITADA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\DT TINTAS COMERCIO VAREJISTA LIMITADA",
+      "qtd_arquivos": 7,
+      "arquivos": "104-ECAC.pdf, 14-AGENCIANET.pdf, 14-ECAC.pdf, 75-AGENCIANET.pdf, 75-ECAC.pdf, 79-AGENCIANET.pdf, 79-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "E-COMMERCE.ONLINE COSMETICOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\E-COMMERCE.ONLINE COSMETICOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "31-AGENCIANET.pdf, 31-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "EGAPLAST - ARTEFATOS E COMERCIO DE PLASTICOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\EGAPLAST - ARTEFATOS E COMERCIO DE PLASTICOS LTDA",
+      "qtd_arquivos": 3,
+      "arquivos": "37-AGENCIANET.pdf, 37-ECAC.pdf, 61-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "ETICA COMERCIO VAREJISTA DE TINTAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\ETICA COMERCIO VAREJISTA DE TINTAS LTDA",
+      "qtd_arquivos": 3,
+      "arquivos": "56-AGENCIANET.pdf, 56-ECAC.pdf, 92-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "EVO COMERCIO DE PRODUTOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\EVO COMERCIO DE PRODUTOS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "126-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "EXITO CONTABILIDADE LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\EXITO CONTABILIDADE LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "08-AGENCIANET.pdf, 08-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "FERNANDES COMERCIO E SERVICO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\FERNANDES COMERCIO E SERVICO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "10-AGENCIANET.pdf, 10-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "GABRIELA FARIAS SOCIEDADE INDIVIDUAL DE ADVOCACIA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\GABRIELA FARIAS SOCIEDADE INDIVIDUAL DE ADVOCACIA",
+      "qtd_arquivos": 2,
+      "arquivos": "159-AGENCIANET.pdf, 159-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "GALLUS FRANGO AMERICANO E HAMBURGUERIA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\GALLUS FRANGO AMERICANO E HAMBURGUERIA LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "35-AGENCIANET.pdf, 35-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "GUARDANAPOS DU LANCHE LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\GUARDANAPOS DU LANCHE LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "94-AGENCIANET.pdf, 94-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "GUARDIAN SUPERFICIES LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\GUARDIAN SUPERFICIES LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "135-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "HF COMERCIO DE ALIMENTOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\HF COMERCIO DE ALIMENTOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "142-AGENCIANET.pdf, 142-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "I SEE LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\I SEE LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "226-ECAC.pdf, 95-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "I. M. DAMASCENO MEDICA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\I. M. DAMASCENO MEDICA",
+      "qtd_arquivos": 5,
+      "arquivos": "03-AGENCIANET.pdf, 03-ECAC.pdf, 04-AGENCIANET.pdf, 04-ECAC.pdf, 25-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "IARA LIANDRO DO NASCIMENTO COUTINHO",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\IARA LIANDRO DO NASCIMENTO COUTINHO",
+      "qtd_arquivos": 2,
+      "arquivos": "105-AGENCIANET.pdf, 105-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "INCORPORACAO DE EMPREENDIMENTOS IMOBILIARIOS SEIXAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\INCORPORACAO DE EMPREENDIMENTOS IMOBILIARIOS SEIXAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "41-AGENCIANET.pdf, 41-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "J C DOS SANTOS RIBEIRO BARBEARIA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\J C DOS SANTOS RIBEIRO BARBEARIA LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "106-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "JD SERVICOS E TRANSPORTE LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\JD SERVICOS E TRANSPORTE LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "76-AGENCIANET.pdf, 76-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "JOSE EVANGELISTA DE SOUSA LINO 14527081187",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\JOSE EVANGELISTA DE SOUSA LINO 14527081187",
+      "qtd_arquivos": 1,
+      "arquivos": "06-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "JPG - PRODUTOS FUNCIONAIS E NUTRICIONAIS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\JPG - PRODUTOS FUNCIONAIS E NUTRICIONAIS LTDA",
+      "qtd_arquivos": 8,
+      "arquivos": "711-AGENCIANET.pdf, 711-ECAC.pdf, 712-ECAC.pdf, 713-ECAC.pdf, 81-ECAC.pdf, 82-ECAC.pdf, 90-ECAC.pdf, 98-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "KANNEL PORTAS AUTOMATICAS COMERCIO E SERVICOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\KANNEL PORTAS AUTOMATICAS COMERCIO E SERVICOS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "166-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "LH PORTAS AUTOMATICAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\LH PORTAS AUTOMATICAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "40-AGENCIANET.pdf, 40-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "LJ FERRAMENTAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\LJ FERRAMENTAS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "148-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "LOJA DAS MAQUINAS E FERRAMENTAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\LOJA DAS MAQUINAS E FERRAMENTAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "96-AGENCIANET.pdf, 96-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "LOJA VIRTUAL DE COSMETICOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\LOJA VIRTUAL DE COSMETICOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "72-AGENCIANET.pdf, 72-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "LOJAO DAS FERRAMENTAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\LOJAO DAS FERRAMENTAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "149-AGENCIANET.pdf, 149-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "MERCADO DAS TINTAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\MERCADO DAS TINTAS LTDA",
+      "qtd_arquivos": 5,
+      "arquivos": "67-AGENCIANET.pdf, 67-ECAC.pdf, 68-ECAC.pdf, 69-AGENCIANET.pdf, 69-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "MERCADO RPG MINIATURAS E ACESSORIOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\MERCADO RPG MINIATURAS E ACESSORIOS LTDA",
+      "qtd_arquivos": 4,
+      "arquivos": "12-ECAC.pdf, 184-AGENCIANET.pdf, 190-AGENCIANET.pdf, 190-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "MESOCLINIC ESTETICA AVANCADA DE COSMETICOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\MESOCLINIC ESTETICA AVANCADA DE COSMETICOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "48-AGENCIANET.pdf, 48-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "MV COMERCIO E DISTRIBUICAO DE VIDROS E ACESSORIOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\MV COMERCIO E DISTRIBUICAO DE VIDROS E ACESSORIOS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "217-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "NEXXUS ASSESSORIA DIGITAL LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\NEXXUS ASSESSORIA DIGITAL LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "129-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "ODONTOMOTA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\ODONTOMOTA LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "137-AGENCIANET.pdf, 137-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "RENAPRA ENGENHARIA E REFORMAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\RENAPRA ENGENHARIA E REFORMAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "109-AGENCIANET.pdf, 109-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "ROTA 040 EMBALAGENS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\ROTA 040 EMBALAGENS LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "103-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "SERVICOS DE SAUDE TJL LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\SERVICOS DE SAUDE TJL LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "207-AGENCIANET.pdf, 207-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "SERVICOS MEDICOS TJ LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\SERVICOS MEDICOS TJ LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "183-AGENCIANET.pdf, 183-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "SO TEMPERO AGROINDUSTRIA LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\SO TEMPERO AGROINDUSTRIA LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "20-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "STEEL PORTAS DE ACO AUTOMATICAS DE ENROLAR LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\STEEL PORTAS DE ACO AUTOMATICAS DE ENROLAR LTDA",
+      "qtd_arquivos": 1,
+      "arquivos": "128-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "STUDIO 35 COMERCIO DE CALCADOS E BOLSAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\STUDIO 35 COMERCIO DE CALCADOS E BOLSAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "29-AGENCIANET.pdf, 29-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "SUPER ARMAZEM 2 GRS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\SUPER ARMAZEM 2 GRS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "121-ECAC.pdf, 127-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "SUPER ARMAZEM GRS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\SUPER ARMAZEM GRS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "122-ECAC.pdf, 125-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "TAVARES SOBRADINHO COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\TAVARES SOBRADINHO COMERCIO DE MATERIAIS DE CONSTRUCAO LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "73-AGENCIANET.pdf, 73-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "TBQ HOLDINGS & INVESTIMENTOS GESTORA DE PARTICIPACOES SOCIEDADE LIMITADA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\TBQ HOLDINGS & INVESTIMENTOS GESTORA DE PARTICIPACOES SOCIEDADE LIMITADA",
+      "qtd_arquivos": 1,
+      "arquivos": "32-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "THALES FACCIN PRESTACAO DE SERVICOS EM TREINAMENTOS E CONSULTORIA NUTRICIONAL LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\THALES FACCIN PRESTACAO DE SERVICOS EM TREINAMENTOS E CONSULTORIA NUTRICIONAL LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "219-AGENCIANET.pdf, 219-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "THE MINAS GASTRO BAR LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\THE MINAS GASTRO BAR LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "21-AGENCIANET.pdf, 21-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "TQB HOLDINGS & INVESTIMENTOS GESTORA DE PARTICIPACOES SOCIEDADE LIMITADA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\TQB HOLDINGS & INVESTIMENTOS GESTORA DE PARTICIPACOES SOCIEDADE LIMITADA",
+      "qtd_arquivos": 1,
+      "arquivos": "33-ECAC.pdf"
+    },
+    {
+      "classe": "COM_PENDENCIA",
+      "pasta_raiz": "pendencias",
+      "empresa": "UNICA ATACADISTA DE TINTAS E COMPLEMENTOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\pendencias\\UNICA ATACADISTA DE TINTAS E COMPLEMENTOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "46-AGENCIANET.pdf, 46-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "UTIL PLANEJAMENTOS ADMINISTRATIVOS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\UTIL PLANEJAMENTOS ADMINISTRATIVOS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "16-AGENCIANET.pdf, 16-ECAC.pdf"
+    },
+    {
+      "classe": "SEM_PENDENCIA",
+      "pasta_raiz": "sem_pendencias",
+      "empresa": "V&T COMERCIO VAREJISTA DE TINTAS LTDA",
+      "cnpj": "",
+      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\sem_pendencias\\V&T COMERCIO VAREJISTA DE TINTAS LTDA",
+      "qtd_arquivos": 2,
+      "arquivos": "150-ECAC.pdf, 45-ECAC.pdf"
+    }
+  ]
+}

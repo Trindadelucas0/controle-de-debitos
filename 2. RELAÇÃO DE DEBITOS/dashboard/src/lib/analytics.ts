@@ -1,0 +1,272 @@
+import type { DebitoLinha, Empresa, Esfera, Totais, TotaisGerais } from "@/lib/types";
+
+export const ESFERA_COLORS: Record<Esfera, string> = {
+  federal: "#2563eb",
+  estadual: "#0d9488",
+  municipal: "#ea580c",
+};
+
+export const ESFERA_LABELS: Record<Esfera, string> = {
+  federal: "Federal",
+  estadual: "Estadual",
+  municipal: "Municipal",
+};
+
+/** Fonte oficial de cada esfera (regra de negócio). */
+export const ESFERA_FONTES: Record<Esfera, string> = {
+  federal: "ECAC · Receita Federal",
+  estadual: "Agenci@Net",
+  municipal: "Relatório da Prefeitura",
+};
+
+const EMPTY: Totais = {
+  original: 0,
+  saldo: 0,
+  multa: 0,
+  juros: 0,
+  consolidado: 0,
+};
+
+/** Empresas com documento na esfera (visão filtrada do portfólio). */
+export function empresasNaEsfera(empresas: Empresa[], esfera: Esfera): Empresa[] {
+  return empresas.filter((empresa) => (empresa.esferas?.[esfera]?.qtdDocs ?? 0) > 0);
+}
+
+function totaisDaEmpresa(empresa: Empresa, esfera?: Esfera | null): Totais {
+  if (!esfera) return empresa.totais;
+  return empresa.esferas?.[esfera]?.totais ?? emptyTotais();
+}
+
+function statusDaEmpresa(
+  empresa: Empresa,
+  esfera?: Esfera | null,
+): "pendencia" | "regular" | "outro" {
+  if (!esfera) {
+    return empresa.status === "pendencia" ? "pendencia" : "regular";
+  }
+  const status = empresa.esferas?.[esfera]?.status;
+  if (status === "pendencia") return "pendencia";
+  if (status === "regular") return "regular";
+  return "outro";
+}
+
+/** KPIs do dashboard — globais ou recortados por esfera. */
+export function buildTotaisGerais(
+  empresas: Empresa[],
+  esfera?: Esfera | null,
+): TotaisGerais {
+  const base = esfera ? empresasNaEsfera(empresas, esfera) : empresas;
+  const pendentes = base.filter((e) => statusDaEmpresa(e, esfera) === "pendencia");
+  const regulares = base.filter((e) => statusDaEmpresa(e, esfera) === "regular");
+
+  const saldo = round2(base.reduce((sum, e) => sum + totaisDaEmpresa(e, esfera).saldo, 0));
+  const consolidado = round2(
+    base.reduce((sum, e) => sum + totaisDaEmpresa(e, esfera).consolidado, 0),
+  );
+
+  const docsFor = (key: Esfera) =>
+    empresas.reduce((sum, e) => sum + (e.esferas?.[key]?.qtdDocs ?? 0), 0);
+
+  return {
+    empresas: base.length,
+    com_pendencia: pendentes.length,
+    regulares: regulares.length,
+    saldo,
+    consolidado,
+    docs_federal: esfera ? (esfera === "federal" ? docsFor("federal") : 0) : docsFor("federal"),
+    docs_estadual: esfera ? (esfera === "estadual" ? docsFor("estadual") : 0) : docsFor("estadual"),
+    docs_municipal: esfera
+      ? esfera === "municipal"
+        ? docsFor("municipal")
+        : 0
+      : docsFor("municipal"),
+  };
+}
+
+export function buildPortfolioAnalytics(empresas: Empresa[], esfera?: Esfera | null) {
+  const base = esfera ? empresasNaEsfera(empresas, esfera) : empresas;
+  const esferasChart: Esfera[] = esfera
+    ? [esfera]
+    : (["federal", "estadual", "municipal"] as Esfera[]);
+
+  const porEsfera = esferasChart.map((key) => {
+    const consolidado = empresas.reduce(
+      (sum, empresa) => sum + (empresa.esferas?.[key]?.totais?.consolidado ?? 0),
+      0,
+    );
+    const saldo = empresas.reduce(
+      (sum, empresa) => sum + (empresa.esferas?.[key]?.totais?.saldo ?? 0),
+      0,
+    );
+    const docs = empresas.reduce(
+      (sum, empresa) => sum + (empresa.esferas?.[key]?.qtdDocs ?? 0),
+      0,
+    );
+    return {
+      esfera: key,
+      label: ESFERA_LABELS[key],
+      consolidado: round2(consolidado),
+      saldo: round2(saldo),
+      docs,
+      fill: ESFERA_COLORS[key],
+    };
+  });
+
+  const composicao = (() => {
+    const totals = base.reduce(
+      (acc, empresa) => {
+        const t = totaisDaEmpresa(empresa, esfera);
+        acc.saldo += t.saldo;
+        acc.multa += t.multa;
+        acc.juros += t.juros;
+        return acc;
+      },
+      { saldo: 0, multa: 0, juros: 0 },
+    );
+    return [
+      { name: "Saldo", value: round2(totals.saldo), fill: "#2563eb" },
+      { name: "Multa", value: round2(totals.multa), fill: "#d97706" },
+      { name: "Juros", value: round2(totals.juros), fill: "#dc2626" },
+    ].filter((item) => item.value > 0);
+  })();
+
+  const pendentes = base.filter((e) => statusDaEmpresa(e, esfera) === "pendencia");
+  const regulares = base.filter((e) => statusDaEmpresa(e, esfera) === "regular");
+
+  const statusDonut = [
+    {
+      name: "Pendência",
+      value: pendentes.length,
+      saldo: round2(pendentes.reduce((s, e) => s + totaisDaEmpresa(e, esfera).saldo, 0)),
+      consolidado: round2(
+        pendentes.reduce((s, e) => s + totaisDaEmpresa(e, esfera).consolidado, 0),
+      ),
+      fill: "#d97706",
+    },
+    {
+      name: "Regular",
+      value: regulares.length,
+      saldo: 0,
+      consolidado: 0,
+      fill: "#059669",
+    },
+  ];
+
+  const topEmpresas = [...base]
+    .map((e) => {
+      const t = totaisDaEmpresa(e, esfera);
+      const status = statusDaEmpresa(e, esfera);
+      return {
+        id: e.id,
+        nome: truncate(e.nome, 28),
+        nomeCompleto: e.nome,
+        consolidado: t.consolidado,
+        saldo: t.saldo,
+        status: status === "outro" ? e.status : status,
+      };
+    })
+    .filter((e) => e.consolidado > 0 || e.status === "pendencia")
+    .sort((a, b) => b.consolidado - a.consolidado)
+    .slice(0, 10);
+
+  const tipoCount = new Map<string, { count: number; consolidado: number }>();
+  for (const empresa of base) {
+    const debitos = esfera
+      ? empresa.debitos.filter((d) => (d.esfera ?? inferEsferaDebito(d)) === esfera)
+      : empresa.debitos;
+
+    if (esfera) {
+      const receitaCount = new Map<string, number>();
+      for (const debito of debitos) {
+        const key = debito.receita || "Outros";
+        receitaCount.set(key, (receitaCount.get(key) ?? 0) + debito.consolidado);
+      }
+      for (const [tipo, consolidado] of receitaCount) {
+        const current = tipoCount.get(tipo) ?? { count: 0, consolidado: 0 };
+        current.count += 1;
+        current.consolidado += consolidado;
+        tipoCount.set(tipo, current);
+      }
+      continue;
+    }
+
+    for (const tipo of empresa.tipos ?? []) {
+      const current = tipoCount.get(tipo) ?? { count: 0, consolidado: 0 };
+      current.count += 1;
+      current.consolidado += empresa.totais.consolidado / Math.max(empresa.tipos.length, 1);
+      tipoCount.set(tipo, current);
+    }
+  }
+
+  const porTipo = [...tipoCount.entries()]
+    .map(([tipo, data]) => ({
+      tipo: truncate(tipo, 24),
+      tipoCompleto: tipo,
+      count: data.count,
+      consolidado: round2(data.consolidado),
+    }))
+    .sort((a, b) => b.count - a.count || b.consolidado - a.consolidado)
+    .slice(0, 8);
+
+  return { porEsfera, composicao, statusDonut, topEmpresas, porTipo };
+}
+
+function inferEsferaDebito(debito: DebitoLinha): Esfera | null {
+  if (debito.esfera) return debito.esfera;
+  const origem = (debito.origem || "").toUpperCase();
+  if (origem.includes("ECAC") || origem.includes("FEDERAL")) return "federal";
+  if (origem.includes("AGENCI") || origem.includes("ESTADUAL")) return "estadual";
+  if (origem.includes("MUNICIP") || origem.includes("PREFEITURA")) return "municipal";
+  return null;
+}
+
+export function buildEmpresaAnalytics(empresa: Empresa) {
+  const composicao = [
+    { name: "Saldo", value: empresa.totais.saldo, fill: "#2563eb" },
+    { name: "Multa", value: empresa.totais.multa, fill: "#d97706" },
+    { name: "Juros", value: empresa.totais.juros, fill: "#dc2626" },
+  ].filter((item) => item.value > 0);
+
+  const porEsfera = (["federal", "estadual", "municipal"] as Esfera[]).map((esfera) => {
+    const bucket = empresa.esferas?.[esfera];
+    return {
+      esfera,
+      label: ESFERA_LABELS[esfera],
+      consolidado: bucket?.totais?.consolidado ?? 0,
+      saldo: bucket?.totais?.saldo ?? 0,
+      docs: bucket?.qtdDocs ?? 0,
+      fill: ESFERA_COLORS[esfera],
+    };
+  });
+
+  const topReceitas = aggregateReceitas(empresa.debitos).slice(0, 8);
+
+  return { composicao, porEsfera, topReceitas };
+}
+
+function aggregateReceitas(debitos: DebitoLinha[]) {
+  const map = new Map<string, number>();
+  for (const debito of debitos) {
+    map.set(debito.receita, (map.get(debito.receita) ?? 0) + debito.consolidado);
+  }
+  return [...map.entries()]
+    .map(([receita, consolidado]) => ({
+      receita: truncate(receita, 30),
+      receitaCompleta: receita,
+      consolidado: round2(consolidado),
+    }))
+    .sort((a, b) => b.consolidado - a.consolidado);
+}
+
+export function emptyTotais(): Totais {
+  return { ...EMPTY };
+}
+
+function round2(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function truncate(value: string, max: number) {
+  if (value.length <= max) return value;
+  return `${value.slice(0, max - 1)}…`;
+}

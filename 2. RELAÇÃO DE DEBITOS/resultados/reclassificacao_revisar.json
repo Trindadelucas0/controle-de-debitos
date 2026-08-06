@@ -1,0 +1,235 @@
+{
+  "resumo_geral": {
+    "COM_PENDENCIA": 43,
+    "SEM_PENDENCIA": 61
+  },
+  "moves": [
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\14-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\14-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\14-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\14-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\14-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\14-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\14-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\14-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\37-EGAPLAST_-_ARTEFATOS_E_COMERCIO_DE_PLASTICOS_LTDA\\37-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\37-EGAPLAST_-_ARTEFATOS_E_COMERCIO_DE_PLASTICOS_LTDA\\37-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\37-EGAPLAST_-_ARTEFATOS_E_COMERCIO_DE_PLASTICOS_LTDA\\37-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\37-EGAPLAST_-_ARTEFATOS_E_COMERCIO_DE_PLASTICOS_LTDA\\37-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\46-UNICA_ATACADISTA_DE_TINTAS_E_COMPLEMENTOS_LTDA\\46-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\46-UNICA_ATACADISTA_DE_TINTAS_E_COMPLEMENTOS_LTDA\\46-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\46-UNICA_ATACADISTA_DE_TINTAS_E_COMPLEMENTOS_LTDA\\46-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\46-UNICA_ATACADISTA_DE_TINTAS_E_COMPLEMENTOS_LTDA\\46-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\59-AUTOBRAS_COMERCIO_DE_IMPORTACAO_E_EXPORTACAO_DE_PRODUTOS_LTDA\\59-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\59-AUTOBRAS_COMERCIO_DE_IMPORTACAO_E_EXPORTACAO_DE_PRODUTOS_LTDA\\59-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\59-AUTOBRAS_COMERCIO_DE_IMPORTACAO_E_EXPORTACAO_DE_PRODUTOS_LTDA\\59-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\59-AUTOBRAS_COMERCIO_DE_IMPORTACAO_E_EXPORTACAO_DE_PRODUTOS_LTDA\\59-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\75-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\75-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\75-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\75-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\75-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\75-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\75-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\75-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\76-JD_SERVICOS_E_TRANSPORTE_LTDA\\76-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\76-JD_SERVICOS_E_TRANSPORTE_LTDA\\76-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\76-JD_SERVICOS_E_TRANSPORTE_LTDA\\76-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\76-JD_SERVICOS_E_TRANSPORTE_LTDA\\76-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\79-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\79-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\79-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\79-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\79-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\79-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\79-DT_TINTAS_COMERCIO_VAREJISTA_LIMITADA\\79-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\86-AF_DA_SILVA_REPRESENTACAO\\86-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\86-AF_DA_SILVA_REPRESENTACAO\\86-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\86-AF_DA_SILVA_REPRESENTACAO\\86-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\86-AF_DA_SILVA_REPRESENTACAO\\86-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\94-GUARDANAPOS_DU_LANCHE_LTDA\\94-AGENCIANET.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\94-GUARDANAPOS_DU_LANCHE_LTDA\\94-AGENCIANET.pdf",
+      "classe": "COM_PENDENCIA"
+    },
+    {
+      "from": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\94-GUARDANAPOS_DU_LANCHE_LTDA\\94-ECAC.pdf",
+      "to": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\94-GUARDANAPOS_DU_LANCHE_LTDA\\94-ECAC.pdf",
+      "classe": "COM_PENDENCIA"
+    }
+  ],
+  "segunda_passagem": true,
+  "itens": [
+    {
+      "codigo": "22",
+      "classe": "SEM_PENDENCIA",
+      "tipos": [],
+      "empresa": "AQB HOLDINGS & INVESTIMENTOS GESTORA DE PARTICIPACOES SOCIEDADE",
+      "cnpj": "57.674.391/0001-47",
+      "motivo": "consenso_multi_modo",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\22-AQB_HOLDINGS_&_INVESTIMENTOS_GESTORA_DE_PARTICIPACOES_SOCIEDADE"
+    },
+    {
+      "codigo": "48",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "INSCRICAO_SUSPENSA",
+        "PARCELAMENTO_SUSPENSO",
+        "ESTADUAL_CERTIDAO_POSITIVA_ESTADUAL"
+      ],
+      "empresa": "MESOCLINIC ESTETICA AVANCADA DE COSMETICOS LTDA",
+      "cnpj": "37.116.516",
+      "motivo": "ecac=COM_PENDENCIA;estadual=COM_PENDENCIA",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\48-MESOCLINIC_ESTETICA_AVANCADA_DE_COSMETICOS_LTDA"
+    },
+    {
+      "codigo": "52",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "CERTIDAO_POSITIVA_ESTADUAL"
+      ],
+      "empresa": null,
+      "cnpj": "01969415000130",
+      "motivo": "consenso_multi_modo",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\52-SEM_NOME"
+    },
+    {
+      "codigo": "67",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "DEBITO_SUSPENSO",
+        "INSCRICAO_SUSPENSA",
+        "PARCELAMENTO_SUSPENSO"
+      ],
+      "empresa": "MERCADO DAS TINTAS LTDA",
+      "cnpj": "72.628.407",
+      "motivo": "ecac=COM_PENDENCIA;estadual=SEM_PENDENCIA",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\67-MERCADO_DAS_TINTAS_LTDA"
+    },
+    {
+      "codigo": "68",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "DEBITO_SUSPENSO",
+        "INSCRICAO_SUSPENSA",
+        "PARCELAMENTO_SUSPENSO"
+      ],
+      "empresa": "MERCADO DAS TINTAS LTDA",
+      "cnpj": "72.628.407",
+      "motivo": "consenso_multi_modo",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\68-MERCADO_DAS_TINTAS_LTDA"
+    },
+    {
+      "codigo": "69",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "DEBITO_SUSPENSO",
+        "INSCRICAO_SUSPENSA",
+        "PARCELAMENTO_SUSPENSO"
+      ],
+      "empresa": "MERCADO DAS TINTAS LTDA",
+      "cnpj": "72.628.407",
+      "motivo": "ecac=COM_PENDENCIA;estadual=SEM_PENDENCIA",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\69-MERCADO_DAS_TINTAS_LTDA"
+    },
+    {
+      "codigo": "80",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "DEBITO_SUSPENSO",
+        "INSCRICAO_SUSPENSA",
+        "PARCELAMENTO_SUSPENSO"
+      ],
+      "empresa": "COMERCIAL AVICOLA PROGRESSO LTDA",
+      "cnpj": "00.598.375",
+      "motivo": "ecac=COM_PENDENCIA;estadual=SEM_PENDENCIA",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\80-COMERCIAL_AVICOLA_PROGRESSO_LTDA"
+    },
+    {
+      "codigo": "91",
+      "classe": "SEM_PENDENCIA",
+      "tipos": [],
+      "empresa": null,
+      "cnpj": "42566500000135",
+      "motivo": "consenso_multi_modo",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\91-SEM_NOME"
+    },
+    {
+      "codigo": "163",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "ESTADUAL_CERTIDAO_POSITIVA_ESTADUAL"
+      ],
+      "empresa": "ANW PARTICIPACOES SOCIETARIAS LTDA",
+      "cnpj": "45.618.559/0001-18",
+      "motivo": "ecac=SEM_PENDENCIA;estadual=COM_PENDENCIA",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\163-ANW_PARTICIPACOES_SOCIETARIAS_LTDA"
+    },
+    {
+      "codigo": "168",
+      "classe": "SEM_PENDENCIA",
+      "tipos": [],
+      "empresa": "BEM MAIS TECNOLOGIA E SEGURANCA LTDA",
+      "cnpj": "46.605.471/0001-24",
+      "motivo": "consenso_multi_modo",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\168-BEM_MAIS_TECNOLOGIA_E_SEGURANCA_LTDA"
+    },
+    {
+      "codigo": "184",
+      "classe": "COM_PENDENCIA",
+      "tipos": [
+        "CERTIDAO_POSITIVA_ESTADUAL"
+      ],
+      "empresa": null,
+      "cnpj": "28367143000155",
+      "motivo": "consenso_multi_modo",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\COM_PENDENCIA\\184-SEM_NOME"
+    },
+    {
+      "codigo": "211",
+      "classe": "SEM_PENDENCIA",
+      "tipos": [],
+      "empresa": null,
+      "cnpj": "27261063000158",
+      "motivo": "consenso_multi_modo",
+      "destino": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\07-2026\\SEM_PENDENCIA\\211-SEM_NOME"
+    }
+  ]
+}

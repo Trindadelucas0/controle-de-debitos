@@ -1,0 +1,43 @@
+COMO RODAR (PowerShell)
+
+== Dashboard Next.js ==
+
+O app roda em caminho ASCII (npm no Windows falha com "RELAÇÃO" no path):
+
+cd "C:\Users\trind\Downloads\debitos-dashboard"
+npm install
+npm run dev
+
+Abrir: http://localhost:3000
+
+Na home: KPIs + gráficos (esfera, risco, top 10, tipos) e tabela com badges F/E/M.
+No detalhe: abas Federal / Estadual / Municipal + gráficos da empresa + Baixar PDF.
+
+Atualizar dados a partir dos PDFs:
+cd "C:\Users\trind\Downloads\2. RELAÇÃO DE DEBITOS\scripts"
+python build_dashboard_data.py
+
+(ou, se houver script npm data no debitos-dashboard: npm run data)
+
+== Extração Agenci@Net (OCR) ==
+
+PDFs Agenci@Net costumam ser imagem/CID. Para extrair linhas estaduais/municipais:
+
+1. Instale Tesseract OCR para Windows:
+   https://github.com/UB-Mannheim/tesseract/wiki
+   Marque o idioma Portuguese (por) na instalação.
+2. Garanta que tesseract.exe esteja no PATH.
+3. pip install -r scripts\requirements-debitos.txt
+
+Sem Tesseract, o ECAC (federal) continua funcionando; Agenci@Net fica só com aviso.
+
+== Pastas de PDFs ==
+
+.\2. RELAÇÃO DE DEBITOS\07-2026\pendencias\<NOME DA EMPRESA>\
+.\2. RELAÇÃO DE DEBITOS\07-2026\sem_pendencias\<NOME DA EMPRESA>\
+
+== Fontes do app ==
+
+Código-fonte também em:
+.\dashboard\   (espelho; execução preferencial em debitos-dashboard)
+.\dashboard\data\empresas.json

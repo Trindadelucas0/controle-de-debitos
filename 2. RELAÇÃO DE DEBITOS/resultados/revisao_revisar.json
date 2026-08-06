@@ -1,0 +1,424 @@
+[
+  {
+    "codigo": "22",
+    "arquivo": "22-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "57.674.391/0001-47",
+    "empresa": null,
+    "scores": {
+      "pypdf": 7,
+      "pdfplumber": 7,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "48",
+    "arquivo": "48-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "37116516000106",
+    "empresa": null,
+    "scores": {
+      "pypdf": 5,
+      "pdfplumber": 5,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "48",
+    "arquivo": "48-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [
+      "EXIGIBILIDADE_SUSPENSA"
+    ],
+    "cnpj": "37.116.516",
+    "empresa": "MESOCLINIC ESTETICA AVANCADA DE COSMETICOS LTDA",
+    "scores": {
+      "pypdf": 10,
+      "pdfplumber": 10,
+      "pymupdf": 10,
+      "zlib_literals": 10,
+      "cid_utf16_interleaved": 10
+    },
+    "markers_merged": [
+      "exigibilidade suspensa",
+      "inscricao com exigibilidade",
+      "parcelamento com exigibilidade",
+      "certidao positiva",
+      "diagnostico fiscal",
+      "cnpj",
+      "devedor"
+    ]
+  },
+  {
+    "codigo": "52",
+    "arquivo": "52-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "01969415000130",
+    "empresa": null,
+    "scores": {
+      "pypdf": 7,
+      "pdfplumber": 7,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "67",
+    "arquivo": "67-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "72628407000179",
+    "empresa": null,
+    "scores": {
+      "pypdf": 5,
+      "pdfplumber": 5,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "67",
+    "arquivo": "67-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [
+      "EXIGIBILIDADE_SUSPENSA"
+    ],
+    "cnpj": "72.628.407",
+    "empresa": "MERCADO DAS TINTAS LTDA",
+    "scores": {
+      "pypdf": 10,
+      "pdfplumber": 10,
+      "pymupdf": 10,
+      "zlib_literals": 10,
+      "cid_utf16_interleaved": 10
+    },
+    "markers_merged": [
+      "exigibilidade suspensa",
+      "debito com exigibilidade",
+      "inscricao com exigibilidade",
+      "parcelamento com exigibilidade",
+      "certidao positiva",
+      "diagnostico fiscal",
+      "cnpj",
+      "sdo.devedor",
+      "devedor"
+    ]
+  },
+  {
+    "codigo": "68",
+    "arquivo": "68-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [
+      "EXIGIBILIDADE_SUSPENSA"
+    ],
+    "cnpj": "72.628.407",
+    "empresa": "MERCADO DAS TINTAS LTDA",
+    "scores": {
+      "pypdf": 10,
+      "pdfplumber": 10,
+      "pymupdf": 10,
+      "zlib_literals": 10,
+      "cid_utf16_interleaved": 10
+    },
+    "markers_merged": [
+      "exigibilidade suspensa",
+      "debito com exigibilidade",
+      "inscricao com exigibilidade",
+      "parcelamento com exigibilidade",
+      "certidao positiva",
+      "diagnostico fiscal",
+      "cnpj",
+      "sdo.devedor",
+      "devedor"
+    ]
+  },
+  {
+    "codigo": "69",
+    "arquivo": "69-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "72628407000330",
+    "empresa": null,
+    "scores": {
+      "pypdf": 5,
+      "pdfplumber": 5,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "69",
+    "arquivo": "69-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [
+      "EXIGIBILIDADE_SUSPENSA"
+    ],
+    "cnpj": "72.628.407",
+    "empresa": "MERCADO DAS TINTAS LTDA",
+    "scores": {
+      "pypdf": 10,
+      "pdfplumber": 10,
+      "pymupdf": 10,
+      "zlib_literals": 10,
+      "cid_utf16_interleaved": 10
+    },
+    "markers_merged": [
+      "exigibilidade suspensa",
+      "debito com exigibilidade",
+      "inscricao com exigibilidade",
+      "parcelamento com exigibilidade",
+      "certidao positiva",
+      "diagnostico fiscal",
+      "cnpj",
+      "sdo.devedor",
+      "devedor"
+    ]
+  },
+  {
+    "codigo": "80",
+    "arquivo": "80-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "00598375000103",
+    "empresa": null,
+    "scores": {
+      "pypdf": 5,
+      "pdfplumber": 5,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "80",
+    "arquivo": "80-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [
+      "EXIGIBILIDADE_SUSPENSA"
+    ],
+    "cnpj": "00.598.375",
+    "empresa": "COMERCIAL AVICOLA PROGRESSO LTDA",
+    "scores": {
+      "pypdf": 10,
+      "pdfplumber": 10,
+      "pymupdf": 10,
+      "zlib_literals": 10,
+      "cid_utf16_interleaved": 10
+    },
+    "markers_merged": [
+      "exigibilidade suspensa",
+      "debito com exigibilidade",
+      "inscricao com exigibilidade",
+      "parcelamento com exigibilidade",
+      "certidao positiva",
+      "diagnostico fiscal",
+      "cnpj",
+      "sdo.devedor",
+      "devedor"
+    ]
+  },
+  {
+    "codigo": "91",
+    "arquivo": "91-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "42566500000135",
+    "empresa": null,
+    "scores": {
+      "pypdf": 4,
+      "pdfplumber": 4,
+      "pymupdf": 6,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "163",
+    "arquivo": "163-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "45618559000118",
+    "empresa": null,
+    "scores": {
+      "pypdf": 4,
+      "pdfplumber": 4,
+      "pymupdf": 6,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "163",
+    "arquivo": "163-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "45.618.559/0001-18",
+    "empresa": null,
+    "scores": {
+      "pypdf": 7,
+      "pdfplumber": 7,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "168",
+    "arquivo": "168-ECAC.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "46.605.471/0001-24",
+    "empresa": null,
+    "scores": {
+      "pypdf": 7,
+      "pdfplumber": 7,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "184",
+    "arquivo": "184-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "28367143000155",
+    "empresa": null,
+    "scores": {
+      "pypdf": 5,
+      "pdfplumber": 5,
+      "pymupdf": 7,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao positiva",
+      "cnpj"
+    ]
+  },
+  {
+    "codigo": "211",
+    "arquivo": "211-AGENCIANET.pdf",
+    "consenso": "REVISAR",
+    "tipos": [],
+    "motivo": "sem_modos_uteis",
+    "merged_classe": "REVISAR",
+    "merged_tipos": [],
+    "cnpj": "27261063000158",
+    "empresa": null,
+    "scores": {
+      "pypdf": 4,
+      "pdfplumber": 4,
+      "pymupdf": 6,
+      "zlib_literals": 4,
+      "cid_utf16_interleaved": 4
+    },
+    "markers_merged": [
+      "certidao negativa",
+      "certidao positiva",
+      "cnpj"
+    ]
+  }
+]

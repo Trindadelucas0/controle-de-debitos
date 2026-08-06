@@ -1,0 +1,297 @@
+======================================================================
+EGAPLAST_FILIAL_61 | municipal (1).pdf
+mode=pypdf score=7 len=1606 err=None
+mode=pdfplumber score=7 len=1577 err=None
+mode=pymupdf score=7 len=3165 err=None
+mode=zlib_literals score=4 len=318676 err=None
+mode=cid_utf16_interleaved score=4 len=509964 err=None
+best_mode=pymupdf weak=False
+CNPJ=03.185.564/0002-15 NOME=None
+---TEXT---
+ 
+Portal do Cidadão
+Prefeitura Municipal de Balneário Camboriú
+Consulta de Débitos
+CPF/CNPJ *
+03.185.564/0002-15
+  Pesquisar
+A vencer
+Vencido
+Econômico
+4 parcela(s) em aberto
+k
+Econômico 182509
+RUA 1500, 166 SALA 12 LETRA E, CENTRO - 88.330-522
+h
+TVS-REN
+2026
+R$ 1.650,29
+h
+TLF
+2026
+R$ 952,65
+h
+TAXA ALVARA SANITARIO RENOVAÇÃO
+2025
+R$ 293,56
+h
+TLL
+2025
+R$ 2.433,84
+Total R$ 0,00
+0 parcela(s) z
+Vencimento
+15/06/2026
+(  Guia
+V  Carnê
+15/06/2026, 10:05
+Portal do Cidadão - Prefeitura Municipal de Balneário Camboriú - Consulta de Débitos
+https://cidadao.bc.sc.gov.br/cidadao/balneario_camboriu/portal/servicos/debitos?params=NA%3D%3D
+1/2
+
+
+ 
+Portal do Cidadão
+Prefeitura Municipal de Balneário Camboriú
+Consulta de Débitos
+CPF/CNPJ *
+03.185.564/0002-15
+  Pesquisar
+A vencer
+Vencido
+Econômico
+4 parcela(s) em aberto
+k
+Econômico 182509
+RUA 1500, 166 SALA 12 LETRA E, CENTRO - 88.330-522
+h
+TVS-REN
+2026
+R$ 1.650,29
+h
+TLF
+2026
+R$ 952,65
+h
+TAXA ALVARA SANITARIO RENOVAÇÃO
+2025
+R$ 293,56
+h
+TLL
+2025
+R$ 2.433,84
+Total R$ 0,00
+0 parcela(s) z
+Vencimento
+15/06/2026
+(  Guia
+V  Carnê
+15/06/2026, 10:05
+Portal do Cidadão - Prefeitura Municipal de Balneário Camboriú - Consulta de Débitos
+https://cidadao.bc.sc.gov.br/cidadao/balneario_camboriu/portal/servicos/debitos?params=NA%3D%3D
+1/2
+
+Consultas
+Emissões
+Parcelamento
+Autenticação de Documento
+Processos digitais
+Prefeitura Municipal de Balneário Camboriú
+Rua Dinamarca, 320, Bairro das Nações
+88.338-900 - Balneário Camboriú/SC - (47)3267-7000
+Desenvolvido por Pública Tecnologia.
+Versão: 3.25.00
+Consulta de Débitos
+Consulta de Imóveis
+Consulta de IPTU
+Emissão de Alvará de Licença para Localização
+e Funcionamento
+Emissão de Alvará Sanitário
+Emissão de CND de Contribuinte
+Emissão de CND de Imóveis
+Emissão de Certidão de Baixa Fazenda
+Emissão de Certidão de Quitação de ITBI
+Certidão de Baixa de Atividade / Alvará sanitário
+Parcelamento de Débitos
+NEGOCIA ISS BC/2026
+Validação de Documentos
+Processos Digitais
+Consulta de Processo
+Total R$ 0,00
+0 parcela(s) z
+Vencimento
+15/06/2026, 10:05
+Portal do Cidadão - Prefeitura Municipal de Balneário Camboriú - Consulta de Débitos
+https://cidadao.bc.sc.gov.br/cidadao/balneario_camboriu/portal/servicos/debitos?params=NA%3D%3D
+2/2
+
+
+Consultas
+Emissões
+Parcelamento
+Autenticação de Documento
+Processos digitais
+Prefeitura Municipal de Balneário Camboriú
+Rua Dinamarca, 320, Bairro das Nações
+88.338-900 - Balneário Camboriú/SC - (47)3267-7000
+Desenvolvido por Pública Tecnologia.
+Versão: 3.25.00
+Consulta de Débitos
+Consulta de Imóveis
+Consulta de IPTU
+Emissão de Alvará de Licença para Localização
+e Funcionamento
+Emissão de Alvará Sanitário
+Emissão de CND de Contribuinte
+Emissão de CND de Imóveis
+Emissão de Certidão de Baixa Fazenda
+Emissão de Certidão de Quitação de ITBI
+Certidão de Baixa de Atividade / Alvará sanitário
+Parcelamento de Débitos
+NEGOCIA ISS BC/2026
+Validação de Documentos
+Processos Digitais
+Consulta de Processo
+Total R$ 0,00
+0 parcela(s) z
+Vencimento
+15/06/2026, 10:05
+Portal do Cidadão - Prefeitura Municipal de Balneário Camboriú - Consulta de Débitos
+https://cidadao.bc.sc.gov.br/cidadao/balneario_camboriu/portal/servicos/debitos?params=NA%3D%3D
+2/2
+
+---END---
+FOLD_SAMPLE= portal do cidadao prefeitura municipal de balneario camboriu consulta de debitos cpf/cnpj * 03.185.564/0002-15 pesquisar a vencer vencido economico 4 parcela(s) em aberto k economico 182509 rua 1500, 166 sala 12 letra e, centro - 88.330-522 h tvs-ren 2026 r$ 1.650,29 h tlf 2026 r$ 952,65 h taxa alvara sanitario renovacao 2025 r$ 293,56 h tll 2025 r$ 2.433,84 total r$ 0,00 0 parcela(s) z vencimento 15/06/2026 ( guia v carne 15/06/2026, 10:05 portal do cidadao - prefeitura municipal de balneario camboriu - consulta de debitos https://cidadao.bc.sc.gov.br/cidadao/balneario_camboriu/portal/servicos/debitos?params=na%3d%3d 1/2 portal do cidadao prefeitura municipal de balneario camboriu consulta de debitos cpf/cnpj * 03.185.564/0002-15 pesquisar a vencer vencido economico 4 parcela(s) em aberto k economico 182509 rua 1500, 166 sala 12 letra e, centro - 88.330-522 h tvs-ren 2026 r$ 1.650,29 h tlf 2026 r$ 952,65 h taxa alvara sanitario renovacao 2025 r$ 293,56 h tll 2025 r$ 2.433,84 total r$ 0,00 0 parcela(s) z vencimento 15/06/2026 ( guia v carne 15/06/2026, 10:05 portal do cidadao - prefeitura municipal de balneario camboriu - consulta de debitos https://cidadao.bc.sc.gov.br/cidadao/balneario_camboriu/portal/servicos/debitos?params=na%3d%3d 1/2 consultas emissoes parcelamento autenticacao de documento processos digitais prefeitura municipal de balneario camboriu rua dinamarca, 320, bairro das nacoes 88.338-900 - balneario camboriu/sc - (47)3267-7000 desenvolvido por publica tecnologia. versao: 3.25.00 consulta de debitos consulta de imoveis consulta de iptu emissao de alvara de licenca para localizacao e funcionamento emissao de alvara sanitario emissao de cnd de contribuinte emissao de cnd de imoveis emissao de certidao de baixa fazenda emissao de certidao de quitacao de itbi certidao de baixa de atividade / alvara sanitario parcelamento de debitos negocia iss bc/2026 validacao de documentos processos digitais consulta de processo total r$ 0,00 0 parcela(s) z venciment
+======================================================================
+SO_TEMPERO_UNAI_20 | municipal (2).pdf
+mode=pymupdf score=4 len=1504 err=None
+mode=zlib_literals score=4 len=260246 err=None
+mode=cid_utf16_interleaved score=4 len=445314 err=None
+mode=pdfplumber score=2 len=743 err=None
+mode=pypdf score=1 len=744 err=None
+best_mode=pymupdf weak=False
+CNPJ=09.452.078/0001-11 NOME=None
+---TEXT---
+Extrato de Dívida Ativa
+ 
+Código:
+28214
+Documento:
+09.452.078/0001-11
+Nome:
+RENATO HENRIQUE DIAS -ME
+Endereço:
+AV. JOAO DE ASSIS, 19 DIVINEIA - UNAI - MG CEP: 38.613-536
+ 
+Tipo:
+PARCELAMENTO WEB
+Parcelas:
+Ver todas
+GERAR GUIA DOS ITENS SELECIONADOS
+Extrato de Dívida Ativa
+   Referência
+Título
+Origem
+Parcela
+Data título
+Situação
+Valor inscrito
+Valor Calculado
+2025
+68322/2026
+EXPEDIENTE-
+0000001996
+Única
+28-02-
+2025
+INC
+4,65
+6,32
+2025
+68320/2026
+TAS-0000001996
+Única
+28-02-
+2025
+INC
+91,59
+124,56
+2025
+68321/2026
+TLFL-0000001996
+Única
+28-02-
+2025
+INC
+101,96
+138,66
+Total
+269,54
+15/06/2026, 09:08
+Portal do Cidadão
+https://sistemas.prefeituraunai.mg.gov.br/portalcidadao/#78c3e513dd43cb27d8a3e2f376196ffc656d7ea577b2c6fb627b8ddc80aee443Ĵd4271015…
+1/1
+
+
+Extrato de Dívida Ativa
+ 
+Código:
+28214
+Documento:
+09.452.078/0001-11
+Nome:
+RENATO HENRIQUE DIAS -ME
+Endereço:
+AV. JOAO DE ASSIS, 19 DIVINEIA - UNAI - MG CEP: 38.613-536
+ 
+Tipo:
+PARCELAMENTO WEB
+Parcelas:
+Ver todas
+GERAR GUIA DOS ITENS SELECIONADOS
+Extrato de Dívida Ativa
+   Referência
+Título
+Origem
+Parcela
+Data título
+Situação
+Valor inscrito
+Valor Calculado
+2025
+68322/2026
+EXPEDIENTE-
+0000001996
+Única
+28-02-
+2025
+INC
+4,65
+6,32
+2025
+68320/2026
+TAS-0000001996
+Única
+28-02-
+2025
+INC
+91,59
+124,56
+2025
+68321/2026
+TLFL-0000001996
+Única
+28-02-
+2025
+INC
+101,96
+138,66
+Total
+269,54
+15/06/2026, 09:08
+Portal do Cidadão
+https://sistemas.prefeituraunai.mg.gov.br/portalcidadao/#78c3e513dd43cb27d8a3e2f376196ffc656d7ea577b2c6fb627b8ddc80aee443Ĵd4271015…
+1/1
+
+---END---
+FOLD_SAMPLE=extrato de divida ativa codigo: 28214 documento: 09.452.078/0001-11 nome: renato henrique dias -me endereco: av. joao de assis, 19 divineia - unai - mg cep: 38.613-536 tipo: parcelamento web parcelas: ver todas gerar guia dos itens selecionados extrato de divida ativa referencia titulo origem parcela data titulo situacao valor inscrito valor calculado 2025 68322/2026 expediente- 0000001996 unica 28-02- 2025 inc 4,65 6,32 2025 68320/2026 tas-0000001996 unica 28-02- 2025 inc 91,59 124,56 2025 68321/2026 tlfl-0000001996 unica 28-02- 2025 inc 101,96 138,66 total 269,54 15/06/2026, 09:08 portal do cidadao https://sistemas.prefeituraunai.mg.gov.br/portalcidadao/#78c3e513dd43cb27d8a3e2f376196ffc656d7ea577b2c6fb627b8ddc80aee443jd4271015... 1/1 extrato de divida ativa codigo: 28214 documento: 09.452.078/0001-11 nome: renato henrique dias -me endereco: av. joao de assis, 19 divineia - unai - mg cep: 38.613-536 tipo: parcelamento web parcelas: ver todas gerar guia dos itens selecionados extrato de divida ativa referencia titulo origem parcela data titulo situacao valor inscrito valor calculado 2025 68322/2026 expediente- 0000001996 unica 28-02- 2025 inc 4,65 6,32 2025 68320/2026 tas-0000001996 unica 28-02- 2025 inc 91,59 124,56 2025 68321/2026 tlfl-0000001996 unica 28-02- 2025 inc 101,96 138,66 total 269,54 15/06/2026, 09:08 portal do cidadao https://sistemas.prefeituraunai.mg.gov.br/portalcidadao/#78c3e513dd43cb27d8a3e2f376196ffc656d7ea577b2c6fb627b8ddc80aee443jd4271015... 1/1 

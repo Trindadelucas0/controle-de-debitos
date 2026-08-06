@@ -1,0 +1,104 @@
+Pagar / Parcelar débito(s)
+Consulta de Débitos - Identificação do Contribuinte
+Nome/Razão social:
+INCORPORACAO DE EMPREENDIMENTOS IMOBILIARIOS SEIXAS LTDA
+CPF/CNPJ:
+37020142000120
+Endereço:
+24 NORTE LT 9E11 TO APT 611 S/N , NORTE (AGUAS CLARAS) , BRASILIA , DF
+Consta(m) o(s) seguinte(s) débito(s) na DÍVIDA ATIVA (1)
+Inscrição
+Ano
+Receita
+Tributo
+Situação
+Valor Débito
+DAR
+50253763894
+2023
+103
+MULTA ACESSORIA
+00
+ Imprimir
+Consta(m) o(s) seguinte(s) débito(s) em LANÇAMENTO (2)
+Inscrição
+Ano
+Receita
+Tributo
+QPA
+Valor Débito
+DAR
+51157012
+2026
+1228
+IPTU
+266,98
+ Listar
+51157012
+2026
+3115
+TLP
+142,28
+ Listar
+Clique no botão Voltar  para retornar tela anterior.
+
+
+
+Voltar
+20/07/2026, 10:59
+Agenci@Net - Certidão Positiva - Exibir Débitos
+https://www2.agencianet.fazenda.df.gov.br/CP/ComunicadoCertidao/#/ExibirDebitosCP/37020142000120/CNPJ
+1/1
+
+
+Pagar / Parcelar débito(s)
+Consulta de Débitos - Identificação do Contribuinte
+Nome/Razão social:
+INCORPORACAO DE EMPREENDIMENTOS IMOBILIARIOS SEIXAS LTDA
+CPF/CNPJ:
+37020142000120
+Endereço:
+24 NORTE LT 9E11 TO APT 611 S/N , NORTE (AGUAS CLARAS) , BRASILIA , DF
+Consta(m) o(s) seguinte(s) débito(s) na DÍVIDA ATIVA (1)
+Inscrição
+Ano
+Receita
+Tributo
+Situação
+Valor Débito
+DAR
+50253763894
+2023
+103
+MULTA ACESSORIA
+00
+ Imprimir
+Consta(m) o(s) seguinte(s) débito(s) em LANÇAMENTO (2)
+Inscrição
+Ano
+Receita
+Tributo
+QPA
+Valor Débito
+DAR
+51157012
+2026
+1228
+IPTU
+266,98
+ Listar
+51157012
+2026
+3115
+TLP
+142,28
+ Listar
+Clique no botão Voltar  para retornar tela anterior.
+
+
+
+Voltar
+20/07/2026, 10:59
+Agenci@Net - Certidão Positiva - Exibir Débitos
+https://www2.agencianet.fazenda.df.gov.br/CP/ComunicadoCertidao/#/ExibirDebitosCP/37020142000120/CNPJ
+1/1
