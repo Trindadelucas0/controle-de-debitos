@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarDays, GitCompare } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { formatCompetencia } from "@/lib/competencia";
 import { cn } from "@/lib/utils";
@@ -46,9 +47,12 @@ export function CompetenciaControls({
   return (
     <div className={cn("flex flex-wrap items-end gap-3", className)}>
       <label className="grid gap-1 text-xs font-medium text-slate-700">
-        Competência
+        <span className="inline-flex items-center gap-1.5">
+          <CalendarDays className="size-3.5 text-primary" aria-hidden />
+          Competência
+        </span>
         <select
-          className="h-9 min-w-[140px] rounded-md border border-input bg-background px-2 text-sm"
+          className="h-9 min-w-[140px] rounded-md border border-input bg-card px-2 text-sm"
           value={competencia}
           onChange={(event) => pushParams({ competencia: event.target.value })}
         >
@@ -62,9 +66,12 @@ export function CompetenciaControls({
 
       {allowCompare && (
         <label className="grid gap-1 text-xs font-medium text-slate-700">
-          Comparar com
+          <span className="inline-flex items-center gap-1.5">
+            <GitCompare className="size-3.5 text-primary" aria-hidden />
+            Comparar com
+          </span>
           <select
-            className="h-9 min-w-[140px] rounded-md border border-input bg-background px-2 text-sm"
+            className="h-9 min-w-[140px] rounded-md border border-input bg-card px-2 text-sm"
             value={comparar ?? ""}
             onChange={(event) =>
               pushParams({ comparar: event.target.value ? event.target.value : null })

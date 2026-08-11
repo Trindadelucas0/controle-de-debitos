@@ -15,8 +15,9 @@ import {
 } from "@tanstack/react-table";
 import { DashboardOverview } from "@/components/DashboardOverview";
 import { CompetenciaControls } from "@/components/CompetenciaControls";
+import { PageHeader } from "@/components/PageHeader";
 import { PaginationBar } from "@/components/PaginationBar";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadges";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,15 @@ import { formatCompetencia } from "@/lib/competencia";
 import { formatBRL, formatCnpj } from "@/lib/format";
 import type { Empresa, Esfera, StatusEsfera } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import {
+  AlertTriangle,
+  Building2,
+  CheckCircle2,
+  Landmark,
+  ListFilter,
+  MapPin,
+  Search,
+} from "lucide-react";
 
 type Props = {
   empresas: Empresa[];
@@ -150,11 +160,7 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
       }),
       columnHelper.accessor("status", {
         header: "Status",
-        cell: (info) => (
-          <Badge variant={info.getValue() === "pendencia" ? "danger" : "success"}>
-            {info.getValue() === "pendencia" ? "Pendência" : "Regular"}
-          </Badge>
-        ),
+        cell: (info) => <StatusBadge status={info.getValue()} />,
       }),
       columnHelper.display({
         id: "esferas",
@@ -196,7 +202,7 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
           id: "totais_consolidado",
           header: "Consolidado",
           cell: (info) => (
-            <span className="tabular font-semibold text-blue-700">
+            <span className="tabular font-semibold text-cyan-800">
               {formatBRL(info.getValue())}
             </span>
           ),
@@ -235,17 +241,12 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
 
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold tracking-tight">
-            Painel · {formatCompetencia(competencia)}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Escolha a competência para ver o recorte completo do mês
-          </p>
-        </div>
-        <CompetenciaControls competencias={competencias} competencia={competencia} />
-      </div>
+      <PageHeader
+        icon={Building2}
+        title={`Painel · ${formatCompetencia(competencia)}`}
+        description="Escolha a competência para ver o recorte completo do mês"
+        actions={<CompetenciaControls competencias={competencias} competencia={competencia} />}
+      />
 
       <DashboardOverview
         empresas={empresas}
@@ -257,27 +258,38 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h3 className="text-lg font-bold tracking-tight">Empresas</h3>
-            <p className="text-sm text-muted-foreground">{subtitulo}</p>
+          <div className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex size-8 items-center justify-center rounded-md bg-slate-100 text-slate-700">
+              <ListFilter className="size-4" aria-hidden />
+            </span>
+            <div>
+              <h3 className="text-lg font-bold tracking-tight">Empresas</h3>
+              <p className="text-sm text-muted-foreground">{subtitulo}</p>
+            </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar código, nº lançamento, empresa, CNPJ ou tipo"
-            className="min-w-[240px] flex-1"
-          />
-          <div className="flex gap-1 rounded-lg bg-muted/70 p-1">
+          <div className="relative min-w-[240px] flex-1">
+            <Search
+              className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar código, nº lançamento, empresa, CNPJ ou tipo"
+              className="pl-8"
+            />
+          </div>
+          <div className="flex gap-1 rounded-md bg-muted/70 p-1">
             {(
               [
-                ["todas", "Todas"],
-                ["pendencia", "Pendência"],
-                ["regular", "Regulares"],
+                ["todas", "Todas", null],
+                ["pendencia", "Pendência", AlertTriangle],
+                ["regular", "Regulares", CheckCircle2],
               ] as const
-            ).map(([value, label]) => (
+            ).map(([value, label, Icon]) => (
               <Button
                 key={value}
                 type="button"
@@ -285,16 +297,17 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
                 variant={filtro === value ? "default" : "ghost"}
                 onClick={() => setStatusFiltro(value)}
               >
+                {Icon ? <Icon className="size-3.5" aria-hidden /> : null}
                 {label}
               </Button>
             ))}
           </div>
         </div>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden shadow-none">
           <div className="overflow-auto">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-              <thead className="border-b border-border bg-muted/40 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+              <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
@@ -317,7 +330,7 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-border/70 transition-colors duration-200 hover:bg-sky-50/60"
+                    className="border-b border-border/70 transition-colors duration-200 hover:bg-slate-50"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-3 py-3 align-top">
@@ -359,22 +372,27 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
 }
 
 function EsferasMarks({ empresa }: { empresa: Empresa }) {
-  const items: { key: Esfera; letter: string; on: boolean; status: StatusEsfera }[] = [
+  const items: {
+    key: Esfera;
+    Icon: typeof Landmark;
+    on: boolean;
+    status: StatusEsfera;
+  }[] = [
     {
       key: "federal",
-      letter: "F",
+      Icon: Landmark,
       on: (empresa.esferas?.federal?.qtdDocs ?? 0) > 0 || !!empresa.temFederal,
       status: empresa.esferas?.federal?.status ?? "sem_documento",
     },
     {
       key: "estadual",
-      letter: "E",
+      Icon: Building2,
       on: (empresa.esferas?.estadual?.qtdDocs ?? 0) > 0 || !!empresa.temEstadual,
       status: empresa.esferas?.estadual?.status ?? "sem_documento",
     },
     {
       key: "municipal",
-      letter: "M",
+      Icon: MapPin,
       on: (empresa.esferas?.municipal?.qtdDocs ?? 0) > 0 || !!empresa.temMunicipal,
       status: empresa.esferas?.municipal?.status ?? "sem_documento",
     },
@@ -388,32 +406,35 @@ function EsferasMarks({ empresa }: { empresa: Empresa }) {
 
   return (
     <div className="flex gap-1.5">
-      {ativos.map((item) => (
-        <span
-          key={item.key}
-          title={`${ESFERA_LABELS[item.key]} · ${ESFERA_FONTES[item.key]}: ${item.status}`}
-          className={cn(
-            "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-bold transition-colors",
-            item.key === "federal"
-              ? "bg-blue-100 text-blue-800"
-              : item.key === "estadual"
-                ? "bg-teal-100 text-teal-800"
-                : "bg-orange-100 text-orange-800",
-          )}
-        >
-          {item.letter}
+      {ativos.map((item) => {
+        const Icon = item.Icon;
+        return (
           <span
+            key={item.key}
+            title={`${ESFERA_LABELS[item.key]} · ${ESFERA_FONTES[item.key]}: ${item.status}`}
             className={cn(
-              "inline-block size-1.5 rounded-full",
-              item.status === "pendencia"
-                ? "bg-amber-500"
-                : item.status === "regular"
-                  ? "bg-emerald-500"
-                  : "bg-slate-400",
+              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-bold transition-colors",
+              item.key === "federal"
+                ? "bg-blue-100 text-blue-800"
+                : item.key === "estadual"
+                  ? "bg-teal-100 text-teal-800"
+                  : "bg-orange-100 text-orange-800",
             )}
-          />
-        </span>
-      ))}
+          >
+            <Icon className="size-3" aria-hidden />
+            <span
+              className={cn(
+                "inline-block size-1.5 rounded-full",
+                item.status === "pendencia"
+                  ? "bg-amber-500"
+                  : item.status === "regular"
+                    ? "bg-emerald-500"
+                    : "bg-slate-400",
+              )}
+            />
+          </span>
+        );
+      })}
     </div>
   );
 }

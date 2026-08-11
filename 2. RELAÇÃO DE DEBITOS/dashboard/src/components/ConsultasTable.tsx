@@ -13,12 +13,15 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { PaginationBar } from "@/components/PaginationBar";
+import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { resolveMunicipal } from "@/lib/cadastro-utils";
 import { formatCnpj } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CadastroConsulta } from "@/lib/types";
+import { ClipboardList, ExternalLink, Plus, Search, X } from "lucide-react";
 
 type DebitoLink = {
   id: string;
@@ -34,6 +37,8 @@ type Props = {
 };
 
 type EditableRow = CadastroConsulta & {
+  /** Identidade estável da linha no React (não vai para a API). */
+  _clientId: string;
   /** Identidade estável da linha (número/CNPJ/id originais ao carregar). */
   _matchNumero: string;
   _matchCnpj: string | null;
@@ -75,12 +80,48 @@ function toEditableRows(
   empresas: CadastroConsulta[],
   resolveId: (row: CadastroConsulta) => string | null,
 ): EditableRow[] {
-  return empresas.map((row) => ({
+  return empresas.map((row, index) => ({
     ...row,
+    _clientId: `loaded-${digits(row.cnpj) || row.numero || "x"}-${index}`,
     _matchNumero: row.numero,
     _matchCnpj: row.cnpj,
     _matchId: resolveId(row),
   }));
+}
+
+function nextNumero(rows: EditableRow[]): string {
+  let max = 0;
+  for (const row of rows) {
+    const n = Number(String(row.numero).replace(/\D/g, ""));
+    if (Number.isFinite(n) && n > max) max = n;
+  }
+  return String(max + 1);
+}
+
+function makeClientId() {
+  return `new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+type NovaEmpresaForm = {
+  numero: string;
+  empresa: string;
+  cnpj: string;
+  uf: string;
+  federal: string;
+  estadual: string;
+  municipal: string;
+};
+
+function emptyNovaForm(numero: string): NovaEmpresaForm {
+  return {
+    numero,
+    empresa: "",
+    cnpj: "",
+    uf: "",
+    federal: "ECAC",
+    estadual: "AGENCIA NET",
+    municipal: "",
+  };
 }
 
 function matchesQuery(row: CadastroConsulta, rawQuery: string): boolean {
@@ -219,11 +260,29 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
     status: "saving" | "saved" | "error";
     message?: string;
   } | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [novaForm, setNovaForm] = useState<NovaEmpresaForm>(() => emptyNovaForm("1"));
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const savingKeys = useRef(new Set<string>());
+  const empresaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setRows(toEditableRows(empresas, resolveDebitoId));
   }, [empresas, resolveDebitoId]);
+
+  useEffect(() => {
+    if (!panelOpen) return;
+    const timer = window.setTimeout(() => empresaInputRef.current?.focus(), 50);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !creating) setPanelOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [panelOpen, creating]);
 
   const linkByCnpj = useMemo(() => {
     const map = new Map<string, string>();
@@ -252,8 +311,18 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
   }, [query]);
 
   const persistRow = useCallback(async (row: EditableRow) => {
-    const key = `${row._matchNumero}|${digits(row._matchCnpj)}`;
+    const key = row._clientId;
     if (savingKeys.current.has(key)) return;
+
+    if (!row.empresa.trim()) {
+      setSaveState({
+        key,
+        status: "error",
+        message: "Informe o nome da empresa.",
+      });
+      return;
+    }
+
     savingKeys.current.add(key);
     setSaveState({ key, status: "saving" });
 
@@ -286,10 +355,10 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
 
       setRows((prev) =>
         prev.map((r) =>
-          r._matchNumero === row._matchNumero &&
-          digits(r._matchCnpj) === digits(row._matchCnpj)
+          r._clientId === row._clientId
             ? {
                 ...data.item!,
+                _clientId: row._clientId,
                 _matchNumero: data.item!.numero,
                 _matchCnpj: data.item!.cnpj,
                 _matchId: row._matchId,
@@ -331,7 +400,6 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
         next.estadual = rawValue.trim();
       }
 
-      // Exibir "—" vazio na UI como string vazia até salvar/normalizar no servidor.
       if (field === "uf" && !next.uf) next.uf = "";
 
       const baseline: CadastroConsulta = {
@@ -354,18 +422,82 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
       };
       if (sameRow(baseline, candidate)) return;
 
-      setRows((prev) =>
-        prev.map((r) =>
-          r._matchNumero === row._matchNumero &&
-          digits(r._matchCnpj) === digits(row._matchCnpj)
-            ? next
-            : r,
-        ),
-      );
+      setRows((prev) => prev.map((r) => (r._clientId === row._clientId ? next : r)));
       void persistRow(next);
     },
     [persistRow],
   );
+
+  const openNovaEmpresa = useCallback(() => {
+    setCreateError(null);
+    setNovaForm(emptyNovaForm(nextNumero(rows)));
+    setPanelOpen(true);
+  }, [rows]);
+
+  const closeNovaEmpresa = useCallback(() => {
+    if (creating) return;
+    setPanelOpen(false);
+    setCreateError(null);
+  }, [creating]);
+
+  const submitNovaEmpresa = useCallback(async () => {
+    const empresa = novaForm.empresa.trim();
+    if (!empresa) {
+      setCreateError("Informe o nome da empresa.");
+      empresaInputRef.current?.focus();
+      return;
+    }
+
+    const uf = novaForm.uf.trim().toUpperCase();
+    const dig = digits(novaForm.cnpj);
+    const item = {
+      numero: novaForm.numero.trim() || nextNumero(rows),
+      empresa,
+      cnpj: dig ? formatCnpj(dig) : novaForm.cnpj.trim() || null,
+      uf,
+      federal: novaForm.federal.trim() || "ECAC",
+      estadual: novaForm.estadual.trim() || "AGENCIA NET",
+      municipal: municipalForSave(uf, novaForm.municipal),
+    };
+
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const res = await fetch("/api/cadastro", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item }),
+      });
+      const data = (await res.json()) as { item?: CadastroConsulta; error?: string };
+      if (!res.ok || !data.item) {
+        throw new Error(data.error || "Falha ao criar empresa.");
+      }
+
+      const saved = data.item;
+      const clientId = makeClientId();
+      setRows((prev) => [
+        {
+          ...saved,
+          _clientId: clientId,
+          _matchNumero: saved.numero,
+          _matchCnpj: saved.cnpj,
+          _matchId: null,
+        },
+        ...prev,
+      ]);
+      setQuery("");
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+      setPanelOpen(false);
+      setSaveState({ key: clientId, status: "saved" });
+      window.setTimeout(() => {
+        setSaveState((curr) => (curr?.key === clientId && curr.status === "saved" ? null : curr));
+      }, 1800);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Falha ao criar empresa.");
+    } finally {
+      setCreating(false);
+    }
+  }, [novaForm, rows]);
 
   const columns = useMemo(
     () => [
@@ -470,9 +602,10 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
           return (
             <Link
               href={`/empresas/${id}?competencia=${encodeURIComponent(competencia)}`}
-              className="text-xs font-medium text-teal-800 underline-offset-2 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-2 hover:underline"
             >
               Ver débitos
+              <ExternalLink className="size-3" aria-hidden />
             </Link>
           );
         },
@@ -490,17 +623,16 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getRowId: (row) => `${row._matchNumero}|${digits(row._matchCnpj)}|${row.empresa}`,
+    getRowId: (row) => row._clientId,
   });
 
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
-      <div>
-        <h2 className="text-lg font-bold tracking-tight">Consultas</h2>
-        <p className="text-sm text-muted-foreground">
-          Empresas e portais por esfera (Federal, Estadual e Municipal)
-        </p>
-      </div>
+      <PageHeader
+        icon={ClipboardList}
+        title="Consultas"
+        description="Empresas e portais por esfera (Federal, Estadual e Municipal)"
+      />
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
@@ -512,37 +644,49 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
               {" · "}edite a célula e saia do campo para salvar
             </p>
           </div>
-          {saveState && (
-            <p
-              className={cn(
-                "text-xs font-medium",
-                saveState.status === "saving" && "text-slate-500",
-                saveState.status === "saved" && "text-teal-700",
-                saveState.status === "error" && "text-red-600",
-              )}
-              role="status"
-            >
-              {saveState.status === "saving" && "Salvando…"}
-              {saveState.status === "saved" && "Salvo"}
-              {saveState.status === "error" && (saveState.message || "Erro ao salvar")}
-            </p>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {saveState && (
+              <p
+                className={cn(
+                  "text-xs font-medium",
+                  saveState.status === "saving" && "text-slate-500",
+                  saveState.status === "saved" && "text-primary",
+                  saveState.status === "error" && "text-red-600",
+                )}
+                role="status"
+              >
+                {saveState.status === "saving" && "Salvando…"}
+                {saveState.status === "saved" && "Salvo"}
+                {saveState.status === "error" && (saveState.message || "Erro ao salvar")}
+              </p>
+            )}
+            <Button type="button" size="sm" onClick={openNovaEmpresa}>
+              <Plus className="size-4" aria-hidden />
+              Nova empresa
+            </Button>
+          </div>
         </div>
 
-        <Input
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar N°, empresa, CNPJ, UF ou portal"
-          className="min-w-[240px] max-w-xl"
-          aria-label="Buscar no cadastro de consultas"
-          autoComplete="off"
-        />
+        <div className="relative min-w-[240px] max-w-xl">
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar N°, empresa, CNPJ, UF ou portal"
+            className="pl-8"
+            aria-label="Buscar no cadastro de consultas"
+            autoComplete="off"
+          />
+        </div>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden shadow-none">
           <div className="overflow-auto">
             <table className="w-full min-w-[860px] border-collapse text-left text-sm">
-              <thead className="border-b border-border bg-muted/40 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+              <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
@@ -565,7 +709,7 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-border/70 transition-colors duration-200 hover:bg-sky-50/60"
+                    className="border-b border-border/70 transition-colors duration-200 hover:bg-slate-50"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-2 py-2 align-middle">
@@ -599,6 +743,187 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
           />
         </Card>
       </section>
+
+      {panelOpen ? (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-900/40"
+            aria-label="Fechar painel"
+            disabled={creating}
+            onClick={closeNovaEmpresa}
+          />
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="nova-empresa-title"
+            className="relative flex h-full w-full max-w-md flex-col border-l border-border bg-card shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Cadastro
+                </p>
+                <h3 id="nova-empresa-title" className="mt-1 text-lg font-bold text-slate-900">
+                  Nova empresa
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Preencha os dados e confirme para incluir na lista.
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                disabled={creating}
+                onClick={closeNovaEmpresa}
+                aria-label="Fechar"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+
+            <form
+              className="flex min-h-0 flex-1 flex-col"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submitNovaEmpresa();
+              }}
+            >
+              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                  N°
+                  <Input
+                    value={novaForm.numero}
+                    onChange={(event) =>
+                      setNovaForm((prev) => ({ ...prev, numero: event.target.value }))
+                    }
+                    className="tabular"
+                    inputMode="numeric"
+                    disabled={creating}
+                  />
+                </label>
+
+                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                  Empresa
+                  <Input
+                    ref={empresaInputRef}
+                    value={novaForm.empresa}
+                    onChange={(event) =>
+                      setNovaForm((prev) => ({ ...prev, empresa: event.target.value }))
+                    }
+                    placeholder="Razão social"
+                    disabled={creating}
+                    required
+                  />
+                </label>
+
+                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                  CNPJ
+                  <Input
+                    value={novaForm.cnpj}
+                    onChange={(event) =>
+                      setNovaForm((prev) => ({ ...prev, cnpj: event.target.value }))
+                    }
+                    onBlur={() => {
+                      const dig = digits(novaForm.cnpj);
+                      if (dig) {
+                        setNovaForm((prev) => ({ ...prev, cnpj: formatCnpj(dig) }));
+                      }
+                    }}
+                    placeholder="00.000.000/0000-00"
+                    className="tabular"
+                    disabled={creating}
+                  />
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                    UF
+                    <Input
+                      value={novaForm.uf}
+                      onChange={(event) => {
+                        const uf = event.target.value.toUpperCase().slice(0, 2);
+                        setNovaForm((prev) => ({
+                          ...prev,
+                          uf,
+                          municipal:
+                            uf === "DF"
+                              ? "Não tem"
+                              : prev.municipal === "Não tem"
+                                ? ""
+                                : prev.municipal,
+                        }));
+                      }}
+                      placeholder="DF"
+                      className="uppercase"
+                      maxLength={2}
+                      disabled={creating}
+                    />
+                  </label>
+                  <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                    Municipal
+                    <Input
+                      value={novaForm.municipal}
+                      onChange={(event) =>
+                        setNovaForm((prev) => ({ ...prev, municipal: event.target.value }))
+                      }
+                      placeholder="Portal municipal"
+                      disabled={creating || novaForm.uf.trim().toUpperCase() === "DF"}
+                    />
+                  </label>
+                </div>
+
+                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                  Federal
+                  <Input
+                    value={novaForm.federal}
+                    onChange={(event) =>
+                      setNovaForm((prev) => ({ ...prev, federal: event.target.value }))
+                    }
+                    disabled={creating}
+                  />
+                </label>
+
+                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                  Estadual
+                  <Input
+                    value={novaForm.estadual}
+                    onChange={(event) =>
+                      setNovaForm((prev) => ({ ...prev, estadual: event.target.value }))
+                    }
+                    disabled={creating}
+                  />
+                </label>
+
+                {createError ? (
+                  <p
+                    role="alert"
+                    className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+                  >
+                    {createError}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={creating}
+                  onClick={closeNovaEmpresa}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={creating}>
+                  <Plus className="size-4" aria-hidden />
+                  {creating ? "Salvando…" : "Adicionar"}
+                </Button>
+              </div>
+            </form>
+          </aside>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -3,25 +3,33 @@
 @import "tw-animate-css";
 
 :root {
-  --background: #f4f7fb;
+  --background: #f4f6f8;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #0f766e;
-  --primary-foreground: #f0fdfa;
-  --secondary: #e2e8f0;
+  --primary: #0891b2;
+  --primary-foreground: #f0f9ff;
+  --secondary: #e8eef2;
   --secondary-foreground: #0f172a;
-  --muted: #eef2f7;
+  --muted: #f0f3f6;
   --muted-foreground: #64748b;
   --accent: #e0f2fe;
   --accent-foreground: #0c4a6e;
   --destructive: #dc2626;
-  --border: #d7dee8;
-  --input: #d7dee8;
-  --ring: #0f766e;
-  --radius: 0.75rem;
+  --border: #d5dde5;
+  --input: #d5dde5;
+  --ring: #0891b2;
+  --radius: 0.5rem;
+
+  --shell: #0a3a48;
+  --shell-deep: #072d38;
+  --shell-foreground: #f1f5f9;
+  --shell-muted: #8ba8b4;
+  --shell-hover: rgba(255, 255, 255, 0.08);
+  --shell-active: #0ea5a0;
+  --shell-active-bg: rgba(14, 165, 160, 0.18);
 
   --esfera-federal: #2563eb;
   --esfera-estadual: #0d9488;
@@ -51,6 +59,13 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-shell: var(--shell);
+  --color-shell-deep: var(--shell-deep);
+  --color-shell-foreground: var(--shell-foreground);
+  --color-shell-muted: var(--shell-muted);
+  --color-shell-hover: var(--shell-hover);
+  --color-shell-active: var(--shell-active);
+  --color-shell-active-bg: var(--shell-active-bg);
   --color-esfera-federal: var(--esfera-federal);
   --color-esfera-estadual: var(--esfera-estadual);
   --color-esfera-municipal: var(--esfera-municipal);
@@ -70,10 +85,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background:
-    radial-gradient(1200px 500px at 10% -10%, #dff6f3 0%, transparent 55%),
-    radial-gradient(900px 420px at 95% 0%, #dbeafe 0%, transparent 50%),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 14px;

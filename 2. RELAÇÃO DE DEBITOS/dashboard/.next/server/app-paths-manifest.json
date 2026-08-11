@@ -1,6 +1,5 @@
 {
-  "/api/cadastro/route": "app/api/cadastro/route.js",
+  "/consultas/page": "app/consultas/page.js",
   "/page": "app/page.js",
-  "/empresas/[slug]/page": "app/empresas/[slug]/page.js",
-  "/consultas/page": "app/consultas/page.js"
+  "/upload/page": "app/upload/page.js"
 }

@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Building2,
+  Download,
+  Landmark,
+  MapPin,
+  Trash2,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import {
   createColumnHelper,
   flexRender,
@@ -29,6 +39,8 @@ import {
 import { PaginationBar } from "@/components/PaginationBar";
 import { CompetenciaComparacao } from "@/components/CompetenciaComparacao";
 import { CompetenciaControls } from "@/components/CompetenciaControls";
+import { PageHeader } from "@/components/PageHeader";
+import { EsferaBadge, StatusBadge } from "@/components/StatusBadges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +53,12 @@ import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
 const columnHelper = createColumnHelper<DebitoLinha>();
 
 const ESFERAS: Esfera[] = ["federal", "estadual", "municipal"];
+
+const ESFERA_ICONS: Record<Esfera, LucideIcon> = {
+  federal: Landmark,
+  estadual: Building2,
+  municipal: MapPin,
+};
 
 type Props = {
   empresa: Empresa;
@@ -71,36 +89,28 @@ export function EmpresaDetail({
       <div>
         <Link
           href={backHref}
-          className="text-sm text-teal-700 underline-offset-2 transition-colors hover:text-teal-900 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-2 transition-colors hover:underline"
         >
-          ← Voltar para o painel
+          <ArrowLeft className="size-3.5" aria-hidden />
+          Voltar para o painel
         </Link>
       </div>
 
       <header className="space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="max-w-3xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Empresa · {formatCompetencia(competencia)}
-            </p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{empresa.nome}</h2>
-            <p className="mt-2 tabular text-sm text-muted-foreground">
-              {empresa.codigo ? (
-                <>
-                  Cód. {empresa.codigo}
-                  {(empresa.codigos?.length ?? 0) > 1
-                    ? ` (${empresa.codigos!.join(", ")})`
-                    : ""}
-                  {" · "}
-                </>
-              ) : null}
-              CNPJ {formatCnpj(empresa.cnpj)}
-            </p>
-          </div>
-          <Badge variant={empresa.status === "pendencia" ? "danger" : "success"}>
-            {empresa.status === "pendencia" ? "Pendência" : "Regular"}
-          </Badge>
-        </div>
+        <PageHeader
+          icon={Building2}
+          title={empresa.nome}
+          description={[
+            empresa.codigo
+              ? `Cód. ${empresa.codigo}${(empresa.codigos?.length ?? 0) > 1 ? ` (${empresa.codigos!.join(", ")})` : ""}`
+              : null,
+            `CNPJ ${formatCnpj(empresa.cnpj)}`,
+            `Competência ${formatCompetencia(competencia)}`,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+          actions={<StatusBadge status={empresa.status} />}
+        />
 
         <CompetenciaControls
           competencias={competencias}
@@ -111,13 +121,14 @@ export function EmpresaDetail({
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Kpi label="Original" value={formatBRL(empresa.totais.original)} />
-          <Kpi label="Saldo" value={formatBRL(empresa.totais.saldo)} accent="text-blue-700" />
-          <Kpi label="Multa" value={formatBRL(empresa.totais.multa)} accent="text-amber-700" />
+          <Kpi label="Saldo" value={formatBRL(empresa.totais.saldo)} accent="text-cyan-800" icon={Wallet} />
+          <Kpi label="Multa" value={formatBRL(empresa.totais.multa)} accent="text-amber-700" icon={AlertTriangle} />
           <Kpi label="Juros" value={formatBRL(empresa.totais.juros)} accent="text-red-600" />
           <Kpi
             label="Consolidado"
             value={formatBRL(empresa.totais.consolidado)}
             accent="text-teal-700"
+            icon={Wallet}
           />
         </div>
 
@@ -212,8 +223,10 @@ export function EmpresaDetail({
         <TabsList>
           {ESFERAS.map((esfera) => {
             const bucket = empresa.esferas?.[esfera];
+            const Icon = ESFERA_ICONS[esfera];
             return (
               <TabsTrigger key={esfera} value={esfera} className="gap-2">
+                <Icon className="size-3.5" aria-hidden />
                 {ESFERA_LABELS[esfera]}
                 <span className="rounded bg-background/80 px-1.5 py-0.5 text-[10px] tabular">
                   {bucket?.qtdDocs ?? 0}
@@ -353,7 +366,7 @@ function EsferaPanel({
       columnHelper.accessor("saldo", {
         header: "Sdo. devedor",
         cell: (info) => (
-          <span className="tabular font-semibold text-blue-700">{formatBRL(info.getValue())}</span>
+          <span className="tabular font-semibold text-cyan-800">{formatBRL(info.getValue())}</span>
         ),
       }),
       columnHelper.accessor("multa", {
@@ -405,14 +418,12 @@ function EsferaPanel({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={statusBadgeVariant(status)}>{statusLabel(status)}</Badge>
-        <Badge
-          variant={
-            esfera === "federal" ? "federal" : esfera === "estadual" ? "estadual" : "municipal"
-          }
-        >
-          {ESFERA_LABELS[esfera]}
-        </Badge>
+        {status === "pendencia" || status === "regular" ? (
+          <StatusBadge status={status} />
+        ) : (
+          <Badge variant={statusBadgeVariant(status)}>{statusLabel(status)}</Badge>
+        )}
+        <EsferaBadge esfera={esfera} label={ESFERA_LABELS[esfera]} />
         <span className="text-xs text-muted-foreground">
           {ESFERA_FONTES[esfera]} · {bucket.qtdDocs} documento(s) · {bucket.qtd_debitos}{" "}
           lançamento(s)
@@ -421,7 +432,7 @@ function EsferaPanel({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Kpi label="Original" value={formatBRL(bucket.totais.original)} />
-        <Kpi label="Saldo" value={formatBRL(bucket.totais.saldo)} accent="text-blue-700" />
+        <Kpi label="Saldo" value={formatBRL(bucket.totais.saldo)} accent="text-cyan-800" />
         <Kpi label="Multa" value={formatBRL(bucket.totais.multa)} accent="text-amber-700" />
         <Kpi label="Juros" value={formatBRL(bucket.totais.juros)} accent="text-red-600" />
         <Kpi
@@ -448,7 +459,7 @@ function EsferaPanel({
           <>
             <div className="overflow-auto">
               <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
-                <thead className="border-b border-border bg-muted/40 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <tr key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
@@ -471,7 +482,7 @@ function EsferaPanel({
                   {table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      className="border-b border-border/70 transition-colors hover:bg-sky-50/50"
+                      className="border-b border-border/70 transition-colors hover:bg-slate-50"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="px-3 py-2 align-top">
@@ -553,17 +564,26 @@ function Kpi({
   label,
   value,
   accent,
+  icon: Icon,
 }: {
   label: string;
   value: string;
   accent?: string;
+  icon?: LucideIcon;
 }) {
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardContent className="pt-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-          {label}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+            {label}
+          </p>
+          {Icon ? (
+            <span className="flex size-7 items-center justify-center rounded-md bg-muted text-slate-600">
+              <Icon className="size-3.5" aria-hidden />
+            </span>
+          ) : null}
+        </div>
         <p className={`mt-1 tabular text-lg font-bold ${accent ?? "text-slate-900"}`}>{value}</p>
       </CardContent>
     </Card>

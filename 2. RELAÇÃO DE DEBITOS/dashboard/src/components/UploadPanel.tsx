@@ -2,7 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Building2,
+  CalendarDays,
+  Eraser,
+  FileUp,
+  Landmark,
+  MapPin,
+  Trash2,
+  Upload,
+  type LucideIcon,
+} from "lucide-react";
 import { useMemo, useState, type DragEvent } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,24 +75,37 @@ type Props = {
   competenciaInicial: string;
 };
 
-const ZONES: { tipo: DocTipo; title: string; subtitle: string; accent: string }[] = [
+const ZONES: {
+  tipo: DocTipo;
+  title: string;
+  subtitle: string;
+  accent: string;
+  icon: LucideIcon;
+  iconTone: string;
+}[] = [
   {
     tipo: "ECAC",
     title: "Receita Federal (ECAC)",
     subtitle: "Esfera Federal · identifica empresa sozinho",
-    accent: "border-blue-200 bg-blue-50/50",
+    accent: "border-blue-200 bg-blue-50/40",
+    icon: Landmark,
+    iconTone: "bg-blue-600 text-white",
   },
   {
     tipo: "AGENCIANET",
     title: "Agenci@Net (SEFAZ)",
     subtitle: "Esfera Estadual · identifica empresa sozinho",
-    accent: "border-teal-200 bg-teal-50/50",
+    accent: "border-teal-200 bg-teal-50/40",
+    icon: Building2,
+    iconTone: "bg-teal-600 text-white",
   },
   {
     tipo: "MUNICIPAL",
     title: "Prefeitura (Municipal)",
     subtitle: "Esfera Municipal · identifica empresa sozinho",
-    accent: "border-orange-200 bg-orange-50/50",
+    accent: "border-orange-200 bg-orange-50/40",
+    icon: MapPin,
+    iconTone: "bg-orange-600 text-white",
   },
 ];
 
@@ -391,20 +417,26 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       <div>
         <Link
           href={competenciaEfetiva ? `/?competencia=${competenciaEfetiva}` : "/"}
-          className="text-sm text-teal-700 underline-offset-2 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-2 hover:underline"
         >
-          ← Voltar ao painel
+          <ArrowLeft className="size-3.5" aria-hidden />
+          Voltar ao painel
         </Link>
-        <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">Importar PDFs</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Arraste vários PDFs — o sistema identifica a empresa (CNPJ / código / nome), extrai os
-          valores e processa <strong>um a um</strong> sem sobrecarregar.
-        </p>
+        <div className="mt-3">
+          <PageHeader
+            icon={FileUp}
+            title="Importar PDFs"
+            description="Arraste vários PDFs — o sistema identifica a empresa (CNPJ / código / nome), extrai os valores e processa um a um sem sobrecarregar."
+          />
+        </div>
       </div>
 
-      <Card>
+      <Card className="shadow-none">
         <CardHeader>
-          <CardTitle className="text-base">Competência</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <CalendarDays className="size-4 text-primary" aria-hidden />
+            Competência
+          </CardTitle>
           <CardDescription>Obrigatório — define a pasta MM-YYYY do arquivo</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-end gap-4">
@@ -461,10 +493,17 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {ZONES.map((zone) => (
-          <Card key={zone.tipo} className={cn("border", zone.accent)}>
+        {ZONES.map((zone) => {
+          const ZoneIcon = zone.icon;
+          return (
+          <Card key={zone.tipo} className={cn("border shadow-none", zone.accent)}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">{zone.title}</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <span className={cn("flex size-8 items-center justify-center rounded-md", zone.iconTone)}>
+                  <ZoneIcon className="size-4" aria-hidden />
+                </span>
+                {zone.title}
+              </CardTitle>
               <CardDescription>{zone.subtitle}</CardDescription>
             </CardHeader>
             <CardContent>
@@ -485,12 +524,13 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                 className={cn(
                   "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-3 py-8 text-center text-sm transition",
                   dragOver === zone.tipo
-                    ? "border-teal-500 bg-teal-50"
-                    : "border-slate-300 bg-white/70 hover:border-teal-400",
+                    ? "border-primary bg-primary/5"
+                    : "border-slate-300 bg-white/70 hover:border-primary/50",
                   submitting && "pointer-events-none opacity-60",
                 )}
               >
                 <label className="flex w-full cursor-pointer flex-col items-center">
+                  <Upload className="mb-2 size-8 text-slate-400" aria-hidden />
                   <span className="font-medium text-slate-800">Arraste vários PDFs aqui</span>
                   <span className="mt-1 text-xs text-muted-foreground">ou clique para selecionar</span>
                   <input
@@ -533,11 +573,13 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               </ul>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="button" disabled={submitting || files.length === 0} onClick={onSubmit}>
+          <Upload className="size-4" aria-hidden />
           {submitting
             ? progress
               ? `Processando ${progress.current}/${progress.total}…`
@@ -546,6 +588,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         </Button>
         {files.length > 0 && !submitting && (
           <Button type="button" variant="ghost" onClick={() => setFiles([])}>
+            <Eraser className="size-4" aria-hidden />
             Limpar lista
           </Button>
         )}
@@ -556,6 +599,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
             disabled={deleting}
             onClick={() => excluirImportados(importadosOk)}
           >
+            <Trash2 className="size-4" aria-hidden />
             {deleting
               ? "Excluindo…"
               : `Excluir o que foi importado (${importadosOk.length})`}
@@ -569,7 +613,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         {donePayload?.competencia && !submitting && (
           <Link
             href={`/?competencia=${donePayload.competencia}`}
-            className="text-sm font-medium text-teal-700 underline-offset-2 hover:underline"
+            className="text-sm font-medium text-primary underline-offset-2 hover:underline"
           >
             Ver painel · {formatCompetencia(donePayload.competencia)}
           </Link>

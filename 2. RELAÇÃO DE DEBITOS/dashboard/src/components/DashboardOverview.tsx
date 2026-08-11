@@ -2,6 +2,17 @@
 
 import Link from "next/link";
 import {
+  AlertTriangle,
+  Building2,
+  CheckCircle2,
+  FileText,
+  Landmark,
+  LayoutDashboard,
+  MapPin,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import {
   Bar,
   BarChart,
   CartesianGrid,
@@ -23,6 +34,7 @@ import {
 import { formatCompetencia } from "@/lib/competencia";
 import { formatBRL } from "@/lib/format";
 import type { Empresa, Esfera, TotaisGerais } from "@/lib/types";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Props = {
@@ -48,62 +60,65 @@ export function DashboardOverview({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            Visão analítica
-            {tituloEsfera ? ` · ${tituloEsfera}` : ""}
+      <PageHeader
+        icon={LayoutDashboard}
+        title={tituloEsfera ? `Relação de débitos · ${tituloEsfera}` : "Relação de débitos"}
+        description={
+          fonteEsfera
+            ? `${fonteEsfera}${competenciaLabel ? ` · competência ${competenciaLabel}` : ""}`
+            : competenciaLabel
+              ? `Competência ${competenciaLabel} · decisões de cobrança e risco do portfólio`
+              : "Decisões de cobrança e risco do portfólio"
+        }
+        actions={
+          <p className="text-xs text-muted-foreground">
+            Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
           </p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            Relação de débitos
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {fonteEsfera
-              ? `${fonteEsfera}${competenciaLabel ? ` · competência ${competenciaLabel}` : ""}`
-              : competenciaLabel
-                ? `Competência ${competenciaLabel} · decisões de cobrança e risco do portfólio`
-                : "Decisões de cobrança e risco do portfólio"}
-          </p>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
-        </p>
-      </div>
+        }
+      />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
+          icon={Building2}
           label="Empresas"
           value={String(kpis.empresas)}
           hint={esfera ? `Com documento ${tituloEsfera?.toLowerCase()}` : "Total no mês"}
+          iconTone="bg-slate-100 text-slate-700"
         />
         <KpiCard
+          icon={AlertTriangle}
           label="Com pendência"
           value={String(kpis.com_pendencia)}
           hint={esfera ? `Pendência na esfera ${tituloEsfera?.toLowerCase()}` : "Prioridade de ação"}
           accent="text-amber-700"
+          iconTone="bg-amber-100 text-amber-700"
         />
         <KpiCard
+          icon={CheckCircle2}
           label="Regulares"
           value={String(kpis.regulares)}
           hint={esfera ? `Regulares nesta esfera` : "Sem cobrança imediata"}
           accent="text-emerald-700"
+          iconTone="bg-emerald-100 text-emerald-700"
         />
         <KpiCard
+          icon={Wallet}
           label="Saldo consolidado"
           value={formatBRL(kpis.consolidado)}
           hint={esfera ? `Exposição · ${tituloEsfera}` : "Exposição financeira"}
-          accent="text-blue-700"
+          accent="text-cyan-800"
+          iconTone="bg-cyan-100 text-cyan-800"
         />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
         {(
           [
-            ["federal", "ECAC · Receita Federal", "bg-blue-500"],
-            ["estadual", "Agenci@Net · Estadual", "bg-teal-500"],
-            ["municipal", "Prefeitura · Municipal", "bg-orange-500"],
+            ["federal", "ECAC · Receita Federal", "bg-blue-500", Landmark],
+            ["estadual", "Agenci@Net · Estadual", "bg-teal-500", Building2],
+            ["municipal", "Prefeitura · Municipal", "bg-orange-500", MapPin],
           ] as const
-        ).map(([key, label, color]) => {
+        ).map(([key, label, color, Icon]) => {
           const value =
             key === "federal"
               ? (kpis.docs_federal ?? 0)
@@ -114,6 +129,7 @@ export function DashboardOverview({
           return (
             <MiniDoc
               key={key}
+              icon={Icon}
               label={label}
               value={dimmed ? 0 : value}
               color={color}
@@ -344,22 +360,33 @@ export function DashboardOverview({
 }
 
 function KpiCard({
+  icon: Icon,
   label,
   value,
   hint,
   accent,
+  iconTone,
 }: {
+  icon: LucideIcon;
   label: string;
   value: string;
   hint: string;
   accent?: string;
+  iconTone?: string;
 }) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden shadow-none">
       <CardContent className="pt-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          {label}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            {label}
+          </p>
+          <span
+            className={`flex size-8 shrink-0 items-center justify-center rounded-md ${iconTone ?? "bg-muted text-slate-600"}`}
+          >
+            <Icon className="size-4" aria-hidden />
+          </span>
+        </div>
         <p className={`mt-2 tabular text-2xl font-bold ${accent ?? "text-slate-900"}`}>{value}</p>
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
       </CardContent>
@@ -368,12 +395,14 @@ function KpiCard({
 }
 
 function MiniDoc({
+  icon: Icon,
   label,
   value,
   color,
   dimmed,
   active,
 }: {
+  icon: LucideIcon;
   label: string;
   value: number;
   color: string;
@@ -382,13 +411,18 @@ function MiniDoc({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm transition-opacity ${
+      className={`flex items-center gap-3 rounded-lg border bg-card px-4 py-3 transition-opacity ${
         active ? "border-slate-400 ring-1 ring-slate-300/60" : "border-border/80"
       } ${dimmed ? "opacity-40" : ""}`}
     >
-      <span className={`size-2.5 rounded-full ${color}`} />
+      <span className={`flex size-8 items-center justify-center rounded-md text-white ${color}`}>
+        <Icon className="size-4" aria-hidden />
+      </span>
       <div>
-        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+        <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+          <FileText className="size-3 opacity-60" aria-hidden />
+          {label}
+        </p>
         <p className="tabular text-lg font-bold">{value}</p>
       </div>
     </div>
@@ -408,7 +442,7 @@ function TopCobrancaList({
   accent?: string;
 }) {
   const max = Math.max(...items.map((item) => item.consolidado), 1);
-  const barColor = accent ?? "#0f766e";
+  const barColor = accent ?? "#0891b2";
 
   return (
     <ol className="space-y-2.5">
@@ -418,14 +452,14 @@ function TopCobrancaList({
           <li key={item.id}>
             <Link
               href={`/empresas/${item.id}`}
-              className="group grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 rounded-lg px-1.5 py-1 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600/40"
+              className="group grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 rounded-md px-1.5 py-1 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-600/40"
               title={item.nomeCompleto}
             >
               <span className="text-center text-[11px] font-semibold tabular text-slate-400">
                 {index + 1}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[13px] font-medium text-slate-800 group-hover:text-teal-800">
+                <p className="truncate text-[13px] font-medium text-slate-800 group-hover:text-cyan-800">
                   {item.nomeCompleto}
                 </p>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
