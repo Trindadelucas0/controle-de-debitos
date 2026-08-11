@@ -40,6 +40,7 @@ import { PaginationBar } from "@/components/PaginationBar";
 import { CompetenciaComparacao } from "@/components/CompetenciaComparacao";
 import { CompetenciaControls } from "@/components/CompetenciaControls";
 import { PageHeader } from "@/components/PageHeader";
+import { BaixarRelatorioButton } from "@/components/relatorio/BaixarRelatorioButton";
 import { EsferaBadge, StatusBadge } from "@/components/StatusBadges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -109,7 +110,12 @@ export function EmpresaDetail({
           ]
             .filter(Boolean)
             .join(" · ")}
-          actions={<StatusBadge status={empresa.status} />}
+          actions={
+            <>
+              <BaixarRelatorioButton empresa={empresa} competencia={competencia} />
+              <StatusBadge status={empresa.status} />
+            </>
+          }
         />
 
         <CompetenciaControls

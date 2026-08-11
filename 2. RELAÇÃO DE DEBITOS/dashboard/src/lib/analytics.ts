@@ -220,12 +220,39 @@ function inferEsferaDebito(debito: DebitoLinha): Esfera | null {
   return null;
 }
 
-export function buildEmpresaAnalytics(empresa: Empresa) {
-  const composicao = [
-    { name: "Saldo", value: empresa.totais.saldo, fill: "#2563eb" },
-    { name: "Multa", value: empresa.totais.multa, fill: "#d97706" },
-    { name: "Juros", value: empresa.totais.juros, fill: "#dc2626" },
+export type ComposicaoSlice = {
+  name: string;
+  value: number;
+  fill: string;
+};
+
+function composicaoFromTotais(totais: Totais): ComposicaoSlice[] {
+  return [
+    { name: "Saldo", value: round2(totais.saldo), fill: "#2563eb" },
+    { name: "Multa", value: round2(totais.multa), fill: "#d97706" },
+    { name: "Juros", value: round2(totais.juros), fill: "#dc2626" },
   ].filter((item) => item.value > 0);
+}
+
+/** Débitos da empresa filtrados por esfera (com fallback por origem/arquivo). */
+export function debitosDaEsfera(empresa: Empresa, esfera: Esfera): DebitoLinha[] {
+  return empresa.debitos.filter((item) => {
+    const inferred =
+      item.esfera ??
+      inferEsferaDebito(item) ??
+      inferEsferaArquivo(item.arquivo);
+    return inferred === esfera;
+  });
+}
+
+/** Composição saldo/multa/juros de uma esfera da empresa. */
+export function buildEsferaComposicao(empresa: Empresa, esfera: Esfera): ComposicaoSlice[] {
+  const totais = empresa.esferas?.[esfera]?.totais ?? emptyTotais();
+  return composicaoFromTotais(totais);
+}
+
+export function buildEmpresaAnalytics(empresa: Empresa) {
+  const composicao = composicaoFromTotais(empresa.totais);
 
   const porEsfera = (["federal", "estadual", "municipal"] as Esfera[]).map((esfera) => {
     const bucket = empresa.esferas?.[esfera];
@@ -242,6 +269,23 @@ export function buildEmpresaAnalytics(empresa: Empresa) {
   const topReceitas = aggregateReceitas(empresa.debitos).slice(0, 8);
 
   return { composicao, porEsfera, topReceitas };
+}
+
+function inferEsferaArquivo(arquivo: string): Esfera | null {
+  const upper = (arquivo || "").toUpperCase();
+  if (upper.includes("ECAC")) return "federal";
+  if (upper.includes("AGENCIANET") || upper.includes("AGENCI")) return "estadual";
+  if (
+    upper.includes("MUNICIP") ||
+    upper.includes("PREFEITURA") ||
+    upper.includes("IPTU") ||
+    upper.includes("ISSQN") ||
+    upper.includes("CCM") ||
+    upper.includes("NFSE")
+  ) {
+    return "municipal";
+  }
+  return null;
 }
 
 function aggregateReceitas(debitos: DebitoLinha[]) {
