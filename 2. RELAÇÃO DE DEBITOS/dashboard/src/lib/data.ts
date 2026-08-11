@@ -1,6 +1,7 @@
-import { readFileSync, existsSync, statSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "fs";
 import path from "path";
 import { sortCompetencias } from "@/lib/competencia";
+import { formatCnpj } from "@/lib/format";
 import type { CompetenciaSnapshot, DashboardData, Empresa, TotaisGerais } from "./types";
 
 const EMPTY_TOTAIS: TotaisGerais = {
@@ -39,6 +40,196 @@ function emptyDashboard(error?: string): DashboardData & { dataError?: string } 
 
 let cached: { mtimeMs: number; path: string; data: DashboardData & { dataError?: string } } | null =
   null;
+
+export function invalidateDashboardCache(): void {
+  cached = null;
+}
+
+function digitsCnpj(value: string | null | undefined): string {
+  return (value || "").replace(/\D/g, "");
+}
+
+function writeDashboardFileAtomic(jsonPath: string, data: DashboardData): void {
+  const dir = path.dirname(jsonPath);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  const tmp = `${jsonPath}.${process.pid}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`, "utf-8");
+  try {
+    renameSync(tmp, jsonPath);
+  } catch {
+    if (existsSync(jsonPath)) unlinkSync(jsonPath);
+    renameSync(tmp, jsonPath);
+  }
+}
+
+/**
+ * Resolve quais `id` devem receber o patch.
+ * Prioridade: id explícito → CNPJ → código.
+ */
+function resolveTargetIds(
+  data: DashboardData,
+  match: EmpresaIdentityMatch,
+): Set<string> {
+  const ids = new Set<string>();
+  const matchId = (match.matchId || "").trim();
+  if (matchId) {
+    ids.add(matchId);
+    return ids;
+  }
+
+  const matchDig = digitsCnpj(match.matchCnpj);
+  const matchCodigo = (match.matchCodigo || "").trim();
+
+  const visit = (empresas: Empresa[] | undefined, mode: "cnpj" | "codigo") => {
+    if (!empresas) return;
+    for (const empresa of empresas) {
+      if (mode === "cnpj") {
+        if (matchDig && digitsCnpj(empresa.cnpj) === matchDig) ids.add(empresa.id);
+        continue;
+      }
+      if (matchCodigo && matchCodigo !== "—") {
+        const codes = [empresa.codigo, ...(empresa.codigos ?? [])]
+          .filter(Boolean)
+          .map(String);
+        if (codes.includes(matchCodigo)) ids.add(empresa.id);
+      }
+    }
+  };
+
+  if (matchDig) {
+    visit(data.empresas, "cnpj");
+    if (data.snapshots) {
+      for (const snap of Object.values(data.snapshots)) visit(snap.empresas, "cnpj");
+    }
+    if (ids.size > 0) return ids;
+  }
+
+  visit(data.empresas, "codigo");
+  if (data.snapshots) {
+    for (const snap of Object.values(data.snapshots)) visit(snap.empresas, "codigo");
+  }
+  return ids;
+}
+
+function applyIdentityPatch(
+  empresa: Empresa,
+  patch: { nome?: string; cnpj?: string | null; codigo?: string },
+): Empresa {
+  const next: Empresa = { ...empresa };
+
+  if (patch.nome !== undefined) {
+    const nome = patch.nome.trim();
+    if (nome && nome !== "—") next.nome = nome;
+  }
+
+  if (patch.cnpj !== undefined) {
+    const dig = digitsCnpj(patch.cnpj);
+    next.cnpj = dig ? formatCnpj(dig) : patch.cnpj?.trim() || null;
+  }
+
+  if (patch.codigo !== undefined) {
+    const codigo = patch.codigo.trim();
+    if (codigo && codigo !== "—") {
+      next.codigo = codigo;
+      const codigos = new Set(
+        [empresa.codigo, ...(empresa.codigos ?? []), codigo]
+          .filter(Boolean)
+          .map(String),
+      );
+      next.codigos = [...codigos];
+    }
+  }
+
+  return next;
+}
+
+function identityUnchanged(before: Empresa, after: Empresa): boolean {
+  if (before.nome !== after.nome) return false;
+  if (digitsCnpj(before.cnpj) !== digitsCnpj(after.cnpj)) return false;
+  if (String(before.codigo ?? "") !== String(after.codigo ?? "")) return false;
+  const a = [...(before.codigos ?? [])].map(String).sort().join("|");
+  const b = [...(after.codigos ?? [])].map(String).sort().join("|");
+  return a === b;
+}
+
+export type EmpresaIdentityMatch = {
+  matchId?: string;
+  matchCnpj?: string | null;
+  matchCodigo?: string | null;
+};
+
+export type EmpresaIdentityPatch = {
+  nome?: string;
+  cnpj?: string | null;
+  codigo?: string;
+};
+
+/**
+ * Atualiza nome/CNPJ/código da mesma empresa em todas as competências.
+ * Não altera `id` (URLs e PDFs). Retorna quantas ocorrências foram atualizadas.
+ */
+export function updateEmpresaIdentity(
+  match: EmpresaIdentityMatch,
+  patch: EmpresaIdentityPatch,
+): { updated: number; ids: string[] } {
+  const hasPatch =
+    patch.nome !== undefined || patch.cnpj !== undefined || patch.codigo !== undefined;
+  if (!hasPatch) return { updated: 0, ids: [] };
+
+  const matchId = (match.matchId || "").trim();
+  const matchDig = digitsCnpj(match.matchCnpj);
+  const matchCodigo = (match.matchCodigo || "").trim();
+  if (!matchId && !matchDig && (!matchCodigo || matchCodigo === "—")) {
+    return { updated: 0, ids: [] };
+  }
+
+  const jsonPath = resolveJsonPath();
+  if (!existsSync(jsonPath)) {
+    return { updated: 0, ids: [] };
+  }
+
+  const raw = JSON.parse(readFileSync(jsonPath, "utf-8")) as DashboardData;
+  const targetIds = resolveTargetIds(raw, match);
+  if (targetIds.size === 0) {
+    return { updated: 0, ids: [] };
+  }
+
+  const ids = new Set<string>();
+  let updated = 0;
+
+  const patchList = (empresas: Empresa[] | undefined): Empresa[] | undefined => {
+    if (!empresas) return empresas;
+    return empresas.map((empresa) => {
+      if (!targetIds.has(empresa.id)) return empresa;
+      const next = applyIdentityPatch(empresa, patch);
+      if (identityUnchanged(empresa, next)) return empresa;
+      updated += 1;
+      ids.add(empresa.id);
+      return next;
+    });
+  };
+
+  raw.empresas = patchList(raw.empresas) ?? [];
+
+  if (raw.snapshots) {
+    const nextSnapshots: Record<string, CompetenciaSnapshot> = {};
+    for (const [key, snap] of Object.entries(raw.snapshots)) {
+      nextSnapshots[key] = {
+        ...snap,
+        empresas: patchList(snap.empresas) ?? snap.empresas,
+      };
+    }
+    raw.snapshots = nextSnapshots;
+  }
+
+  if (updated === 0) {
+    return { updated: 0, ids: [] };
+  }
+
+  writeDashboardFileAtomic(jsonPath, raw);
+  invalidateDashboardCache();
+  return { updated, ids: [...ids] };
+}
 
 export function loadDashboardData(): DashboardData & { dataError?: string } {
   const jsonPath = resolveJsonPath();

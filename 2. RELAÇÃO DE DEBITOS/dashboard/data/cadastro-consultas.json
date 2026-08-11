@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-08-06",
+  "gerado_em": "2026-08-11",
   "origem": "Complemento opcional de UF/portais (a lista principal vem do sistema)",
   "empresas": [
     {
@@ -36,7 +36,7 @@
       "uf": "MG",
       "federal": "ECAC",
       "estadual": "AGENCIA NET",
-      "municipal": ""
+      "municipal": "—"
     }
   ]
 }

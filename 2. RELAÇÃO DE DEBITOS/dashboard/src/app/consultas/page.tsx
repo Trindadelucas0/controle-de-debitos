@@ -17,6 +17,7 @@ export default async function ConsultasPage({ searchParams }: Props) {
     id: empresa.id,
     codigo: empresa.codigo,
     cnpj: empresa.cnpj,
+    nome: empresa.nome,
   }));
 
   return (

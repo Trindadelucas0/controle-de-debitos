@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "fs";
 import path from "path";
 import {
   digitsCnpj,
@@ -33,6 +33,112 @@ let overlayCached: {
   byNumero: Map<string, CadastroConsulta>;
   error?: string;
 } | null = null;
+
+/** Invalida o cache em memória do overlay (após gravação). */
+export function invalidateCadastroOverlayCache(): void {
+  overlayCached = null;
+}
+
+function readOverlayFile(jsonPath: string): CadastroConsultasData {
+  if (!existsSync(jsonPath)) {
+    return {
+      origem: "Complemento opcional de UF/portais (a lista principal vem do sistema)",
+      empresas: [],
+    };
+  }
+  const parsed = JSON.parse(readFileSync(jsonPath, "utf-8")) as CadastroConsultasData;
+  return {
+    gerado_em: parsed.gerado_em,
+    origem:
+      parsed.origem ??
+      "Complemento opcional de UF/portais (a lista principal vem do sistema)",
+    empresas: Array.isArray(parsed.empresas) ? parsed.empresas : [],
+  };
+}
+
+function writeOverlayFileAtomic(jsonPath: string, data: CadastroConsultasData): void {
+  const dir = path.dirname(jsonPath);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  const tmp = `${jsonPath}.${process.pid}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`, "utf-8");
+  try {
+    renameSync(tmp, jsonPath);
+  } catch {
+    // Windows: rename sobre arquivo existente pode falhar.
+    if (existsSync(jsonPath)) unlinkSync(jsonPath);
+    renameSync(tmp, jsonPath);
+  }
+}
+
+export type CadastroMatchKey = {
+  numero?: string;
+  cnpj?: string | null;
+  /** id estável em empresas.json (evita colisão de CNPJ/código duplicados). */
+  id?: string;
+};
+
+function findOverlayIndex(
+  empresas: CadastroConsulta[],
+  match: CadastroMatchKey | undefined,
+  item: CadastroConsulta,
+): number {
+  const matchNumero = (match?.numero ?? "").trim();
+  if (matchNumero && matchNumero !== "—") {
+    const byNum = empresas.findIndex((e) => e.numero.trim() === matchNumero);
+    if (byNum >= 0) return byNum;
+  }
+  const matchDig = digitsCnpj(match?.cnpj);
+  if (matchDig) {
+    const byCnpj = empresas.findIndex((e) => digitsCnpj(e.cnpj) === matchDig);
+    if (byCnpj >= 0) return byCnpj;
+  }
+  const itemNumero = item.numero.trim();
+  if (itemNumero && itemNumero !== "—") {
+    const byNum = empresas.findIndex((e) => e.numero.trim() === itemNumero);
+    if (byNum >= 0) return byNum;
+  }
+  const itemDig = digitsCnpj(item.cnpj);
+  if (itemDig) {
+    return empresas.findIndex((e) => digitsCnpj(e.cnpj) === itemDig);
+  }
+  return -1;
+}
+
+/**
+ * Upsert de uma linha no overlay `cadastro-consultas.json`.
+ * `match` identifica a entrada anterior (antes de editar número/CNPJ).
+ */
+export function saveCadastroOverlayItem(
+  raw: Partial<CadastroConsulta>,
+  match?: CadastroMatchKey,
+): CadastroConsulta {
+  const item = normalizeCadastroItem(raw);
+  if (!item) {
+    throw new Error("Linha inválida: informe número ou empresa.");
+  }
+
+  const jsonPath = resolveCadastroPath();
+  const data = readOverlayFile(jsonPath);
+  const empresas = [...data.empresas];
+  const idx = findOverlayIndex(empresas, match, item);
+
+  if (idx >= 0) {
+    empresas[idx] = item;
+  } else {
+    empresas.push(item);
+  }
+
+  empresas.sort(sortCadastro);
+
+  const today = new Date().toISOString().slice(0, 10);
+  writeOverlayFileAtomic(jsonPath, {
+    ...data,
+    gerado_em: today,
+    empresas,
+  });
+  invalidateCadastroOverlayCache();
+  return item;
+}
 
 function loadOverlay(): {
   byCnpj: Map<string, CadastroConsulta>;
@@ -125,15 +231,27 @@ function fromSistema(
   empresa: Empresa,
   overlay: CadastroConsulta | undefined,
 ): CadastroConsulta | null {
-  const numero = overlay?.numero || codigoPrincipal(empresa) || "";
+  const numeroSistema = codigoPrincipal(empresa) || "";
+  // Com overlay, preferir todos os campos editados (senão a edição não “gruda”).
+  if (overlay) {
+    return normalizeCadastroItem({
+      numero: overlay.numero && overlay.numero !== "—" ? overlay.numero : numeroSistema,
+      empresa: overlay.empresa && overlay.empresa !== "—" ? overlay.empresa : empresa.nome,
+      cnpj: overlay.cnpj ?? empresa.cnpj ?? null,
+      uf: overlay.uf && overlay.uf !== "—" ? overlay.uf : "",
+      federal: overlay.federal,
+      estadual: overlay.estadual,
+      municipal: overlay.municipal && overlay.municipal !== "—" ? overlay.municipal : "",
+    });
+  }
   return normalizeCadastroItem({
-    numero,
-    empresa: overlay?.empresa || empresa.nome,
-    cnpj: empresa.cnpj ?? overlay?.cnpj ?? null,
-    uf: overlay?.uf && overlay.uf !== "—" ? overlay.uf : "",
-    federal: overlay?.federal,
-    estadual: overlay?.estadual,
-    municipal: overlay?.municipal && overlay.municipal !== "—" ? overlay.municipal : "",
+    numero: numeroSistema,
+    empresa: empresa.nome,
+    cnpj: empresa.cnpj ?? null,
+    uf: "",
+    federal: undefined,
+    estadual: undefined,
+    municipal: "",
   });
 }
 
@@ -150,23 +268,37 @@ export function loadCadastroConsultas(): CadastroConsultasData & { error?: strin
   for (const empresa of sistema) {
     const dig = digitsCnpj(empresa.cnpj);
     const codigo = codigoPrincipal(empresa);
+    // Preferir match por número (chave estável das edições).
     const extra =
-      (dig ? overlay.byCnpj.get(dig) : undefined) ??
-      (codigo ? overlay.byNumero.get(codigo) : undefined);
+      (codigo ? overlay.byNumero.get(codigo) : undefined) ??
+      (dig ? overlay.byCnpj.get(dig) : undefined);
     const row = fromSistema(empresa, extra);
     if (!row) continue;
-    const key = dig ? `cnpj:${dig}` : `cod:${row.numero}|${row.empresa}`;
-    if (seen.has(key)) continue;
+    const rowDig = digitsCnpj(row.cnpj);
+    const key = rowDig ? `cnpj:${rowDig}` : `cod:${row.numero}|${row.empresa}`;
+    const numKey = row.numero && row.numero !== "—" ? `num:${row.numero}` : "";
+    if (seen.has(key) || (numKey && seen.has(numKey))) continue;
     seen.add(key);
+    if (numKey) seen.add(numKey);
     rows.push(row);
   }
 
   // Entradas só do overlay (ex.: CNPJ que ainda não entrou no painel de débitos).
+  const overlayOnly = new Map<string, CadastroConsulta>();
+  for (const item of overlay.byNumero.values()) {
+    overlayOnly.set(`n:${item.numero}`, item);
+  }
   for (const item of overlay.byCnpj.values()) {
     const dig = digitsCnpj(item.cnpj);
+    overlayOnly.set(dig ? `c:${dig}` : `n:${item.numero}`, item);
+  }
+  for (const item of overlayOnly.values()) {
+    const dig = digitsCnpj(item.cnpj);
     const key = dig ? `cnpj:${dig}` : `cod:${item.numero}|${item.empresa}`;
-    if (seen.has(key)) continue;
+    const numKey = item.numero && item.numero !== "—" ? `num:${item.numero}` : "";
+    if (seen.has(key) || (numKey && seen.has(numKey))) continue;
     seen.add(key);
+    if (numKey) seen.add(numKey);
     rows.push(item);
   }
 

@@ -134,70 +134,72 @@ export function DashboardOverview({
                 : "ECAC (Receita Federal) · Agenci@Net · Relatório da Prefeitura"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-[260px]">
-            {esfera ? (
-              analytics.composicao.length === 0 ? (
-                <EmptyChart message="Sem valores nesta esfera." />
+          <CardContent className="flex h-[300px] flex-col gap-2">
+            <div className="min-h-0 flex-1">
+              {esfera ? (
+                analytics.composicao.length === 0 ? (
+                  <EmptyChart message="Sem valores nesta esfera." />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={analytics.composicao}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={52}
+                        outerRadius={82}
+                        paddingAngle={3}
+                      >
+                        {analytics.composicao.map((entry) => (
+                          <Cell key={entry.name} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => formatBRL(Number(value ?? 0))}
+                        contentStyle={tooltipStyle}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={analytics.composicao}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={58}
-                      outerRadius={90}
-                      paddingAngle={3}
-                    >
-                      {analytics.composicao.map((entry) => (
-                        <Cell key={entry.name} fill={entry.fill} />
-                      ))}
-                    </Pie>
+                  <BarChart
+                    data={analytics.porEsfera}
+                    layout="vertical"
+                    margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                    <XAxis
+                      type="number"
+                      tickFormatter={(v) => compactBRL(Number(v))}
+                      tick={{ fontSize: 11, fill: "#64748b" }}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="label"
+                      width={78}
+                      tick={{ fontSize: 12, fill: "#334155" }}
+                    />
                     <Tooltip
                       formatter={(value) => formatBRL(Number(value ?? 0))}
+                      labelFormatter={(label) => String(label)}
                       contentStyle={tooltipStyle}
                     />
-                  </PieChart>
+                    <Bar dataKey="consolidado" radius={[0, 6, 6, 0]} barSize={22}>
+                      {analytics.porEsfera.map((entry) => (
+                        <Cell key={entry.esfera} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
-              )
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={analytics.porEsfera}
-                  layout="vertical"
-                  margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                  <XAxis
-                    type="number"
-                    tickFormatter={(v) => compactBRL(Number(v))}
-                    tick={{ fontSize: 11, fill: "#64748b" }}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="label"
-                    width={78}
-                    tick={{ fontSize: 12, fill: "#334155" }}
-                  />
-                  <Tooltip
-                    formatter={(value) => formatBRL(Number(value ?? 0))}
-                    labelFormatter={(label) => String(label)}
-                    contentStyle={tooltipStyle}
-                  />
-                  <Bar dataKey="consolidado" radius={[0, 6, 6, 0]} barSize={22}>
-                    {analytics.porEsfera.map((entry) => (
-                      <Cell key={entry.esfera} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+              )}
+            </div>
             {esfera && analytics.composicao.length > 0 && (
-              <div className="mt-1 flex justify-center gap-4 text-xs">
+              <div className="flex shrink-0 flex-wrap justify-center gap-x-4 gap-y-1 pb-1 text-xs text-slate-700">
                 {analytics.composicao.map((item) => (
                   <div key={item.name} className="flex items-center gap-1.5">
                     <span
-                      className="inline-block size-2.5 rounded-full"
+                      className="inline-block size-2.5 shrink-0 rounded-full"
                       style={{ background: item.fill }}
                     />
                     {item.name}: {formatBRL(item.value)}
@@ -217,41 +219,43 @@ export function DashboardOverview({
                 : "Pendência vs regular (qtd. de empresas)"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={analytics.statusDonut}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={58}
-                  outerRadius={90}
-                  paddingAngle={3}
-                >
-                  {analytics.statusDonut.map((entry) => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value, _name, item) => {
-                    const payload = item?.payload as {
-                      saldo?: number;
-                      consolidado?: number;
-                    };
-                    return [
-                      `${value} empresas · consolidado ${formatBRL(payload?.consolidado ?? 0)}`,
-                      "Quantidade",
-                    ];
-                  }}
-                  contentStyle={tooltipStyle}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-1 flex justify-center gap-4 text-xs">
+          <CardContent className="flex h-[300px] flex-col gap-2">
+            <div className="min-h-0 flex-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={analytics.statusDonut}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={52}
+                    outerRadius={82}
+                    paddingAngle={3}
+                  >
+                    {analytics.statusDonut.map((entry) => (
+                      <Cell key={entry.name} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, _name, item) => {
+                      const payload = item?.payload as {
+                        saldo?: number;
+                        consolidado?: number;
+                      };
+                      return [
+                        `${value} empresas · consolidado ${formatBRL(payload?.consolidado ?? 0)}`,
+                        "Quantidade",
+                      ];
+                    }}
+                    contentStyle={tooltipStyle}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex shrink-0 flex-wrap justify-center gap-x-4 gap-y-1 pb-1 text-xs text-slate-700">
               {analytics.statusDonut.map((item) => (
                 <div key={item.name} className="flex items-center gap-1.5">
                   <span
-                    className="inline-block size-2.5 rounded-full"
+                    className="inline-block size-2.5 shrink-0 rounded-full"
                     style={{ background: item.fill }}
                   />
                   {item.name}: {item.value}
