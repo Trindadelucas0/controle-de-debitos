@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "data": "py -3 \"C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\scripts\\build_dashboard_data.py\"",
-    "dev": "next dev",
+    "dev": "next dev -p 6666",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 6666",
     "lint": "next lint"
   },
   "dependencies": {
