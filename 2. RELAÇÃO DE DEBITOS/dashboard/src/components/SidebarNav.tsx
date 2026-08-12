@@ -12,8 +12,8 @@ import {
   MapPin,
   Search,
 } from "lucide-react";
-import { ESFERA_FONTES, ESFERA_LABELS } from "@/lib/analytics";
-import { formatCompetencia, sortCompetencias } from "@/lib/competencia";
+import { ESFERA_LABELS } from "@/lib/analytics";
+import { sortCompetencias } from "@/lib/competencia";
 import type { Esfera } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,6 @@ const ESFERA_ICONS = {
 type NavItem = {
   id: string;
   label: string;
-  hint?: string;
   href: string;
   active: boolean;
   icon: typeof LayoutDashboard;
@@ -93,7 +92,6 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
       ...ESFERAS.map((esfera) => ({
         id: esfera,
         label: ESFERA_LABELS[esfera],
-        hint: ESFERA_FONTES[esfera],
         href: withCompetencia(`/?esfera=${esfera}`),
         active: isHome && esferaAtiva === esfera,
         icon: ESFERA_ICONS[esfera],
@@ -106,11 +104,7 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
-    return items.filter(
-      (item) =>
-        item.label.toLowerCase().includes(q) ||
-        (item.hint || "").toLowerCase().includes(q),
-    );
+    return items.filter((item) => item.label.toLowerCase().includes(q));
   }, [items, query]);
 
   const mainItems = filtered.filter((item) => item.group === "main");
@@ -132,15 +126,6 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
             className="h-9 w-full rounded-md border border-white/15 bg-shell-deep/60 py-2 pl-8 pr-3 text-sm text-shell-foreground placeholder:text-shell-muted outline-none focus:border-shell-active/60 focus:ring-1 focus:ring-shell-active/40"
           />
         </label>
-        <p className="mt-2 px-0.5 text-[11px] text-shell-muted">
-          Competência:{" "}
-          <span className="font-semibold text-shell-foreground">
-            {formatCompetencia(competencia) || "—"}
-          </span>
-          {list.length > 1 ? (
-            <span className="mt-0.5 block">{list.length} competências carregadas</span>
-          ) : null}
-        </p>
       </div>
 
       <div className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
@@ -169,11 +154,14 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
 
 function NavLink({ item }: { item: NavItem }) {
   const Icon = item.icon;
+  const isEsfera = item.group === "esferas";
+
   return (
     <Link
       href={item.href}
       className={cn(
-        "group relative flex items-start gap-2.5 rounded-md px-3 py-2 transition-colors",
+        "group relative flex items-center gap-2.5 rounded-md px-3 transition-colors",
+        isEsfera ? "py-3" : "py-2",
         item.active
           ? "bg-shell-active-bg text-white"
           : "text-shell-foreground/90 hover:bg-shell-hover",
@@ -184,16 +172,19 @@ function NavLink({ item }: { item: NavItem }) {
       ) : null}
       <Icon
         className={cn(
-          "mt-0.5 size-4 shrink-0",
+          "shrink-0",
+          isEsfera ? "size-5" : "size-4",
           item.active ? "text-shell-active" : "text-shell-muted group-hover:text-shell-foreground",
         )}
         aria-hidden
       />
-      <span className="min-w-0">
-        <span className="block text-sm font-medium leading-snug">{item.label}</span>
-        {item.hint ? (
-          <span className="mt-0.5 block text-[10px] font-normal text-shell-muted">{item.hint}</span>
-        ) : null}
+      <span
+        className={cn(
+          "min-w-0 leading-snug",
+          isEsfera ? "text-base font-semibold" : "text-sm font-medium",
+        )}
+      >
+        {item.label}
       </span>
     </Link>
   );

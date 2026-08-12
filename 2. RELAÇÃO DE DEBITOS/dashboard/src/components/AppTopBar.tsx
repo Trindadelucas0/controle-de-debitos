@@ -60,22 +60,22 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-shell text-shell-foreground">
-      <div className="flex h-12 items-center gap-3 px-3 lg:px-4">
-        <Link href={withCompetencia("/")} className="flex shrink-0 items-center gap-2.5">
-          <span className="flex size-8 items-center justify-center rounded-md bg-shell-active/25 text-shell-active">
-            <Scale className="size-4" aria-hidden />
+      <div className="flex h-16 items-center gap-4 px-4 lg:px-5">
+        <Link href={withCompetencia("/")} className="flex shrink-0 items-center gap-3">
+          <span className="flex size-10 items-center justify-center rounded-md bg-shell-active/25 text-shell-active">
+            <Scale className="size-5" aria-hidden />
           </span>
           <div className="leading-tight">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-shell-muted">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-shell-muted">
               Razão fiscal
             </p>
-            <p className="text-sm font-bold tracking-tight">Relação de Débitos</p>
+            <p className="text-base font-bold tracking-tight">Relação de Débitos</p>
           </div>
         </Link>
 
-        <div className="mx-2 hidden h-7 w-px bg-white/15 sm:block" />
+        <div className="mx-2 hidden h-8 w-px bg-white/15 sm:block" />
 
-        <nav className="flex items-center gap-1" aria-label="Atalhos rápidos">
+        <nav className="flex items-center gap-1.5" aria-label="Atalhos rápidos">
           {tools.map((tool) => {
             const Icon = tool.icon;
             return (
@@ -84,13 +84,13 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
                 href={tool.href}
                 title={tool.label}
                 className={cn(
-                  "inline-flex size-9 items-center justify-center rounded-md transition-colors",
+                  "inline-flex size-10 items-center justify-center rounded-md transition-colors",
                   tool.active
                     ? "bg-shell-active/25 text-white"
                     : "text-shell-muted hover:bg-shell-hover hover:text-shell-foreground",
                 )}
               >
-                <Icon className="size-[18px]" aria-hidden />
+                <Icon className="size-5" aria-hidden />
                 <span className="sr-only">{tool.label}</span>
               </Link>
             );
@@ -99,7 +99,7 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
 
         <div className="ml-auto flex items-center gap-2">
           {competencia ? (
-            <span className="hidden items-center gap-1.5 rounded-md border border-white/15 bg-shell-deep/50 px-2.5 py-1 text-xs text-shell-foreground sm:inline-flex">
+            <span className="hidden items-center gap-2 rounded-md border border-white/15 bg-shell-deep/50 px-3 py-1.5 text-sm text-shell-foreground sm:inline-flex">
               <span className="text-shell-muted">Competência</span>
               <span className="font-semibold tabular">{formatCompetencia(competencia)}</span>
             </span>

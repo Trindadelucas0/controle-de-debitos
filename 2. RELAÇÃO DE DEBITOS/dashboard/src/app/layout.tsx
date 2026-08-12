@@ -26,7 +26,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <Suspense
             fallback={
-              <header className="h-12 border-b border-white/10 bg-shell text-shell-foreground" />
+              <header className="h-16 border-b border-white/10 bg-shell text-shell-foreground" />
             }
           >
             <AppTopBar competencias={competencias} competenciaAtual={competenciaAtual} />

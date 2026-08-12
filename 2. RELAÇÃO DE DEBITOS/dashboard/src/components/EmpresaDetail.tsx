@@ -138,12 +138,6 @@ export function EmpresaDetail({
           />
         </div>
 
-        {empresa.tipos.length > 0 && (
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {empresa.tipos.join(" · ")}
-          </p>
-        )}
-
         {empresa.avisos.length > 0 && (
           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
             {empresa.avisos.join(" · ")}
@@ -430,10 +424,6 @@ function EsferaPanel({
           <Badge variant={statusBadgeVariant(status)}>{statusLabel(status)}</Badge>
         )}
         <EsferaBadge esfera={esfera} label={ESFERA_LABELS[esfera]} />
-        <span className="text-xs text-muted-foreground">
-          {ESFERA_FONTES[esfera]} · {bucket.qtdDocs} documento(s) · {bucket.qtd_debitos}{" "}
-          lançamento(s)
-        </span>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
