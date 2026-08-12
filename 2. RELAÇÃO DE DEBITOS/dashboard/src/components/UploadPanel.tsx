@@ -425,8 +425,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         <div className="mt-3">
           <PageHeader
             icon={FileUp}
-            title="Importar PDFs"
-            description="Arraste vários PDFs — o sistema identifica a empresa (CNPJ / código / nome), extrai os valores e processa um a um sem sobrecarregar."
+            title="IMPORTAR RELATORIOS"
           />
         </div>
       </div>

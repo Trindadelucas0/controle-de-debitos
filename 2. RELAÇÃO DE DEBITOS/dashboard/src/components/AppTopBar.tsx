@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
+  CalendarDays,
   ClipboardList,
   FileUp,
   LayoutDashboard,
@@ -18,6 +19,7 @@ type Props = {
 
 export function AppTopBar({ competencias, competenciaAtual }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const list = sortCompetencias(competencias);
   const fromQs = searchParams.get("competencia");
@@ -29,6 +31,14 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
     if (competencia) url.searchParams.set("competencia", competencia);
     const qs = url.searchParams.toString();
     return qs ? `${url.pathname}?${qs}` : url.pathname;
+  };
+
+  const setCompetencia = (next: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("competencia", next);
+    if (params.get("comparar") === next) params.delete("comparar");
+    const qs = params.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   };
 
   const isHome = pathname === "/";
@@ -65,12 +75,9 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
           <span className="flex size-10 items-center justify-center rounded-md bg-shell-active/25 text-shell-active">
             <Scale className="size-5" aria-hidden />
           </span>
-          <div className="leading-tight">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-shell-muted">
-              Razão fiscal
-            </p>
-            <p className="text-base font-bold tracking-tight">Relação de Débitos</p>
-          </div>
+          <p className="text-sm font-bold uppercase tracking-wide sm:text-base">
+            RELAÇÃO DE DEBITOS MENSAL
+          </p>
         </Link>
 
         <div className="mx-2 hidden h-8 w-px bg-white/15 sm:block" />
@@ -98,11 +105,25 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {competencia ? (
-            <span className="hidden items-center gap-2 rounded-md border border-white/15 bg-shell-deep/50 px-3 py-1.5 text-sm text-shell-foreground sm:inline-flex">
-              <span className="text-shell-muted">Competência</span>
-              <span className="font-semibold tabular">{formatCompetencia(competencia)}</span>
-            </span>
+          {list.length > 0 && competencia ? (
+            <label className="inline-flex items-center gap-2 rounded-md border border-shell-active/50 bg-shell-active-bg px-3 py-1.5 text-shell-foreground sm:px-4 sm:py-2">
+              <span className="hidden items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-shell-muted sm:inline-flex">
+                <CalendarDays className="size-3.5 text-shell-active" aria-hidden />
+                Competência
+              </span>
+              <select
+                className="h-8 min-w-[7.5rem] cursor-pointer rounded border-0 bg-transparent text-base font-bold tabular text-shell-foreground outline-none focus-visible:ring-1 focus-visible:ring-shell-active/60"
+                value={competencia}
+                onChange={(event) => setCompetencia(event.target.value)}
+                aria-label="Competência"
+              >
+                {list.map((id) => (
+                  <option key={id} value={id} className="bg-shell text-shell-foreground">
+                    {formatCompetencia(id)}
+                  </option>
+                ))}
+              </select>
+            </label>
           ) : null}
         </div>
       </div>

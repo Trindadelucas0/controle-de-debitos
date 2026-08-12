@@ -11,6 +11,8 @@ type Props = {
   comparar?: string | null;
   /** Se true, mostra seletor de comparação (página da empresa). */
   allowCompare?: boolean;
+  /** Se true, oculta o select de competência (já existe na top bar). */
+  hideCompetencia?: boolean;
   className?: string;
 };
 
@@ -19,6 +21,7 @@ export function CompetenciaControls({
   competencia,
   comparar = null,
   allowCompare = false,
+  hideCompetencia = false,
   className,
 }: Props) {
   const router = useRouter();
@@ -43,26 +46,29 @@ export function CompetenciaControls({
   };
 
   if (competencias.length === 0) return null;
+  if (hideCompetencia && !allowCompare) return null;
 
   return (
     <div className={cn("flex flex-wrap items-end gap-3", className)}>
-      <label className="grid gap-1 text-xs font-medium text-slate-700">
-        <span className="inline-flex items-center gap-1.5">
-          <CalendarDays className="size-3.5 text-primary" aria-hidden />
-          Competência
-        </span>
-        <select
-          className="h-9 min-w-[140px] rounded-md border border-input bg-card px-2 text-sm"
-          value={competencia}
-          onChange={(event) => pushParams({ competencia: event.target.value })}
-        >
-          {competencias.map((id) => (
-            <option key={id} value={id}>
-              {formatCompetencia(id)}
-            </option>
-          ))}
-        </select>
-      </label>
+      {!hideCompetencia ? (
+        <label className="grid gap-1 text-xs font-medium text-slate-700">
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarDays className="size-3.5 text-primary" aria-hidden />
+            Competência
+          </span>
+          <select
+            className="h-9 min-w-[140px] rounded-md border border-input bg-card px-2 text-sm"
+            value={competencia}
+            onChange={(event) => pushParams({ competencia: event.target.value })}
+          >
+            {competencias.map((id) => (
+              <option key={id} value={id}>
+                {formatCompetencia(id)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
       {allowCompare && (
         <label className="grid gap-1 text-xs font-medium text-slate-700">

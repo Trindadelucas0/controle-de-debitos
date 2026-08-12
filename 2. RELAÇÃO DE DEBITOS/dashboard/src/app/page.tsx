@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { EmpresasTable } from "@/components/EmpresasTable";
-import { getDataError, getSnapshot, listCompetencias, resolveCompetencia } from "@/lib/data";
+import { getDataError, getSnapshot, resolveCompetencia } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,6 @@ type Props = {
 
 export default async function HomePage({ searchParams }: Props) {
   const sp = await searchParams;
-  const competencias = listCompetencias();
   const competencia = resolveCompetencia(sp.competencia);
   const snapshot = getSnapshot(competencia);
   const dataError = getDataError();
@@ -26,7 +25,6 @@ export default async function HomePage({ searchParams }: Props) {
         empresas={snapshot.empresas}
         totais={snapshot.totais_gerais}
         geradoEm={snapshot.gerado_em}
-        competencias={competencias}
         competencia={competencia}
       />
     </Suspense>

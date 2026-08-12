@@ -14,7 +14,6 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { DashboardOverview } from "@/components/DashboardOverview";
-import { CompetenciaControls } from "@/components/CompetenciaControls";
 import { PageHeader } from "@/components/PageHeader";
 import { PaginationBar } from "@/components/PaginationBar";
 import { StatusBadge } from "@/components/StatusBadges";
@@ -22,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ESFERA_FONTES, ESFERA_LABELS } from "@/lib/analytics";
-import { formatCompetencia } from "@/lib/competencia";
 import { formatBRL, formatCnpj } from "@/lib/format";
 import type { Empresa, Esfera, StatusEsfera } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -31,6 +29,7 @@ import {
   Building2,
   CheckCircle2,
   Landmark,
+  LayoutDashboard,
   ListFilter,
   MapPin,
   Search,
@@ -49,7 +48,6 @@ type Props = {
     docs_municipal?: number;
   };
   geradoEm: string;
-  competencias: string[];
   competencia: string;
 };
 
@@ -69,7 +67,7 @@ function parseStatus(value: string | null): StatusFiltro {
   return "todas";
 }
 
-export function EmpresasTable({ empresas, totais, geradoEm, competencias, competencia }: Props) {
+export function EmpresasTable({ empresas, totais, geradoEm, competencia }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const esferaFiltro = parseEsfera(searchParams.get("esfera"));
@@ -242,18 +240,23 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencias, compet
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
       <PageHeader
-        icon={Building2}
-        title={`Painel · ${formatCompetencia(competencia)}`}
-        description="Escolha a competência para ver o recorte completo do mês"
-        actions={<CompetenciaControls competencias={competencias} competencia={competencia} />}
+        icon={esferaFiltro ? Landmark : LayoutDashboard}
+        title={
+          esferaFiltro
+            ? ESFERA_LABELS[esferaFiltro].toUpperCase()
+            : "VISÃO GERAL DOS DEBITOS"
+        }
+        actions={
+          <p className="text-xs text-muted-foreground">
+            Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
+          </p>
+        }
       />
 
       <DashboardOverview
         empresas={empresas}
         totais={totais}
-        geradoEm={geradoEm}
         esfera={esferaFiltro}
-        competencia={competencia}
       />
 
       <section className="space-y-3">

@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   FileText,
   Landmark,
-  LayoutDashboard,
   MapPin,
   Wallet,
   type LucideIcon,
@@ -31,52 +30,28 @@ import {
   ESFERA_FONTES,
   ESFERA_LABELS,
 } from "@/lib/analytics";
-import { formatCompetencia } from "@/lib/competencia";
 import { formatBRL } from "@/lib/format";
 import type { Empresa, Esfera, TotaisGerais } from "@/lib/types";
-import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Props = {
   empresas: Empresa[];
   totais: TotaisGerais;
-  geradoEm: string;
   esfera?: Esfera | null;
-  competencia?: string;
 };
 
 export function DashboardOverview({
   empresas,
   totais,
-  geradoEm,
   esfera = null,
-  competencia,
 }: Props) {
   const analytics = buildPortfolioAnalytics(empresas, esfera);
   const kpis = esfera ? buildTotaisGerais(empresas, esfera) : totais;
   const tituloEsfera = esfera ? ESFERA_LABELS[esfera] : null;
   const fonteEsfera = esfera ? ESFERA_FONTES[esfera] : null;
-  const competenciaLabel = competencia ? formatCompetencia(competencia) : null;
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        icon={LayoutDashboard}
-        title={tituloEsfera ? `Relação de débitos · ${tituloEsfera}` : "Relação de débitos"}
-        description={
-          fonteEsfera
-            ? `${fonteEsfera}${competenciaLabel ? ` · competência ${competenciaLabel}` : ""}`
-            : competenciaLabel
-              ? `Competência ${competenciaLabel} · decisões de cobrança e risco do portfólio`
-              : "Decisões de cobrança e risco do portfólio"
-        }
-        actions={
-          <p className="text-xs text-muted-foreground">
-            Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
-          </p>
-        }
-      />
-
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={Building2}
@@ -114,11 +89,11 @@ export function DashboardOverview({
       <div className="grid gap-3 sm:grid-cols-3">
         {(
           [
-            ["federal", "ECAC · Receita Federal", "bg-blue-500", Landmark],
-            ["estadual", "Agenci@Net · Estadual", "bg-teal-500", Building2],
-            ["municipal", "Prefeitura · Municipal", "bg-orange-500", MapPin],
+            ["federal", "ECAC · Receita Federal", "bg-blue-500", "border-blue-300", "border-blue-500 ring-1 ring-blue-400/40", Landmark],
+            ["estadual", "Agenci@Net · Estadual", "bg-teal-500", "border-teal-300", "border-teal-500 ring-1 ring-teal-400/40", Building2],
+            ["municipal", "Prefeitura · Municipal", "bg-orange-500", "border-orange-300", "border-orange-500 ring-1 ring-orange-400/40", MapPin],
           ] as const
-        ).map(([key, label, color, Icon]) => {
+        ).map(([key, label, color, border, borderActive, Icon]) => {
           const value =
             key === "federal"
               ? (kpis.docs_federal ?? 0)
@@ -133,6 +108,8 @@ export function DashboardOverview({
               label={label}
               value={dimmed ? 0 : value}
               color={color}
+              borderClass={border}
+              borderActiveClass={borderActive}
               dimmed={dimmed}
               active={esfera === key}
             />
@@ -399,6 +376,8 @@ function MiniDoc({
   label,
   value,
   color,
+  borderClass,
+  borderActiveClass,
   dimmed,
   active,
 }: {
@@ -406,13 +385,15 @@ function MiniDoc({
   label: string;
   value: number;
   color: string;
+  borderClass: string;
+  borderActiveClass: string;
   dimmed?: boolean;
   active?: boolean;
 }) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg border bg-card px-4 py-3 transition-opacity ${
-        active ? "border-slate-400 ring-1 ring-slate-300/60" : "border-border/80"
+      className={`flex items-center gap-3 rounded-lg border-2 bg-card px-4 py-3 transition-opacity ${
+        active ? borderActiveClass : borderClass
       } ${dimmed ? "opacity-40" : ""}`}
     >
       <span className={`flex size-8 items-center justify-center rounded-md text-white ${color}`}>

@@ -630,8 +630,7 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
     <div className="space-y-6 px-4 py-5 lg:px-6">
       <PageHeader
         icon={ClipboardList}
-        title="Consultas"
-        description="Empresas e portais por esfera (Federal, Estadual e Municipal)"
+        title="EMPRESAS DE CONSULTA"
       />
 
       <section className="space-y-3">
