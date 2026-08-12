@@ -1,9 +1,8 @@
-import { existsSync } from "fs";
 import path from "path";
-import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { listCompetencias } from "@/lib/data";
+import { resolveWorkspaceRoot, spawnPythonScript } from "@/lib/workspace";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,22 +14,6 @@ const MAX_FILES = 30;
 const MAX_BYTES = 20 * 1024 * 1024;
 /** Timeout total do lote (rebuild completo pode demorar). */
 const BATCH_TIMEOUT_MS = 15 * 60 * 1000;
-
-function resolveWorkspaceRoot(): string {
-  if (process.env.DEBITOS_WORKSPACE && existsSync(process.env.DEBITOS_WORKSPACE)) {
-    return process.env.DEBITOS_WORKSPACE;
-  }
-  const candidates = [
-    path.resolve(process.cwd(), ".."),
-    process.cwd(),
-    path.resolve(process.cwd(), "..", ".."),
-  ];
-  for (const candidate of candidates) {
-    const script = path.join(candidate, "scripts", "ingest_upload.py");
-    if (existsSync(script)) return candidate;
-  }
-  return path.resolve(process.cwd(), "..");
-}
 
 function sanitizeFileName(name: string): string {
   const base = path.basename(name).replace(/[<>:"/\\|?*\x00-\x1f]/g, "_");
@@ -48,30 +31,6 @@ function looksLikePdf(buffer: Buffer): boolean {
   const head = buffer.subarray(0, Math.min(buffer.length, 1024));
   const at = head.indexOf(marker);
   return at >= 0 && at < 32;
-}
-
-function spawnPython(workspace: string, args: string[]): ChildProcessWithoutNullStreams {
-  const script = path.join(workspace, "scripts", "ingest_upload.py");
-  // Preferir 3.14 (deps PDF); fallback py -3 / python do PATH.
-  const attempts: { cmd: string; prefix: string[] }[] = [
-    { cmd: "py", prefix: ["-3.14"] },
-    { cmd: "py", prefix: ["-3"] },
-    { cmd: "python", prefix: [] },
-  ];
-  let lastError: Error | null = null;
-  for (const attempt of attempts) {
-    try {
-      const child = spawn(attempt.cmd, [...attempt.prefix, script, ...args], {
-        cwd: workspace,
-        windowsHide: true,
-        env: { ...process.env, PYTHONIOENCODING: "utf-8", PYTHONUNBUFFERED: "1" },
-      });
-      return child;
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-    }
-  }
-  throw lastError || new Error("Python não encontrado");
 }
 
 export async function GET() {
@@ -155,7 +114,7 @@ export async function POST(request: Request) {
       ...tiposRaw,
     ];
 
-    const child = spawnPython(workspace, pyArgs);
+    const child = spawnPythonScript(workspace, "ingest_upload.py", pyArgs);
     const encoder = new TextEncoder();
     let settled = false;
 
