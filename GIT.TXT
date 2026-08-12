@@ -1,0 +1,13 @@
+cd ~/projetos/controle-de-debitos
+
+# descarta mudanças nos arquivos .next já rastreados
+git restore -- "2. RELAÇÃO DE DEBITOS/dashboard/.next"
+
+# remove os untracked que o merge reclamou
+rm -rf "2. RELAÇÃO DE DEBITOS/dashboard/.next/server/app/_not-found"
+
+git pull
+
+cd "2. RELAÇÃO DE DEBITOS/dashboard"
+npm run build 
+pm2 restart dashboard-debitos

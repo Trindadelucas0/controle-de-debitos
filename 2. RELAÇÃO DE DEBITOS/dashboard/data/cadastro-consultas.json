@@ -1,51 +1,6 @@
 {
-  "gerado_em": "2026-08-11",
+  "gerado_em": "2026-08-12",
   "origem": "Complemento opcional de UF/portais (a lista principal vem do sistema)",
-  "empresas": [
-    {
-      "numero": "1",
-      "empresa": "EXITO CONTABILIDADE EIRELI",
-      "cnpj": "29.859.815/0001-02",
-      "uf": "DF",
-      "federal": "ECAC",
-      "estadual": "AGENCIA NET",
-      "municipal": "***"
-    },
-    {
-      "numero": "3",
-      "empresa": "I. M. DAMASCENO MEDICA",
-      "cnpj": "26.148.733/0001-61",
-      "uf": "DF",
-      "federal": "ECAC",
-      "estadual": "AGENCIA NET",
-      "municipal": "***"
-    },
-    {
-      "numero": "4",
-      "empresa": "THE MINAS GASTRO BAR LTDA",
-      "cnpj": "53.870.461/0001-81",
-      "uf": "DF",
-      "federal": "ECAC",
-      "estadual": "AGENCIA NET",
-      "municipal": "***"
-    },
-    {
-      "numero": "06",
-      "empresa": "JOSE EVANGELISTA DE SOUSA LINO 14527081187",
-      "cnpj": "46.916.506/0001-46",
-      "uf": "—",
-      "federal": "ECAC",
-      "estadual": "AGENCIA NET",
-      "municipal": "—"
-    },
-    {
-      "numero": "20",
-      "empresa": "SO TEMPERO AGROINDUSTRIA LTDA",
-      "cnpj": "09.452.078/0001-11",
-      "uf": "MG",
-      "federal": "ECAC",
-      "estadual": "AGENCIA NET",
-      "municipal": "—"
-    }
-  ]
+  "empresas": [],
+  "excluidas": []
 }
