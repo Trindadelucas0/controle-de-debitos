@@ -21,7 +21,7 @@ import { resolveMunicipal } from "@/lib/cadastro-utils";
 import { formatCnpj } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CadastroConsulta } from "@/lib/types";
-import { ClipboardList, ExternalLink, Plus, Search, X } from "lucide-react";
+import { ClipboardList, ExternalLink, Plus, Search, Trash2, X } from "lucide-react";
 
 type DebitoLink = {
   id: string;
@@ -264,6 +264,7 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
   const [novaForm, setNovaForm] = useState<NovaEmpresaForm>(() => emptyNovaForm("1"));
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const savingKeys = useRef(new Set<string>());
   const empresaInputRef = useRef<HTMLInputElement>(null);
 
@@ -499,6 +500,47 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
     }
   }, [novaForm, rows]);
 
+  const excluirEmpresa = useCallback(async (row: EditableRow) => {
+    const nome = row.empresa.trim() || row.numero || "esta empresa";
+    const ok = window.confirm(
+      `Excluir "${nome}" só do cadastro de Consultas?\n\nOs débitos e a empresa no restante do sistema continuam.`,
+    );
+    if (!ok) return;
+
+    setDeletingId(row._clientId);
+    setSaveState({ key: row._clientId, status: "saving", message: "Excluindo…" });
+    try {
+      const res = await fetch("/api/cadastro", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          match: {
+            numero: row._matchNumero || row.numero,
+            cnpj: row._matchCnpj ?? row.cnpj,
+            id: row._matchId ?? undefined,
+          },
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Falha ao excluir.");
+      }
+
+      setRows((prev) => prev.filter((r) => r._clientId !== row._clientId));
+      setSaveState({ key: row._clientId, status: "saved", message: "Excluída" });
+      window.setTimeout(() => {
+        setSaveState((curr) =>
+          curr?.key === row._clientId && curr.status === "saved" ? null : curr,
+        );
+      }, 1800);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Falha ao excluir.";
+      setSaveState({ key: row._clientId, status: "error", message });
+    } finally {
+      setDeletingId(null);
+    }
+  }, []);
+
   const columns = useMemo(
     () => [
       columnHelper.accessor("numero", {
@@ -610,8 +652,29 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
           );
         },
       }),
+      columnHelper.display({
+        id: "acoes",
+        header: "",
+        cell: (info) => {
+          const row = info.row.original;
+          const busy = deletingId === row._clientId;
+          return (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+              disabled={busy}
+              aria-label={`Excluir ${row.empresa || row.numero}`}
+              onClick={() => void excluirEmpresa(row)}
+            >
+              <Trash2 className="size-4" aria-hidden />
+            </Button>
+          );
+        },
+      }),
     ],
-    [commitField, competencia, linkByCnpj, linkByCodigo],
+    [commitField, competencia, deletingId, excluirEmpresa, linkByCnpj, linkByCodigo],
   );
 
   const table = useReactTable({
@@ -654,8 +717,8 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
                 )}
                 role="status"
               >
-                {saveState.status === "saving" && "Salvando…"}
-                {saveState.status === "saved" && "Salvo"}
+                {saveState.status === "saving" && (saveState.message || "Salvando…")}
+                {saveState.status === "saved" && (saveState.message || "Salvo")}
                 {saveState.status === "error" && (saveState.message || "Erro ao salvar")}
               </p>
             )}
@@ -719,7 +782,7 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="px-3 py-8 text-center text-muted-foreground">
                       {query.trim()
                         ? "Nenhuma empresa encontrada para essa busca."
                         : "Nenhuma empresa no cadastro de consultas."}

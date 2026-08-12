@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  removeCadastroItem,
   saveCadastroOverlayItem,
   type CadastroMatchKey,
 } from "@/lib/cadastro";
@@ -11,6 +12,10 @@ export const dynamic = "force-dynamic";
 
 type PatchBody = {
   item?: Partial<CadastroConsulta>;
+  match?: CadastroMatchKey;
+};
+
+type DeleteBody = {
   match?: CadastroMatchKey;
 };
 
@@ -58,6 +63,27 @@ export async function PATCH(request: Request) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha ao salvar.";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  let body: DeleteBody;
+  try {
+    body = (await request.json()) as DeleteBody;
+  } catch {
+    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
+  }
+
+  if (!body.match || typeof body.match !== "object") {
+    return NextResponse.json({ error: "Campo match é obrigatório." }, { status: 400 });
+  }
+
+  try {
+    const result = removeCadastroItem(body.match);
+    return NextResponse.json({ ok: true, ...result });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Falha ao excluir.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

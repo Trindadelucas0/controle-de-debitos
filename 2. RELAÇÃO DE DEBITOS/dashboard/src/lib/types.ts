@@ -15,6 +15,8 @@ export type CadastroConsultasData = {
   gerado_em?: string;
   origem?: string;
   empresas: CadastroConsulta[];
+  /** Chaves `cnpj:…` / `num:…` ocultas do cadastro de consultas. */
+  excluidas?: string[];
 };
 
 export type StatusEsfera = "pendencia" | "regular" | "sem_documento" | "indeterminado";

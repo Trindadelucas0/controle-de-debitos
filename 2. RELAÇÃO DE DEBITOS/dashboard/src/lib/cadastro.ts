@@ -31,6 +31,7 @@ let overlayCached: {
   path: string;
   byCnpj: Map<string, CadastroConsulta>;
   byNumero: Map<string, CadastroConsulta>;
+  excluidas: Set<string>;
   error?: string;
 } | null = null;
 
@@ -44,6 +45,7 @@ function readOverlayFile(jsonPath: string): CadastroConsultasData {
     return {
       origem: "Complemento opcional de UF/portais (a lista principal vem do sistema)",
       empresas: [],
+      excluidas: [],
     };
   }
   const parsed = JSON.parse(readFileSync(jsonPath, "utf-8")) as CadastroConsultasData;
@@ -53,6 +55,9 @@ function readOverlayFile(jsonPath: string): CadastroConsultasData {
       parsed.origem ??
       "Complemento opcional de UF/portais (a lista principal vem do sistema)",
     empresas: Array.isArray(parsed.empresas) ? parsed.empresas : [],
+    excluidas: Array.isArray(parsed.excluidas)
+      ? parsed.excluidas.filter((key) => typeof key === "string" && key.trim())
+      : [],
   };
 }
 
@@ -76,6 +81,25 @@ export type CadastroMatchKey = {
   /** id estável em empresas.json (evita colisão de CNPJ/código duplicados). */
   id?: string;
 };
+
+function exclusionKeyFromParts(cnpj?: string | null, numero?: string): string | null {
+  const dig = digitsCnpj(cnpj);
+  if (dig) return `cnpj:${dig}`;
+  const num = (numero || "").trim();
+  if (num && num !== "—") return `num:${num}`;
+  return null;
+}
+
+function exclusionKeysForMatch(match: CadastroMatchKey | undefined, item?: CadastroConsulta): string[] {
+  const keys = new Set<string>();
+  const fromMatch = exclusionKeyFromParts(match?.cnpj, match?.numero);
+  if (fromMatch) keys.add(fromMatch);
+  if (item) {
+    const fromItem = exclusionKeyFromParts(item.cnpj, item.numero);
+    if (fromItem) keys.add(fromItem);
+  }
+  return [...keys];
+}
 
 function findOverlayIndex(
   empresas: CadastroConsulta[],
@@ -104,6 +128,14 @@ function findOverlayIndex(
   return -1;
 }
 
+function isExcluded(excluidas: Set<string>, cnpj: string | null | undefined, numero: string): boolean {
+  const dig = digitsCnpj(cnpj);
+  if (dig && excluidas.has(`cnpj:${dig}`)) return true;
+  const num = (numero || "").trim();
+  if (num && num !== "—" && excluidas.has(`num:${num}`)) return true;
+  return false;
+}
+
 /**
  * Upsert de uma linha no overlay `cadastro-consultas.json`.
  * `match` identifica a entrada anterior (antes de editar número/CNPJ).
@@ -130,24 +162,80 @@ export function saveCadastroOverlayItem(
 
   empresas.sort(sortCadastro);
 
+  // Reativar se estava na lista de excluídas.
+  const revive = new Set(exclusionKeysForMatch(match, item));
+  const excluidas = (data.excluidas ?? []).filter((key) => !revive.has(key));
+
   const today = new Date().toISOString().slice(0, 10);
   writeOverlayFileAtomic(jsonPath, {
     ...data,
     gerado_em: today,
     empresas,
+    excluidas,
   });
   invalidateCadastroOverlayCache();
   return item;
 }
 
+/**
+ * Remove a empresa do overlay e a oculta no cadastro de consultas
+ * (mesmo que ainda exista em empresas.json / débitos).
+ */
+export function removeCadastroItem(match: CadastroMatchKey): {
+  removed: boolean;
+  key: string | null;
+} {
+  const jsonPath = resolveCadastroPath();
+  const data = readOverlayFile(jsonPath);
+  const empresas = [...data.empresas];
+
+  const probe: CadastroConsulta = {
+    numero: (match.numero || "").trim() || "—",
+    empresa: "—",
+    cnpj: match.cnpj ?? null,
+    uf: "—",
+    federal: "ECAC",
+    estadual: "AGENCIA NET",
+    municipal: "—",
+  };
+  const idx = findOverlayIndex(empresas, match, probe);
+  let removedOverlay = false;
+  let removedItem: CadastroConsulta | undefined;
+  if (idx >= 0) {
+    removedItem = empresas[idx];
+    empresas.splice(idx, 1);
+    removedOverlay = true;
+  }
+
+  const keys = exclusionKeysForMatch(match, removedItem);
+  if (keys.length === 0) {
+    throw new Error("Informe número ou CNPJ para excluir.");
+  }
+
+  const excluidas = new Set(data.excluidas ?? []);
+  for (const key of keys) excluidas.add(key);
+
+  const today = new Date().toISOString().slice(0, 10);
+  writeOverlayFileAtomic(jsonPath, {
+    ...data,
+    gerado_em: today,
+    empresas,
+    excluidas: [...excluidas],
+  });
+  invalidateCadastroOverlayCache();
+  return { removed: removedOverlay || keys.length > 0, key: keys[0] ?? null };
+}
+
 function loadOverlay(): {
   byCnpj: Map<string, CadastroConsulta>;
   byNumero: Map<string, CadastroConsulta>;
+  excluidas: Set<string>;
   error?: string;
 } {
   const empty = {
     byCnpj: new Map<string, CadastroConsulta>(),
     byNumero: new Map<string, CadastroConsulta>(),
+    excluidas: new Set<string>(),
   };
   const jsonPath = resolveCadastroPath();
   if (!existsSync(jsonPath)) return empty;
@@ -162,6 +250,7 @@ function loadOverlay(): {
       return {
         byCnpj: overlayCached.byCnpj,
         byNumero: overlayCached.byNumero,
+        excluidas: overlayCached.excluidas,
         error: overlayCached.error,
       };
     }
@@ -169,6 +258,9 @@ function loadOverlay(): {
     const parsed = JSON.parse(readFileSync(jsonPath, "utf-8")) as CadastroConsultasData;
     const byCnpj = new Map<string, CadastroConsulta>();
     const byNumero = new Map<string, CadastroConsulta>();
+    const excluidas = new Set(
+      (parsed.excluidas ?? []).filter((key) => typeof key === "string" && key.trim()),
+    );
 
     for (const raw of parsed.empresas ?? []) {
       const item = normalizeCadastroItem(raw);
@@ -178,8 +270,8 @@ function loadOverlay(): {
       if (item.numero && item.numero !== "—") byNumero.set(item.numero, item);
     }
 
-    overlayCached = { mtimeMs: stat.mtimeMs, path: jsonPath, byCnpj, byNumero };
-    return { byCnpj, byNumero };
+    overlayCached = { mtimeMs: stat.mtimeMs, path: jsonPath, byCnpj, byNumero, excluidas };
+    return { byCnpj, byNumero, excluidas };
   } catch (err) {
     const message = err instanceof Error ? err.message : "JSON inválido";
     overlayCached = {
@@ -187,6 +279,7 @@ function loadOverlay(): {
       path: jsonPath,
       byCnpj: new Map(),
       byNumero: new Map(),
+      excluidas: new Set(),
       error: message,
     };
     return { ...empty, error: message };
@@ -264,16 +357,19 @@ export function loadCadastroConsultas(): CadastroConsultasData & { error?: strin
   const sistema = listEmpresasSistema();
   const rows: CadastroConsulta[] = [];
   const seen = new Set<string>();
+  const excluidas = overlay.excluidas;
 
   for (const empresa of sistema) {
     const dig = digitsCnpj(empresa.cnpj);
     const codigo = codigoPrincipal(empresa);
+    if (isExcluded(excluidas, empresa.cnpj, codigo)) continue;
     // Preferir match por número (chave estável das edições).
     const extra =
       (codigo ? overlay.byNumero.get(codigo) : undefined) ??
       (dig ? overlay.byCnpj.get(dig) : undefined);
     const row = fromSistema(empresa, extra);
     if (!row) continue;
+    if (isExcluded(excluidas, row.cnpj, row.numero)) continue;
     const rowDig = digitsCnpj(row.cnpj);
     const key = rowDig ? `cnpj:${rowDig}` : `cod:${row.numero}|${row.empresa}`;
     const numKey = row.numero && row.numero !== "—" ? `num:${row.numero}` : "";
@@ -286,9 +382,11 @@ export function loadCadastroConsultas(): CadastroConsultasData & { error?: strin
   // Entradas só do overlay (ex.: CNPJ que ainda não entrou no painel de débitos).
   const overlayOnly = new Map<string, CadastroConsulta>();
   for (const item of overlay.byNumero.values()) {
+    if (isExcluded(excluidas, item.cnpj, item.numero)) continue;
     overlayOnly.set(`n:${item.numero}`, item);
   }
   for (const item of overlay.byCnpj.values()) {
+    if (isExcluded(excluidas, item.cnpj, item.numero)) continue;
     const dig = digitsCnpj(item.cnpj);
     overlayOnly.set(dig ? `c:${dig}` : `n:${item.numero}`, item);
   }
@@ -307,6 +405,7 @@ export function loadCadastroConsultas(): CadastroConsultasData & { error?: strin
   return {
     origem: "Empresas do sistema (união de todas as competências)",
     empresas: rows,
+    excluidas: [...excluidas],
     error: overlay.error,
   };
 }
