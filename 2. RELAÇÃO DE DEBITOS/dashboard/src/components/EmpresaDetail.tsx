@@ -37,6 +37,7 @@ import {
   YAxis,
 } from "recharts";
 import { PaginationBar } from "@/components/PaginationBar";
+import { BlockingOverlay } from "@/components/BlockingOverlay";
 import { CompetenciaComparacao } from "@/components/CompetenciaComparacao";
 import { CompetenciaControls } from "@/components/CompetenciaControls";
 import { PageHeader } from "@/components/PageHeader";
@@ -418,6 +419,15 @@ function EsferaPanel({
 
   return (
     <div className="space-y-4">
+      <BlockingOverlay
+        open={Boolean(deletingFile)}
+        title="Excluindo PDF…"
+        description={
+          deletingFile
+            ? `Aguarde enquanto "${deletingFile}" é removido. Não feche nem clique em outra ação.`
+            : undefined
+        }
+      />
       <div className="flex flex-wrap items-center gap-2">
         {status === "pendencia" || status === "regular" ? (
           <StatusBadge status={status} />

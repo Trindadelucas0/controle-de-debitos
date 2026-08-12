@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState, type DragEvent } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { BlockingOverlay } from "@/components/BlockingOverlay";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -414,6 +415,11 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
 
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
+      <BlockingOverlay
+        open={deleting}
+        title="Excluindo PDF…"
+        description="Aguarde a exclusão terminar. Não feche a página nem clique em outra ação."
+      />
       <div>
         <Link
           href={competenciaEfetiva ? `/?competencia=${competenciaEfetiva}` : "/"}

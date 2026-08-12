@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-08-06T13:16:54",
+  "gerado_em": "2026-08-12T11:24:57",
   "competencias": [
     "07-2026",
     "08-2026"
@@ -23995,15 +23995,15 @@
     },
     "08-2026": {
       "competencia": "08-2026",
-      "gerado_em": "2026-08-06T13:16:54",
-      "pasta_mes": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
+      "gerado_em": "2026-08-12T11:24:57",
+      "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
       "totais_gerais": {
         "empresas": 6,
         "com_pendencia": 5,
         "regulares": 1,
-        "saldo": 157647.35,
-        "consolidado": 159695.61,
-        "docs_federal": 5,
+        "saldo": 14033.28,
+        "consolidado": 16067.26,
+        "docs_federal": 4,
         "docs_estadual": 4,
         "docs_municipal": 2
       },
@@ -24027,8 +24027,8 @@
           "totais": {
             "original": 325.33,
             "saldo": 325.33,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 325.33
           },
           "debitos": [
@@ -24038,8 +24038,8 @@
               "vencimento": "",
               "original": 82.19,
               "saldo": 82.19,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 82.19,
               "situacao": "DEVEDOR",
               "origem": "AGENCIANET",
@@ -24055,8 +24055,8 @@
               "vencimento": "20/08/2026",
               "original": 243.14,
               "saldo": 243.14,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 243.14,
               "situacao": "A ANALISAR-A VENCER",
               "origem": "ECAC",
@@ -24079,8 +24079,8 @@
                   "vencimento": "",
                   "original": 82.19,
                   "saldo": 82.19,
-                  "multa": 0,
-                  "juros": 0,
+                  "multa": 0.0,
+                  "juros": 0.0,
                   "consolidado": 82.19,
                   "situacao": "DEVEDOR",
                   "origem": "AGENCIANET",
@@ -24094,8 +24094,8 @@
               "totais": {
                 "original": 82.19,
                 "saldo": 82.19,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 82.19
               }
             },
@@ -24112,8 +24112,8 @@
                   "vencimento": "20/08/2026",
                   "original": 243.14,
                   "saldo": 243.14,
-                  "multa": 0,
-                  "juros": 0,
+                  "multa": 0.0,
+                  "juros": 0.0,
                   "consolidado": 243.14,
                   "situacao": "A ANALISAR-A VENCER",
                   "origem": "ECAC",
@@ -24125,8 +24125,8 @@
               "totais": {
                 "original": 243.14,
                 "saldo": 243.14,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 243.14
               }
             }
@@ -24138,8 +24138,8 @@
               "totais": {
                 "original": 243.14,
                 "saldo": 243.14,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 243.14
               },
               "arquivos": [
@@ -24153,8 +24153,8 @@
               "totais": {
                 "original": 82.19,
                 "saldo": 82.19,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 82.19
               },
               "arquivos": [
@@ -24166,11 +24166,11 @@
               "qtdDocs": 0,
               "status": "sem_documento",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [],
               "qtd_debitos": 0
@@ -24183,7 +24183,7 @@
             "27-AGENCIANET.pdf",
             "27-ECAC.pdf"
           ],
-          "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\BELEZA MARK",
+          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\BELEZA MARK",
           "avisos": [],
           "qtd_debitos": 2,
           "competencia": "08-2026"
@@ -24230,8 +24230,8 @@
               "receita": "6176 - TAXA FISCALIZACAO DE ESTABELECIMENTO - TFE",
               "pa": "01/2026 a 12/2026",
               "vencimento": "31/07/2026",
-              "original": 85,
-              "saldo": 85,
+              "original": 85.0,
+              "saldo": 85.0,
               "multa": 4.25,
               "juros": 0.89,
               "consolidado": 90.14,
@@ -24287,8 +24287,8 @@
                   "receita": "6176 - TAXA FISCALIZACAO DE ESTABELECIMENTO - TFE",
                   "pa": "01/2026 a 12/2026",
                   "vencimento": "31/07/2026",
-                  "original": 85,
-                  "saldo": 85,
+                  "original": 85.0,
+                  "saldo": 85.0,
                   "multa": 4.25,
                   "juros": 0.89,
                   "consolidado": 90.14,
@@ -24301,8 +24301,8 @@
                 }
               ],
               "totais": {
-                "original": 85,
-                "saldo": 85,
+                "original": 85.0,
+                "saldo": 85.0,
                 "multa": 4.25,
                 "juros": 0.89,
                 "consolidado": 90.14
@@ -24314,11 +24314,11 @@
               "qtdDocs": 0,
               "status": "sem_documento",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [],
               "qtd_debitos": 0
@@ -24327,8 +24327,8 @@
               "qtdDocs": 1,
               "status": "pendencia",
               "totais": {
-                "original": 85,
-                "saldo": 85,
+                "original": 85.0,
+                "saldo": 85.0,
                 "multa": 4.25,
                 "juros": 0.89,
                 "consolidado": 90.14
@@ -24361,7 +24361,7 @@
             "134-MUNICIPAL.pdf",
             "136-AGENCIANET.pdf"
           ],
-          "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
+          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
           "avisos": [],
           "qtd_debitos": 2,
           "competencia": "08-2026"
@@ -24376,18 +24376,14 @@
           ],
           "status": "pendencia",
           "tipos": [
-            "LANCAMENTO_ADMIN_ESTADUAL",
-            "DEBITO",
-            "DEBITO_SUSPENSO",
-            "INSCRICAO_SUSPENSA",
-            "PARCELAMENTO_SUSPENSO"
+            "LANCAMENTO_ADMIN_ESTADUAL"
           ],
           "totais": {
-            "original": 143680.72,
-            "saldo": 143680.72,
-            "multa": 12.14,
-            "juros": 6.17,
-            "consolidado": 143699.03
+            "original": 66.65,
+            "saldo": 66.65,
+            "multa": 3.33,
+            "juros": 0.7,
+            "consolidado": 70.68
           },
           "debitos": [
             {
@@ -24405,141 +24401,6 @@
               "codigo": "711",
               "esfera": "estadual",
               "numero_lancamento": "0005504044"
-            },
-            {
-              "receita": "0561-07 - IRRF",
-              "pa": "09/2025",
-              "vencimento": "20/10/2025",
-              "original": 40.07,
-              "saldo": 40.07,
-              "multa": 8.01,
-              "juros": 4.46,
-              "consolidado": 52.54,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "6912-01 - PIS",
-              "pa": "05/2024",
-              "vencimento": "25/06/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.27,
-              "consolidado": 1.47,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "6912-01 - PIS",
-              "pa": "07/2024",
-              "vencimento": "23/08/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.25,
-              "consolidado": 1.45,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "6912-01 - PIS",
-              "pa": "09/2024",
-              "vencimento": "25/10/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.24,
-              "consolidado": 1.44,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "5856-01 - COFINS",
-              "pa": "07/2024",
-              "vencimento": "23/08/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.25,
-              "consolidado": 1.45,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2089-01 - IRPJ",
-              "pa": "2º TRIM/2026",
-              "vencimento": "31/08/2026",
-              "original": 45912.34,
-              "saldo": 45912.34,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 45912.34,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2089-01 - IRPJ",
-              "pa": "2º TRIM/2026",
-              "vencimento": "30/09/2026",
-              "original": 45912.34,
-              "saldo": 45912.34,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 45912.34,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2372-01 - CSLL",
-              "pa": "2º TRIM/2026",
-              "vencimento": "31/08/2026",
-              "original": 25872.66,
-              "saldo": 25872.66,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 25872.66,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2372-01 - CSLL",
-              "pa": "2º TRIM/2026",
-              "vencimento": "30/09/2026",
-              "original": 25872.66,
-              "saldo": 25872.66,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 25872.66,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
             }
           ],
           "documentos": [
@@ -24574,174 +24435,21 @@
                 "juros": 0.7,
                 "consolidado": 70.68
               }
-            },
-            {
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal",
-              "origemLabel": "ECAC",
-              "statusDoc": "pendencia",
-              "debitos": [
-                {
-                  "receita": "0561-07 - IRRF",
-                  "pa": "09/2025",
-                  "vencimento": "20/10/2025",
-                  "original": 40.07,
-                  "saldo": 40.07,
-                  "multa": 8.01,
-                  "juros": 4.46,
-                  "consolidado": 52.54,
-                  "situacao": "DEVEDOR",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "6912-01 - PIS",
-                  "pa": "05/2024",
-                  "vencimento": "25/06/2024",
-                  "original": 1,
-                  "saldo": 1,
-                  "multa": 0.2,
-                  "juros": 0.27,
-                  "consolidado": 1.47,
-                  "situacao": "DEVEDOR",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "6912-01 - PIS",
-                  "pa": "07/2024",
-                  "vencimento": "23/08/2024",
-                  "original": 1,
-                  "saldo": 1,
-                  "multa": 0.2,
-                  "juros": 0.25,
-                  "consolidado": 1.45,
-                  "situacao": "DEVEDOR",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "6912-01 - PIS",
-                  "pa": "09/2024",
-                  "vencimento": "25/10/2024",
-                  "original": 1,
-                  "saldo": 1,
-                  "multa": 0.2,
-                  "juros": 0.24,
-                  "consolidado": 1.44,
-                  "situacao": "DEVEDOR",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "5856-01 - COFINS",
-                  "pa": "07/2024",
-                  "vencimento": "23/08/2024",
-                  "original": 1,
-                  "saldo": 1,
-                  "multa": 0.2,
-                  "juros": 0.25,
-                  "consolidado": 1.45,
-                  "situacao": "DEVEDOR",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "2089-01 - IRPJ",
-                  "pa": "2º TRIM/2026",
-                  "vencimento": "31/08/2026",
-                  "original": 45912.34,
-                  "saldo": 45912.34,
-                  "multa": 0,
-                  "juros": 0,
-                  "consolidado": 45912.34,
-                  "situacao": "A ANALISAR-A VENCER",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "2089-01 - IRPJ",
-                  "pa": "2º TRIM/2026",
-                  "vencimento": "30/09/2026",
-                  "original": 45912.34,
-                  "saldo": 45912.34,
-                  "multa": 0,
-                  "juros": 0,
-                  "consolidado": 45912.34,
-                  "situacao": "A ANALISAR-A VENCER",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "2372-01 - CSLL",
-                  "pa": "2º TRIM/2026",
-                  "vencimento": "31/08/2026",
-                  "original": 25872.66,
-                  "saldo": 25872.66,
-                  "multa": 0,
-                  "juros": 0,
-                  "consolidado": 25872.66,
-                  "situacao": "A ANALISAR-A VENCER",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                },
-                {
-                  "receita": "2372-01 - CSLL",
-                  "pa": "2º TRIM/2026",
-                  "vencimento": "30/09/2026",
-                  "original": 25872.66,
-                  "saldo": 25872.66,
-                  "multa": 0,
-                  "juros": 0,
-                  "consolidado": 25872.66,
-                  "situacao": "A ANALISAR-A VENCER",
-                  "origem": "ECAC",
-                  "arquivo": "711-ECAC.pdf",
-                  "codigo": "711",
-                  "esfera": "federal"
-                }
-              ],
-              "totais": {
-                "original": 143614.07,
-                "saldo": 143614.07,
-                "multa": 8.81,
-                "juros": 5.47,
-                "consolidado": 143628.35
-              }
             }
           ],
           "esferas": {
             "federal": {
-              "qtdDocs": 1,
-              "status": "pendencia",
+              "qtdDocs": 0,
+              "status": "sem_documento",
               "totais": {
-                "original": 143614.07,
-                "saldo": 143614.07,
-                "multa": 8.81,
-                "juros": 5.47,
-                "consolidado": 143628.35
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
-              "arquivos": [
-                "711-ECAC.pdf"
-              ],
-              "qtd_debitos": 9
+              "arquivos": [],
+              "qtd_debitos": 0
             },
             "estadual": {
               "qtdDocs": 1,
@@ -24762,26 +24470,25 @@
               "qtdDocs": 0,
               "status": "sem_documento",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [],
               "qtd_debitos": 0
             }
           },
-          "temFederal": true,
+          "temFederal": false,
           "temEstadual": true,
           "temMunicipal": false,
           "arquivos": [
-            "711-AGENCIANET.pdf",
-            "711-ECAC.pdf"
+            "711-AGENCIANET.pdf"
           ],
-          "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\JPG - PRODUTOS FUNCIONAIS E NUTRICIONAIS LTDA",
+          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\JPG - PRODUTOS FUNCIONAIS E NUTRICIONAIS LTDA",
           "avisos": [],
-          "qtd_debitos": 10,
+          "qtd_debitos": 1,
           "competencia": "08-2026"
         },
         {
@@ -24813,8 +24520,8 @@
               "vencimento": "",
               "original": 53.98,
               "saldo": 53.98,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 53.98,
               "situacao": "DEVEDOR",
               "origem": "AGENCIANET",
@@ -24890,8 +24597,8 @@
               "vencimento": "20/08/2026",
               "original": 178.31,
               "saldo": 178.31,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 178.31,
               "situacao": "A ANALISAR-A VENCER",
               "origem": "ECAC",
@@ -24905,8 +24612,8 @@
               "vencimento": "20/08/2026",
               "original": 175.41,
               "saldo": 175.41,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 175.41,
               "situacao": "A ANALISAR-A VENCER",
               "origem": "ECAC",
@@ -24929,8 +24636,8 @@
                   "vencimento": "",
                   "original": 53.98,
                   "saldo": 53.98,
-                  "multa": 0,
-                  "juros": 0,
+                  "multa": 0.0,
+                  "juros": 0.0,
                   "consolidado": 53.98,
                   "situacao": "DEVEDOR",
                   "origem": "AGENCIANET",
@@ -24944,8 +24651,8 @@
               "totais": {
                 "original": 53.98,
                 "saldo": 53.98,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 53.98
               }
             },
@@ -25022,8 +24729,8 @@
                   "vencimento": "20/08/2026",
                   "original": 178.31,
                   "saldo": 178.31,
-                  "multa": 0,
-                  "juros": 0,
+                  "multa": 0.0,
+                  "juros": 0.0,
                   "consolidado": 178.31,
                   "situacao": "A ANALISAR-A VENCER",
                   "origem": "ECAC",
@@ -25037,8 +24744,8 @@
                   "vencimento": "20/08/2026",
                   "original": 175.41,
                   "saldo": 175.41,
-                  "multa": 0,
-                  "juros": 0,
+                  "multa": 0.0,
+                  "juros": 0.0,
                   "consolidado": 175.41,
                   "situacao": "A ANALISAR-A VENCER",
                   "origem": "ECAC",
@@ -25078,8 +24785,8 @@
               "totais": {
                 "original": 53.98,
                 "saldo": 53.98,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 53.98
               },
               "arquivos": [
@@ -25091,11 +24798,11 @@
               "qtdDocs": 0,
               "status": "sem_documento",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [],
               "qtd_debitos": 0
@@ -25108,7 +24815,7 @@
             "40-AGENCIANET.pdf",
             "40-ECAC.pdf"
           ],
-          "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\LH PORTAS AUTOMATICAS LTDA",
+          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\LH PORTAS AUTOMATICAS LTDA",
           "avisos": [],
           "qtd_debitos": 7,
           "competencia": "08-2026"
@@ -25282,7 +24989,7 @@
               "saldo": 1542.91,
               "multa": 213.84,
               "juros": 34.25,
-              "consolidado": 1791,
+              "consolidado": 1791.0,
               "situacao": "DEVEDOR",
               "origem": "ECAC",
               "arquivo": "20-ECAC.pdf",
@@ -25293,8 +25000,8 @@
               "receita": "2172-01 - COFINS",
               "pa": "06/2026",
               "vencimento": "24/07/2026",
-              "original": 1163,
-              "saldo": 1163,
+              "original": 1163.0,
+              "saldo": 1163.0,
               "multa": 42.21,
               "juros": 11.63,
               "consolidado": 1216.84,
@@ -25385,8 +25092,8 @@
               "vencimento": "04/09/2026",
               "original": 275.49,
               "saldo": 275.49,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 275.49,
               "situacao": "PARCELADO",
               "origem": "MUNICIPAL",
@@ -25547,7 +25254,7 @@
                   "saldo": 1542.91,
                   "multa": 213.84,
                   "juros": 34.25,
-                  "consolidado": 1791,
+                  "consolidado": 1791.0,
                   "situacao": "DEVEDOR",
                   "origem": "ECAC",
                   "arquivo": "20-ECAC.pdf",
@@ -25558,8 +25265,8 @@
                   "receita": "2172-01 - COFINS",
                   "pa": "06/2026",
                   "vencimento": "24/07/2026",
-                  "original": 1163,
-                  "saldo": 1163,
+                  "original": 1163.0,
+                  "saldo": 1163.0,
                   "multa": 42.21,
                   "juros": 11.63,
                   "consolidado": 1216.84,
@@ -25666,8 +25373,8 @@
                   "vencimento": "04/09/2026",
                   "original": 275.49,
                   "saldo": 275.49,
-                  "multa": 0,
-                  "juros": 0,
+                  "multa": 0.0,
+                  "juros": 0.0,
                   "consolidado": 275.49,
                   "situacao": "PARCELADO",
                   "origem": "MUNICIPAL",
@@ -25680,8 +25387,8 @@
               "totais": {
                 "original": 275.49,
                 "saldo": 275.49,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 275.49
               }
             }
@@ -25706,11 +25413,11 @@
               "qtdDocs": 0,
               "status": "sem_documento",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [],
               "qtd_debitos": 0
@@ -25721,8 +25428,8 @@
               "totais": {
                 "original": 275.49,
                 "saldo": 275.49,
-                "multa": 0,
-                "juros": 0,
+                "multa": 0.0,
+                "juros": 0.0,
                 "consolidado": 275.49
               },
               "arquivos": [
@@ -25738,7 +25445,7 @@
             "20-ECAC.pdf",
             "20-MUNICIPAL.pdf"
           ],
-          "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\RENATO HENRIQUE DIAS -ME",
+          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\RENATO HENRIQUE DIAS -ME",
           "avisos": [],
           "qtd_debitos": 17,
           "competencia": "08-2026"
@@ -25783,11 +25490,11 @@
               "qtdDocs": 1,
               "status": "regular",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [
                 "11-ECAC.pdf"
@@ -25798,11 +25505,11 @@
               "qtdDocs": 0,
               "status": "sem_documento",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [],
               "qtd_debitos": 0
@@ -25811,11 +25518,11 @@
               "qtdDocs": 0,
               "status": "sem_documento",
               "totais": {
-                "original": 0,
-                "saldo": 0,
-                "multa": 0,
-                "juros": 0,
-                "consolidado": 0
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
               },
               "arquivos": [],
               "qtd_debitos": 0
@@ -25827,7 +25534,7 @@
           "arquivos": [
             "11-ECAC.pdf"
           ],
-          "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\sem_pendencias\\BAIFER DISTRIBUIDORA DE FERRAMENTAS LTDA",
+          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\sem_pendencias\\BAIFER DISTRIBUIDORA DE FERRAMENTAS LTDA",
           "avisos": [],
           "qtd_debitos": 0,
           "competencia": "08-2026"
@@ -25836,14 +25543,14 @@
     }
   },
   "competencia": "08-2026",
-  "pasta_mes": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
+  "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
   "totais_gerais": {
     "empresas": 6,
     "com_pendencia": 5,
     "regulares": 1,
-    "saldo": 157647.35,
-    "consolidado": 159695.61,
-    "docs_federal": 5,
+    "saldo": 14033.28,
+    "consolidado": 16067.26,
+    "docs_federal": 4,
     "docs_estadual": 4,
     "docs_municipal": 2
   },
@@ -25867,8 +25574,8 @@
       "totais": {
         "original": 325.33,
         "saldo": 325.33,
-        "multa": 0,
-        "juros": 0,
+        "multa": 0.0,
+        "juros": 0.0,
         "consolidado": 325.33
       },
       "debitos": [
@@ -25878,8 +25585,8 @@
           "vencimento": "",
           "original": 82.19,
           "saldo": 82.19,
-          "multa": 0,
-          "juros": 0,
+          "multa": 0.0,
+          "juros": 0.0,
           "consolidado": 82.19,
           "situacao": "DEVEDOR",
           "origem": "AGENCIANET",
@@ -25895,8 +25602,8 @@
           "vencimento": "20/08/2026",
           "original": 243.14,
           "saldo": 243.14,
-          "multa": 0,
-          "juros": 0,
+          "multa": 0.0,
+          "juros": 0.0,
           "consolidado": 243.14,
           "situacao": "A ANALISAR-A VENCER",
           "origem": "ECAC",
@@ -25919,8 +25626,8 @@
               "vencimento": "",
               "original": 82.19,
               "saldo": 82.19,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 82.19,
               "situacao": "DEVEDOR",
               "origem": "AGENCIANET",
@@ -25934,8 +25641,8 @@
           "totais": {
             "original": 82.19,
             "saldo": 82.19,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 82.19
           }
         },
@@ -25952,8 +25659,8 @@
               "vencimento": "20/08/2026",
               "original": 243.14,
               "saldo": 243.14,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 243.14,
               "situacao": "A ANALISAR-A VENCER",
               "origem": "ECAC",
@@ -25965,8 +25672,8 @@
           "totais": {
             "original": 243.14,
             "saldo": 243.14,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 243.14
           }
         }
@@ -25978,8 +25685,8 @@
           "totais": {
             "original": 243.14,
             "saldo": 243.14,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 243.14
           },
           "arquivos": [
@@ -25993,8 +25700,8 @@
           "totais": {
             "original": 82.19,
             "saldo": 82.19,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 82.19
           },
           "arquivos": [
@@ -26006,11 +25713,11 @@
           "qtdDocs": 0,
           "status": "sem_documento",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [],
           "qtd_debitos": 0
@@ -26023,7 +25730,7 @@
         "27-AGENCIANET.pdf",
         "27-ECAC.pdf"
       ],
-      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\BELEZA MARK",
+      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\BELEZA MARK",
       "avisos": [],
       "qtd_debitos": 2,
       "competencia": "08-2026"
@@ -26070,8 +25777,8 @@
           "receita": "6176 - TAXA FISCALIZACAO DE ESTABELECIMENTO - TFE",
           "pa": "01/2026 a 12/2026",
           "vencimento": "31/07/2026",
-          "original": 85,
-          "saldo": 85,
+          "original": 85.0,
+          "saldo": 85.0,
           "multa": 4.25,
           "juros": 0.89,
           "consolidado": 90.14,
@@ -26127,8 +25834,8 @@
               "receita": "6176 - TAXA FISCALIZACAO DE ESTABELECIMENTO - TFE",
               "pa": "01/2026 a 12/2026",
               "vencimento": "31/07/2026",
-              "original": 85,
-              "saldo": 85,
+              "original": 85.0,
+              "saldo": 85.0,
               "multa": 4.25,
               "juros": 0.89,
               "consolidado": 90.14,
@@ -26141,8 +25848,8 @@
             }
           ],
           "totais": {
-            "original": 85,
-            "saldo": 85,
+            "original": 85.0,
+            "saldo": 85.0,
             "multa": 4.25,
             "juros": 0.89,
             "consolidado": 90.14
@@ -26154,11 +25861,11 @@
           "qtdDocs": 0,
           "status": "sem_documento",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [],
           "qtd_debitos": 0
@@ -26167,8 +25874,8 @@
           "qtdDocs": 1,
           "status": "pendencia",
           "totais": {
-            "original": 85,
-            "saldo": 85,
+            "original": 85.0,
+            "saldo": 85.0,
             "multa": 4.25,
             "juros": 0.89,
             "consolidado": 90.14
@@ -26201,7 +25908,7 @@
         "134-MUNICIPAL.pdf",
         "136-AGENCIANET.pdf"
       ],
-      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
+      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
       "avisos": [],
       "qtd_debitos": 2,
       "competencia": "08-2026"
@@ -26216,18 +25923,14 @@
       ],
       "status": "pendencia",
       "tipos": [
-        "LANCAMENTO_ADMIN_ESTADUAL",
-        "DEBITO",
-        "DEBITO_SUSPENSO",
-        "INSCRICAO_SUSPENSA",
-        "PARCELAMENTO_SUSPENSO"
+        "LANCAMENTO_ADMIN_ESTADUAL"
       ],
       "totais": {
-        "original": 143680.72,
-        "saldo": 143680.72,
-        "multa": 12.14,
-        "juros": 6.17,
-        "consolidado": 143699.03
+        "original": 66.65,
+        "saldo": 66.65,
+        "multa": 3.33,
+        "juros": 0.7,
+        "consolidado": 70.68
       },
       "debitos": [
         {
@@ -26245,141 +25948,6 @@
           "codigo": "711",
           "esfera": "estadual",
           "numero_lancamento": "0005504044"
-        },
-        {
-          "receita": "0561-07 - IRRF",
-          "pa": "09/2025",
-          "vencimento": "20/10/2025",
-          "original": 40.07,
-          "saldo": 40.07,
-          "multa": 8.01,
-          "juros": 4.46,
-          "consolidado": 52.54,
-          "situacao": "DEVEDOR",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "6912-01 - PIS",
-          "pa": "05/2024",
-          "vencimento": "25/06/2024",
-          "original": 1,
-          "saldo": 1,
-          "multa": 0.2,
-          "juros": 0.27,
-          "consolidado": 1.47,
-          "situacao": "DEVEDOR",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "6912-01 - PIS",
-          "pa": "07/2024",
-          "vencimento": "23/08/2024",
-          "original": 1,
-          "saldo": 1,
-          "multa": 0.2,
-          "juros": 0.25,
-          "consolidado": 1.45,
-          "situacao": "DEVEDOR",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "6912-01 - PIS",
-          "pa": "09/2024",
-          "vencimento": "25/10/2024",
-          "original": 1,
-          "saldo": 1,
-          "multa": 0.2,
-          "juros": 0.24,
-          "consolidado": 1.44,
-          "situacao": "DEVEDOR",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "5856-01 - COFINS",
-          "pa": "07/2024",
-          "vencimento": "23/08/2024",
-          "original": 1,
-          "saldo": 1,
-          "multa": 0.2,
-          "juros": 0.25,
-          "consolidado": 1.45,
-          "situacao": "DEVEDOR",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "2089-01 - IRPJ",
-          "pa": "2º TRIM/2026",
-          "vencimento": "31/08/2026",
-          "original": 45912.34,
-          "saldo": 45912.34,
-          "multa": 0,
-          "juros": 0,
-          "consolidado": 45912.34,
-          "situacao": "A ANALISAR-A VENCER",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "2089-01 - IRPJ",
-          "pa": "2º TRIM/2026",
-          "vencimento": "30/09/2026",
-          "original": 45912.34,
-          "saldo": 45912.34,
-          "multa": 0,
-          "juros": 0,
-          "consolidado": 45912.34,
-          "situacao": "A ANALISAR-A VENCER",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "2372-01 - CSLL",
-          "pa": "2º TRIM/2026",
-          "vencimento": "31/08/2026",
-          "original": 25872.66,
-          "saldo": 25872.66,
-          "multa": 0,
-          "juros": 0,
-          "consolidado": 25872.66,
-          "situacao": "A ANALISAR-A VENCER",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
-        },
-        {
-          "receita": "2372-01 - CSLL",
-          "pa": "2º TRIM/2026",
-          "vencimento": "30/09/2026",
-          "original": 25872.66,
-          "saldo": 25872.66,
-          "multa": 0,
-          "juros": 0,
-          "consolidado": 25872.66,
-          "situacao": "A ANALISAR-A VENCER",
-          "origem": "ECAC",
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal"
         }
       ],
       "documentos": [
@@ -26414,174 +25982,21 @@
             "juros": 0.7,
             "consolidado": 70.68
           }
-        },
-        {
-          "arquivo": "711-ECAC.pdf",
-          "codigo": "711",
-          "esfera": "federal",
-          "origemLabel": "ECAC",
-          "statusDoc": "pendencia",
-          "debitos": [
-            {
-              "receita": "0561-07 - IRRF",
-              "pa": "09/2025",
-              "vencimento": "20/10/2025",
-              "original": 40.07,
-              "saldo": 40.07,
-              "multa": 8.01,
-              "juros": 4.46,
-              "consolidado": 52.54,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "6912-01 - PIS",
-              "pa": "05/2024",
-              "vencimento": "25/06/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.27,
-              "consolidado": 1.47,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "6912-01 - PIS",
-              "pa": "07/2024",
-              "vencimento": "23/08/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.25,
-              "consolidado": 1.45,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "6912-01 - PIS",
-              "pa": "09/2024",
-              "vencimento": "25/10/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.24,
-              "consolidado": 1.44,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "5856-01 - COFINS",
-              "pa": "07/2024",
-              "vencimento": "23/08/2024",
-              "original": 1,
-              "saldo": 1,
-              "multa": 0.2,
-              "juros": 0.25,
-              "consolidado": 1.45,
-              "situacao": "DEVEDOR",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2089-01 - IRPJ",
-              "pa": "2º TRIM/2026",
-              "vencimento": "31/08/2026",
-              "original": 45912.34,
-              "saldo": 45912.34,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 45912.34,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2089-01 - IRPJ",
-              "pa": "2º TRIM/2026",
-              "vencimento": "30/09/2026",
-              "original": 45912.34,
-              "saldo": 45912.34,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 45912.34,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2372-01 - CSLL",
-              "pa": "2º TRIM/2026",
-              "vencimento": "31/08/2026",
-              "original": 25872.66,
-              "saldo": 25872.66,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 25872.66,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            },
-            {
-              "receita": "2372-01 - CSLL",
-              "pa": "2º TRIM/2026",
-              "vencimento": "30/09/2026",
-              "original": 25872.66,
-              "saldo": 25872.66,
-              "multa": 0,
-              "juros": 0,
-              "consolidado": 25872.66,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "711-ECAC.pdf",
-              "codigo": "711",
-              "esfera": "federal"
-            }
-          ],
-          "totais": {
-            "original": 143614.07,
-            "saldo": 143614.07,
-            "multa": 8.81,
-            "juros": 5.47,
-            "consolidado": 143628.35
-          }
         }
       ],
       "esferas": {
         "federal": {
-          "qtdDocs": 1,
-          "status": "pendencia",
+          "qtdDocs": 0,
+          "status": "sem_documento",
           "totais": {
-            "original": 143614.07,
-            "saldo": 143614.07,
-            "multa": 8.81,
-            "juros": 5.47,
-            "consolidado": 143628.35
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
-          "arquivos": [
-            "711-ECAC.pdf"
-          ],
-          "qtd_debitos": 9
+          "arquivos": [],
+          "qtd_debitos": 0
         },
         "estadual": {
           "qtdDocs": 1,
@@ -26602,26 +26017,25 @@
           "qtdDocs": 0,
           "status": "sem_documento",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [],
           "qtd_debitos": 0
         }
       },
-      "temFederal": true,
+      "temFederal": false,
       "temEstadual": true,
       "temMunicipal": false,
       "arquivos": [
-        "711-AGENCIANET.pdf",
-        "711-ECAC.pdf"
+        "711-AGENCIANET.pdf"
       ],
-      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\JPG - PRODUTOS FUNCIONAIS E NUTRICIONAIS LTDA",
+      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\JPG - PRODUTOS FUNCIONAIS E NUTRICIONAIS LTDA",
       "avisos": [],
-      "qtd_debitos": 10,
+      "qtd_debitos": 1,
       "competencia": "08-2026"
     },
     {
@@ -26653,8 +26067,8 @@
           "vencimento": "",
           "original": 53.98,
           "saldo": 53.98,
-          "multa": 0,
-          "juros": 0,
+          "multa": 0.0,
+          "juros": 0.0,
           "consolidado": 53.98,
           "situacao": "DEVEDOR",
           "origem": "AGENCIANET",
@@ -26730,8 +26144,8 @@
           "vencimento": "20/08/2026",
           "original": 178.31,
           "saldo": 178.31,
-          "multa": 0,
-          "juros": 0,
+          "multa": 0.0,
+          "juros": 0.0,
           "consolidado": 178.31,
           "situacao": "A ANALISAR-A VENCER",
           "origem": "ECAC",
@@ -26745,8 +26159,8 @@
           "vencimento": "20/08/2026",
           "original": 175.41,
           "saldo": 175.41,
-          "multa": 0,
-          "juros": 0,
+          "multa": 0.0,
+          "juros": 0.0,
           "consolidado": 175.41,
           "situacao": "A ANALISAR-A VENCER",
           "origem": "ECAC",
@@ -26769,8 +26183,8 @@
               "vencimento": "",
               "original": 53.98,
               "saldo": 53.98,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 53.98,
               "situacao": "DEVEDOR",
               "origem": "AGENCIANET",
@@ -26784,8 +26198,8 @@
           "totais": {
             "original": 53.98,
             "saldo": 53.98,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 53.98
           }
         },
@@ -26862,8 +26276,8 @@
               "vencimento": "20/08/2026",
               "original": 178.31,
               "saldo": 178.31,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 178.31,
               "situacao": "A ANALISAR-A VENCER",
               "origem": "ECAC",
@@ -26877,8 +26291,8 @@
               "vencimento": "20/08/2026",
               "original": 175.41,
               "saldo": 175.41,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 175.41,
               "situacao": "A ANALISAR-A VENCER",
               "origem": "ECAC",
@@ -26918,8 +26332,8 @@
           "totais": {
             "original": 53.98,
             "saldo": 53.98,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 53.98
           },
           "arquivos": [
@@ -26931,11 +26345,11 @@
           "qtdDocs": 0,
           "status": "sem_documento",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [],
           "qtd_debitos": 0
@@ -26948,7 +26362,7 @@
         "40-AGENCIANET.pdf",
         "40-ECAC.pdf"
       ],
-      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\LH PORTAS AUTOMATICAS LTDA",
+      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\LH PORTAS AUTOMATICAS LTDA",
       "avisos": [],
       "qtd_debitos": 7,
       "competencia": "08-2026"
@@ -27122,7 +26536,7 @@
           "saldo": 1542.91,
           "multa": 213.84,
           "juros": 34.25,
-          "consolidado": 1791,
+          "consolidado": 1791.0,
           "situacao": "DEVEDOR",
           "origem": "ECAC",
           "arquivo": "20-ECAC.pdf",
@@ -27133,8 +26547,8 @@
           "receita": "2172-01 - COFINS",
           "pa": "06/2026",
           "vencimento": "24/07/2026",
-          "original": 1163,
-          "saldo": 1163,
+          "original": 1163.0,
+          "saldo": 1163.0,
           "multa": 42.21,
           "juros": 11.63,
           "consolidado": 1216.84,
@@ -27225,8 +26639,8 @@
           "vencimento": "04/09/2026",
           "original": 275.49,
           "saldo": 275.49,
-          "multa": 0,
-          "juros": 0,
+          "multa": 0.0,
+          "juros": 0.0,
           "consolidado": 275.49,
           "situacao": "PARCELADO",
           "origem": "MUNICIPAL",
@@ -27387,7 +26801,7 @@
               "saldo": 1542.91,
               "multa": 213.84,
               "juros": 34.25,
-              "consolidado": 1791,
+              "consolidado": 1791.0,
               "situacao": "DEVEDOR",
               "origem": "ECAC",
               "arquivo": "20-ECAC.pdf",
@@ -27398,8 +26812,8 @@
               "receita": "2172-01 - COFINS",
               "pa": "06/2026",
               "vencimento": "24/07/2026",
-              "original": 1163,
-              "saldo": 1163,
+              "original": 1163.0,
+              "saldo": 1163.0,
               "multa": 42.21,
               "juros": 11.63,
               "consolidado": 1216.84,
@@ -27506,8 +26920,8 @@
               "vencimento": "04/09/2026",
               "original": 275.49,
               "saldo": 275.49,
-              "multa": 0,
-              "juros": 0,
+              "multa": 0.0,
+              "juros": 0.0,
               "consolidado": 275.49,
               "situacao": "PARCELADO",
               "origem": "MUNICIPAL",
@@ -27520,8 +26934,8 @@
           "totais": {
             "original": 275.49,
             "saldo": 275.49,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 275.49
           }
         }
@@ -27546,11 +26960,11 @@
           "qtdDocs": 0,
           "status": "sem_documento",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [],
           "qtd_debitos": 0
@@ -27561,8 +26975,8 @@
           "totais": {
             "original": 275.49,
             "saldo": 275.49,
-            "multa": 0,
-            "juros": 0,
+            "multa": 0.0,
+            "juros": 0.0,
             "consolidado": 275.49
           },
           "arquivos": [
@@ -27578,7 +26992,7 @@
         "20-ECAC.pdf",
         "20-MUNICIPAL.pdf"
       ],
-      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\RENATO HENRIQUE DIAS -ME",
+      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\RENATO HENRIQUE DIAS -ME",
       "avisos": [],
       "qtd_debitos": 17,
       "competencia": "08-2026"
@@ -27623,11 +27037,11 @@
           "qtdDocs": 1,
           "status": "regular",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [
             "11-ECAC.pdf"
@@ -27638,11 +27052,11 @@
           "qtdDocs": 0,
           "status": "sem_documento",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [],
           "qtd_debitos": 0
@@ -27651,11 +27065,11 @@
           "qtdDocs": 0,
           "status": "sem_documento",
           "totais": {
-            "original": 0,
-            "saldo": 0,
-            "multa": 0,
-            "juros": 0,
-            "consolidado": 0
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
           },
           "arquivos": [],
           "qtd_debitos": 0
@@ -27667,7 +27081,7 @@
       "arquivos": [
         "11-ECAC.pdf"
       ],
-      "pasta": "C:\\Users\\trind\\Downloads\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\sem_pendencias\\BAIFER DISTRIBUIDORA DE FERRAMENTAS LTDA",
+      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\sem_pendencias\\BAIFER DISTRIBUIDORA DE FERRAMENTAS LTDA",
       "avisos": [],
       "qtd_debitos": 0,
       "competencia": "08-2026"
