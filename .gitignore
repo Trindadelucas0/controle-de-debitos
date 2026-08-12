@@ -1,0 +1,8 @@
+# Build / deps (nunca versionar)
+**/.next/
+**/node_modules/
+**/.vercel/
+*.log
+.env*
+!.env.example
+.DS_Store
