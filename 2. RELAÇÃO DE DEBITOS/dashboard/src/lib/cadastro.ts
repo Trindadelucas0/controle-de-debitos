@@ -320,66 +320,16 @@ export function listEmpresasSistema(): Empresa[] {
   return [...map.values()];
 }
 
-function fromSistema(
-  empresa: Empresa,
-  overlay: CadastroConsulta | undefined,
-): CadastroConsulta | null {
-  const numeroSistema = codigoPrincipal(empresa) || "";
-  // Com overlay, preferir todos os campos editados (senão a edição não “gruda”).
-  if (overlay) {
-    return normalizeCadastroItem({
-      numero: overlay.numero && overlay.numero !== "—" ? overlay.numero : numeroSistema,
-      empresa: overlay.empresa && overlay.empresa !== "—" ? overlay.empresa : empresa.nome,
-      cnpj: overlay.cnpj ?? empresa.cnpj ?? null,
-      uf: overlay.uf && overlay.uf !== "—" ? overlay.uf : "",
-      federal: overlay.federal,
-      estadual: overlay.estadual,
-      municipal: overlay.municipal && overlay.municipal !== "—" ? overlay.municipal : "",
-    });
-  }
-  return normalizeCadastroItem({
-    numero: numeroSistema,
-    empresa: empresa.nome,
-    cnpj: empresa.cnpj ?? null,
-    uf: "",
-    federal: undefined,
-    estadual: undefined,
-    municipal: "",
-  });
-}
-
 /**
- * Cadastro de consultas: todas as empresas do sistema (todas as competências),
- * enriquecidas com UF/portais do JSON quando houver match.
+ * Cadastro de consultas: somente entradas manuais de `cadastro-consultas.json`.
+ * Não lê empresas do painel de débitos / importação de PDF.
  */
 export function loadCadastroConsultas(): CadastroConsultasData & { error?: string } {
   const overlay = loadOverlay();
-  const sistema = listEmpresasSistema();
+  const excluidas = overlay.excluidas;
   const rows: CadastroConsulta[] = [];
   const seen = new Set<string>();
-  const excluidas = overlay.excluidas;
 
-  for (const empresa of sistema) {
-    const dig = digitsCnpj(empresa.cnpj);
-    const codigo = codigoPrincipal(empresa);
-    if (isExcluded(excluidas, empresa.cnpj, codigo)) continue;
-    // Preferir match por número (chave estável das edições).
-    const extra =
-      (codigo ? overlay.byNumero.get(codigo) : undefined) ??
-      (dig ? overlay.byCnpj.get(dig) : undefined);
-    const row = fromSistema(empresa, extra);
-    if (!row) continue;
-    if (isExcluded(excluidas, row.cnpj, row.numero)) continue;
-    const rowDig = digitsCnpj(row.cnpj);
-    const key = rowDig ? `cnpj:${rowDig}` : `cod:${row.numero}|${row.empresa}`;
-    const numKey = row.numero && row.numero !== "—" ? `num:${row.numero}` : "";
-    if (seen.has(key) || (numKey && seen.has(numKey))) continue;
-    seen.add(key);
-    if (numKey) seen.add(numKey);
-    rows.push(row);
-  }
-
-  // Entradas só do overlay (ex.: CNPJ que ainda não entrou no painel de débitos).
   const overlayOnly = new Map<string, CadastroConsulta>();
   for (const item of overlay.byNumero.values()) {
     if (isExcluded(excluidas, item.cnpj, item.numero)) continue;
@@ -403,7 +353,7 @@ export function loadCadastroConsultas(): CadastroConsultasData & { error?: strin
   rows.sort(sortCadastro);
 
   return {
-    origem: "Empresas do sistema (união de todas as competências)",
+    origem: "Cadastro manual de consultas",
     empresas: rows,
     excluidas: [...excluidas],
     error: overlay.error,

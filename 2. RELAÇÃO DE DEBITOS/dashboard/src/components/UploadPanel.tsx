@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Building2,
   CalendarDays,
+  CheckCircle2,
   Eraser,
   FileUp,
   Landmark,
@@ -14,7 +15,7 @@ import {
   Upload,
   type LucideIcon,
 } from "lucide-react";
-import { useMemo, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { BlockingOverlay } from "@/components/BlockingOverlay";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ import { formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type DocTipo = "ECAC" | "AGENCIANET" | "MUNICIPAL";
+type Phase = "idle" | "previewing" | "review" | "committing" | "done";
 
 type ZoneFile = {
   id: string;
@@ -34,6 +36,7 @@ type ZoneFile = {
   status: "ready" | "queued" | "uploading" | "ok" | "error";
   result?: IngestItem;
   error?: string;
+  selected?: boolean;
 };
 
 type IngestItem = {
@@ -55,6 +58,9 @@ type IngestItem = {
   competencia?: string;
   competencia_selecionada?: string;
   index?: number;
+  duplicado?: boolean;
+  inbox_path?: string | null;
+  dry_run?: boolean;
 };
 
 type StreamEvent = {
@@ -69,6 +75,7 @@ type StreamEvent = {
   competencia?: string;
   aviso_global?: string | null;
   itens?: IngestItem[];
+  dry_run?: boolean;
 } & IngestItem;
 
 type Props = {
@@ -114,6 +121,49 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+async function readNdjsonStream(
+  res: Response,
+  onEvent: (ev: StreamEvent) => void,
+): Promise<StreamEvent | null> {
+  if (!res.body) throw new Error("Resposta sem stream do servidor");
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let finalDone: StreamEvent | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let nl = buffer.indexOf("\n");
+    while (nl >= 0) {
+      const line = buffer.slice(0, nl).trim();
+      buffer = buffer.slice(nl + 1);
+      if (line) {
+        try {
+          const ev = JSON.parse(line) as StreamEvent;
+          onEvent(ev);
+          if (ev.event === "done") finalDone = ev;
+        } catch {
+          /* linha inválida */
+        }
+      }
+      nl = buffer.indexOf("\n");
+    }
+  }
+
+  if (buffer.trim()) {
+    try {
+      const ev = JSON.parse(buffer.trim()) as StreamEvent;
+      onEvent(ev);
+      if (ev.event === "done") finalDone = ev;
+    } catch {
+      /* ignore */
+    }
+  }
+  return finalDone;
+}
+
 export function UploadPanel({ competencias, competenciaInicial }: Props) {
   const router = useRouter();
   const [competencia, setCompetencia] = useState(competenciaInicial || competencias[0] || "");
@@ -121,7 +171,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
   const [novaAno, setNovaAno] = useState("");
   const [criarNova, setCriarNova] = useState(false);
   const [files, setFiles] = useState<ZoneFile[]>([]);
-  const [submitting, setSubmitting] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [dragOver, setDragOver] = useState<DocTipo | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -140,38 +190,60 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     return competencia;
   }, [criarNova, novaMes, novaAno, competencia]);
 
-  const doneCount = files.filter((f) => f.status === "ok" || f.status === "error").length;
+  const busy = phase === "previewing" || phase === "committing" || deleting;
   const okCount = files.filter((f) => f.status === "ok").length;
   const errorCount = files.filter((f) => f.status === "error").length;
+  const selectedForCommit = files.filter(
+    (f) =>
+      f.selected &&
+      f.status === "ok" &&
+      f.result?.inbox_path &&
+      !f.result.duplicado &&
+      !(f.result.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a)),
+  );
 
   const importadosOk = useMemo(
     () =>
       files.filter(
         (f) =>
+          phase === "done" &&
           f.status === "ok" &&
           Boolean(f.result?.destino || f.result?.arquivo_final) &&
           !deletedIds.includes(f.id) &&
+          !f.result?.duplicado &&
           !(f.result?.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a)),
       ),
-    [files, deletedIds],
+    [files, deletedIds, phase],
   );
 
+  useEffect(() => {
+    if (!busy) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [busy]);
+
   const addFiles = (tipo: DocTipo, list: FileList | File[] | null) => {
-    if (!list) return;
+    if (!list || busy || phase === "review") return;
     const arr = Array.from(list instanceof FileList ? list : list);
     const next: ZoneFile[] = [];
     for (const file of arr) {
       if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") continue;
-      next.push({ id: makeId(), file, tipo, status: "ready" });
+      next.push({ id: makeId(), file, tipo, status: "ready", selected: true });
     }
     if (next.length === 0) return;
     setFiles((prev) => [...prev, ...next]);
     setDonePayload(null);
     setGlobalError(null);
     setDeletedIds([]);
+    setPhase("idle");
   };
 
   const removeFile = (id: string) => {
+    if (busy) return;
     setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
@@ -179,22 +251,59 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     event.preventDefault();
     event.stopPropagation();
     setDragOver(null);
-    if (submitting) return;
+    if (busy || phase === "review") return;
     addFiles(tipo, event.dataTransfer.files);
   };
 
-  const applyItemResult = (index: number, item: IngestItem) => {
+  const applyItemResult = (index: number, item: IngestItem, selectDefault = true) => {
     setFiles((prev) =>
       prev.map((f, idx) => {
         if (idx !== index) return f;
+        const duplicado =
+          Boolean(item.duplicado) ||
+          (item.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a));
         return {
           ...f,
           status: item.ok ? "ok" : "error",
-          result: item,
+          result: { ...item, duplicado },
           error: item.erro || undefined,
+          selected: selectDefault ? (item.ok && !duplicado) : f.selected,
         };
       }),
     );
+  };
+
+  const limparInbox = async (paths: string[]) => {
+    if (paths.length === 0) return;
+    try {
+      await fetch("/api/ingest", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ competencia: competenciaEfetiva, paths }),
+      });
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const cancelarRevisao = async () => {
+    const paths = files
+      .map((f) => f.result?.inbox_path)
+      .filter((p): p is string => Boolean(p));
+    await limparInbox(paths);
+    setFiles((prev) =>
+      prev.map((f) => ({
+        ...f,
+        status: "ready",
+        result: undefined,
+        error: undefined,
+        selected: true,
+      })),
+    );
+    setPhase("idle");
+    setProgress(null);
+    setGlobalError(null);
+    setDonePayload(null);
   };
 
   const excluirImportados = async (targets: ZoneFile[]) => {
@@ -211,7 +320,6 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     setDeleting(true);
     setGlobalError(null);
     try {
-      // Agrupa por competência efetiva do item
       const byComp = new Map<string, { ids: string[]; destinos: string[] }>();
       for (const f of targets) {
         const comp = f.result?.competencia || competenciaEfetiva;
@@ -281,21 +389,30 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     }
   };
 
-  const onSubmit = async () => {
-    if (submitting || files.length === 0) return;
+  const onAnalisar = async () => {
+    if (busy || files.length === 0) return;
     if (!/^(0[1-9]|1[0-2])-\d{4}$/.test(competenciaEfetiva)) {
       setGlobalError("Informe uma competência válida (MM-YYYY).");
       return;
     }
-    setSubmitting(true);
+    setPhase("previewing");
     setGlobalError(null);
     setDonePayload(null);
     setProgress({ current: 0, total: files.length });
-    setFiles((prev) => prev.map((f) => ({ ...f, status: "queued", error: undefined, result: undefined })));
+    setFiles((prev) =>
+      prev.map((f) => ({
+        ...f,
+        status: "queued",
+        error: undefined,
+        result: undefined,
+        selected: true,
+      })),
+    );
 
     try {
       const body = new FormData();
       body.set("competencia", competenciaEfetiva);
+      body.set("mode", "preview");
       for (const item of files) {
         body.append("files", item.file, item.file.name);
         body.append("tipos", item.tipo);
@@ -308,88 +425,151 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         const payload = await res.json().catch(() => ({}));
         setGlobalError(payload?.erro || "Outra importação está em andamento.");
         setFiles((prev) => prev.map((f) => ({ ...f, status: "ready" })));
+        setPhase("idle");
+        return;
+      }
+
+      if (!res.ok && !contentType.includes("ndjson")) {
+        const payload = await res.json().catch(() => ({}));
+        setGlobalError(payload?.erro || "Falha na análise");
+        setFiles((prev) => prev.map((f) => ({ ...f, status: "error", error: payload?.erro })));
+        setPhase("idle");
+        return;
+      }
+
+      const finalDone = await readNdjsonStream(res, (ev) => {
+        if (ev.code === "LOCKED") {
+          setGlobalError(ev.erro || "Outra importação em andamento");
+          setFiles((prev) => prev.map((f) => ({ ...f, status: "ready" })));
+        } else if (ev.event === "start") {
+          setProgress({ current: 0, total: ev.total || files.length });
+        } else if (ev.event === "progress" && typeof ev.index === "number") {
+          setProgress({ current: ev.index + 1, total: ev.total || files.length });
+          setFiles((prev) =>
+            prev.map((f, idx) => (idx === ev.index ? { ...f, status: "uploading" } : f)),
+          );
+        } else if (
+          (ev.event === "item" || ev.event === "item_final") &&
+          typeof ev.index === "number"
+        ) {
+          applyItemResult(ev.index, ev, true);
+          if (ev.event === "item") {
+            setProgress({
+              current: Math.min((ev.index ?? 0) + 1, ev.total || files.length),
+              total: ev.total || files.length,
+            });
+          }
+        } else if (ev.event === "done" && Array.isArray(ev.itens)) {
+          ev.itens.forEach((item, idx) => applyItemResult(idx, item, true));
+        }
+      });
+
+      if (finalDone?.erro && !finalDone.ok) {
+        setGlobalError(finalDone.erro);
+        setPhase("idle");
+        return;
+      }
+      setPhase("review");
+    } catch (err) {
+      setGlobalError(err instanceof Error ? err.message : "Erro de rede");
+      setPhase("idle");
+    } finally {
+      setProgress(null);
+    }
+  };
+
+  const onConfirmar = async () => {
+    if (busy || selectedForCommit.length === 0) return;
+    setPhase("committing");
+    setGlobalError(null);
+    setProgress({ current: 0, total: selectedForCommit.length });
+
+    // Marca não selecionados / duplicados como skipped na UI
+    setFiles((prev) =>
+      prev.map((f) => {
+        if (selectedForCommit.some((s) => s.id === f.id)) {
+          return { ...f, status: "queued" };
+        }
+        return f;
+      }),
+    );
+
+    try {
+      const body = new FormData();
+      body.set("competencia", competenciaEfetiva);
+      body.set("mode", "commit");
+      for (const item of selectedForCommit) {
+        body.append("paths", item.result!.inbox_path!);
+        body.append("tipos", (item.result?.tipo as DocTipo) || item.tipo);
+      }
+
+      const indexMap = new Map(selectedForCommit.map((f, i) => [i, f.id]));
+
+      const res = await fetch("/api/ingest", { method: "POST", body });
+      const contentType = res.headers.get("content-type") || "";
+
+      if (res.status === 409) {
+        const payload = await res.json().catch(() => ({}));
+        setGlobalError(payload?.erro || "Outra importação está em andamento.");
+        setPhase("review");
         return;
       }
 
       if (!res.ok && !contentType.includes("ndjson")) {
         const payload = await res.json().catch(() => ({}));
         setGlobalError(payload?.erro || "Falha na importação");
-        setFiles((prev) => prev.map((f) => ({ ...f, status: "error", error: payload?.erro })));
+        setPhase("review");
         return;
       }
 
-      if (!res.body) {
-        setGlobalError("Resposta sem stream do servidor");
-        return;
-      }
+      const applyByCommitIndex = (commitIndex: number, item: IngestItem) => {
+        const fileId = indexMap.get(commitIndex);
+        if (!fileId) return;
+        setFiles((prev) =>
+          prev.map((f) => {
+            if (f.id !== fileId) return f;
+            return {
+              ...f,
+              status: item.ok ? "ok" : "error",
+              result: { ...f.result, ...item, duplicado: Boolean(item.duplicado) },
+              error: item.erro || undefined,
+            };
+          }),
+        );
+      };
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let finalDone: StreamEvent | null = null;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let nl = buffer.indexOf("\n");
-        while (nl >= 0) {
-          const line = buffer.slice(0, nl).trim();
-          buffer = buffer.slice(nl + 1);
-          if (line) {
-            try {
-              const ev = JSON.parse(line) as StreamEvent;
-              if (ev.code === "LOCKED") {
-                setGlobalError(ev.erro || "Outra importação em andamento");
-                setFiles((prev) => prev.map((f) => ({ ...f, status: "ready" })));
-                finalDone = { event: "done", ok: false, ...ev };
-              } else if (ev.event === "start") {
-                setProgress({ current: 0, total: ev.total || files.length });
-              } else if (ev.event === "progress" && typeof ev.index === "number") {
-                setProgress({ current: ev.index + 1, total: ev.total || files.length });
-                setFiles((prev) =>
-                  prev.map((f, idx) =>
-                    idx === ev.index
-                      ? { ...f, status: "uploading" }
-                      : idx < (ev.index ?? 0) && f.status === "queued"
-                        ? f
-                        : f,
-                  ),
-                );
-              } else if (
-                (ev.event === "item" || ev.event === "item_final") &&
-                typeof ev.index === "number"
-              ) {
-                applyItemResult(ev.index, ev);
-                if (ev.event === "item") {
-                  setProgress({
-                    current: Math.min((ev.index ?? 0) + 1, ev.total || files.length),
-                    total: ev.total || files.length,
-                  });
-                }
-              } else if (ev.event === "done") {
-                finalDone = ev;
-                if (Array.isArray(ev.itens)) {
-                  ev.itens.forEach((item, idx) => applyItemResult(idx, item));
-                }
-              }
-            } catch {
-              /* linha inválida */
-            }
+      const finalDone = await readNdjsonStream(res, (ev) => {
+        if (ev.code === "LOCKED") {
+          setGlobalError(ev.erro || "Outra importação em andamento");
+        } else if (ev.event === "start") {
+          setProgress({ current: 0, total: ev.total || selectedForCommit.length });
+        } else if (ev.event === "progress" && typeof ev.index === "number") {
+          setProgress({
+            current: ev.index + 1,
+            total: ev.total || selectedForCommit.length,
+          });
+          const fileId = indexMap.get(ev.index);
+          if (fileId) {
+            setFiles((prev) =>
+              prev.map((f) => (f.id === fileId ? { ...f, status: "uploading" } : f)),
+            );
           }
-          nl = buffer.indexOf("\n");
+        } else if (
+          (ev.event === "item" || ev.event === "item_final") &&
+          typeof ev.index === "number"
+        ) {
+          applyByCommitIndex(ev.index, ev);
+        } else if (ev.event === "done" && Array.isArray(ev.itens)) {
+          ev.itens.forEach((item, idx) => applyByCommitIndex(idx, item));
         }
-      }
+      });
 
-      if (buffer.trim()) {
-        try {
-          const ev = JSON.parse(buffer.trim()) as StreamEvent;
-          if (ev.event === "done") finalDone = ev;
-          else if (typeof ev.index === "number") applyItemResult(ev.index, ev);
-        } catch {
-          /* ignore */
-        }
-      }
+      // Limpa inbox dos não confirmados (duplicados / desmarcados)
+      const selectedIds = new Set(selectedForCommit.map((s) => s.id));
+      const leftover = files
+        .filter((f) => !selectedIds.has(f.id) && f.result?.inbox_path)
+        .map((f) => f.result!.inbox_path!);
+      await limparInbox(leftover);
 
       setDonePayload({
         ok: Boolean(finalDone?.ok),
@@ -399,40 +579,56 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       if (finalDone?.erro && !finalDone.ok) {
         setGlobalError(finalDone.erro);
       }
+      setPhase("done");
       router.refresh();
     } catch (err) {
       setGlobalError(err instanceof Error ? err.message : "Erro de rede");
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.status === "ok" ? f : { ...f, status: f.status === "error" ? "error" : "error" },
-        ),
-      );
+      setPhase("review");
     } finally {
-      setSubmitting(false);
       setProgress(null);
     }
   };
 
+  const overlayTitle =
+    phase === "previewing"
+      ? "Analisando PDFs…"
+      : phase === "committing"
+        ? "Importando PDFs…"
+        : deleting
+          ? "Excluindo PDF…"
+          : "";
+  const overlayDesc =
+    phase === "previewing"
+      ? "Extraindo dados sem gravar. Não feche nem saia desta página."
+      : phase === "committing"
+        ? "Gravando arquivos e atualizando o painel. Não feche nem saia desta página."
+        : "Aguarde a exclusão terminar. Não feche a página nem clique em outra ação.";
+
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
       <BlockingOverlay
-        open={deleting}
-        title="Excluindo PDF…"
-        description="Aguarde a exclusão terminar. Não feche a página nem clique em outra ação."
+        open={busy}
+        title={overlayTitle}
+        description={overlayDesc}
+        progress={progress}
       />
       <div>
-        <Link
-          href={competenciaEfetiva ? `/?competencia=${competenciaEfetiva}` : "/"}
-          className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-2 hover:underline"
-        >
-          <ArrowLeft className="size-3.5" aria-hidden />
-          Voltar ao painel
-        </Link>
+        {busy ? (
+          <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+            <ArrowLeft className="size-3.5" aria-hidden />
+            Aguarde o fim da operação para voltar
+          </span>
+        ) : (
+          <Link
+            href={competenciaEfetiva ? `/?competencia=${competenciaEfetiva}` : "/"}
+            className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-2 hover:underline"
+          >
+            <ArrowLeft className="size-3.5" aria-hidden />
+            Voltar ao painel
+          </Link>
+        )}
         <div className="mt-3">
-          <PageHeader
-            icon={FileUp}
-            title="IMPORTAR RELATORIOS"
-          />
+          <PageHeader icon={FileUp} title="IMPORTAR RELATORIOS" />
         </div>
       </div>
 
@@ -447,183 +643,213 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         <CardContent className="flex flex-wrap items-end gap-4">
           <label className="grid gap-1 text-xs font-medium">
             <span className="flex items-center gap-2">
-              <input type="radio" checked={!criarNova} onChange={() => setCriarNova(false)} />
-              Existente
+              Competência existente
+              <input
+                type="checkbox"
+                className="size-3.5"
+                checked={!criarNova}
+                disabled={busy || phase === "review"}
+                onChange={() => setCriarNova(false)}
+              />
             </span>
             <select
-              className="h-9 min-w-[160px] rounded-md border border-input bg-background px-2 text-sm"
-              disabled={criarNova || submitting}
+              className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
               value={competencia}
+              disabled={criarNova || busy || phase === "review"}
               onChange={(e) => setCompetencia(e.target.value)}
             >
-              {competencias.length === 0 && <option value="">—</option>}
-              {competencias.map((id) => (
-                <option key={id} value={id}>
-                  {formatCompetencia(id)}
+              {competencias.map((c) => (
+                <option key={c} value={c}>
+                  {formatCompetencia(c)}
                 </option>
               ))}
             </select>
           </label>
-
           <label className="grid gap-1 text-xs font-medium">
             <span className="flex items-center gap-2">
-              <input type="radio" checked={criarNova} onChange={() => setCriarNova(true)} />
               Nova competência
+              <input
+                type="checkbox"
+                className="size-3.5"
+                checked={criarNova}
+                disabled={busy || phase === "review"}
+                onChange={() => setCriarNova(true)}
+              />
             </span>
             <div className="flex gap-2">
               <Input
-                disabled={!criarNova || submitting}
-                placeholder="MM"
                 className="w-16"
+                placeholder="MM"
+                maxLength={2}
                 value={novaMes}
+                disabled={!criarNova || busy || phase === "review"}
                 onChange={(e) => setNovaMes(e.target.value.replace(/\D/g, "").slice(0, 2))}
               />
               <Input
-                disabled={!criarNova || submitting}
-                placeholder="AAAA"
-                className="w-24"
+                className="w-20"
+                placeholder="YYYY"
+                maxLength={4}
                 value={novaAno}
+                disabled={!criarNova || busy || phase === "review"}
                 onChange={(e) => setNovaAno(e.target.value.replace(/\D/g, "").slice(0, 4))}
               />
             </div>
           </label>
-
           <p className="text-sm text-muted-foreground">
-            Destino:{" "}
-            <span className="font-semibold text-slate-800">
-              {formatCompetencia(competenciaEfetiva || "—")}
-            </span>
+            Efetiva: <span className="font-medium text-foreground">{competenciaEfetiva || "—"}</span>
           </p>
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {ZONES.map((zone) => {
-          const ZoneIcon = zone.icon;
-          return (
-          <Card key={zone.tipo} className={cn("border shadow-none", zone.accent)}>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <span className={cn("flex size-8 items-center justify-center rounded-md", zone.iconTone)}>
-                  <ZoneIcon className="size-4" aria-hidden />
-                </span>
-                {zone.title}
-              </CardTitle>
-              <CardDescription>{zone.subtitle}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  if (!submitting) setDragOver(zone.tipo);
-                }}
+      {phase !== "review" && phase !== "done" ? (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {ZONES.map((zone) => {
+            const ZoneIcon = zone.icon;
+            const zoneFiles = files.filter((f) => f.tipo === zone.tipo);
+            return (
+              <Card
+                key={zone.tipo}
+                className={cn(
+                  "border-dashed shadow-none transition-colors",
+                  zone.accent,
+                  dragOver === zone.tipo && "ring-2 ring-primary",
+                )}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.dataTransfer.dropEffect = "copy";
+                  if (!busy) setDragOver(zone.tipo);
                 }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  if (e.currentTarget === e.target) setDragOver(null);
-                }}
+                onDragLeave={() => setDragOver(null)}
                 onDrop={(e) => onDropZone(zone.tipo, e)}
-                className={cn(
-                  "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-3 py-8 text-center text-sm transition",
-                  dragOver === zone.tipo
-                    ? "border-primary bg-primary/5"
-                    : "border-slate-300 bg-white/70 hover:border-primary/50",
-                  submitting && "pointer-events-none opacity-60",
-                )}
               >
-                <label className="flex w-full cursor-pointer flex-col items-center">
-                  <Upload className="mb-2 size-8 text-slate-400" aria-hidden />
-                  <span className="font-medium text-slate-800">Arraste vários PDFs aqui</span>
-                  <span className="mt-1 text-xs text-muted-foreground">ou clique para selecionar</span>
-                  <input
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    multiple
-                    className="hidden"
-                    disabled={submitting}
-                    onChange={(e) => {
-                      addFiles(zone.tipo, e.target.files);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
-              </div>
-              <ul className="mt-3 max-h-40 space-y-1 overflow-auto text-xs">
-                {files
-                  .filter((f) => f.tipo === zone.tipo)
-                  .map((f) => (
-                    <li
-                      key={f.id}
-                      className="flex items-center justify-between gap-2 rounded bg-white/80 px-2 py-1"
-                    >
-                      <span className="truncate">
-                        {f.status === "uploading" ? "… " : ""}
-                        {f.status === "ok" ? "✓ " : ""}
-                        {f.status === "error" ? "✗ " : ""}
-                        {f.file.name}
-                      </span>
-                      <button
-                        type="button"
-                        className="shrink-0 text-red-600 hover:underline"
-                        disabled={submitting}
-                        onClick={() => removeFile(f.id)}
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <span className={cn("inline-flex size-7 items-center justify-center rounded-md", zone.iconTone)}>
+                      <ZoneIcon className="size-4" aria-hidden />
+                    </span>
+                    {zone.title}
+                  </CardTitle>
+                  <CardDescription>{zone.subtitle}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <label
+                    className={cn(
+                      "flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-slate-300 bg-white/70 px-3 py-6 text-center text-sm",
+                      busy && "pointer-events-none opacity-60",
+                    )}
+                  >
+                    <Upload className="mb-2 size-8 text-slate-400" aria-hidden />
+                    <span className="font-medium text-slate-800">Arraste vários PDFs aqui</span>
+                    <span className="mt-1 text-xs text-muted-foreground">ou clique para escolher</span>
+                    <input
+                      type="file"
+                      className="sr-only"
+                      accept="application/pdf,.pdf"
+                      multiple
+                      disabled={busy}
+                      onChange={(e) => {
+                        addFiles(zone.tipo, e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <ul className="mt-3 max-h-40 space-y-1 overflow-auto text-xs">
+                    {zoneFiles.map((f) => (
+                      <li
+                        key={f.id}
+                        className="flex items-center justify-between gap-2 rounded bg-white/80 px-2 py-1"
                       >
-                        remover
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            </CardContent>
-          </Card>
-          );
-        })}
-      </div>
+                        <span className="truncate">{f.file.name}</span>
+                        <button
+                          type="button"
+                          className="shrink-0 text-red-600 hover:underline"
+                          disabled={busy}
+                          onClick={() => removeFile(f.id)}
+                        >
+                          remover
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" disabled={submitting || files.length === 0} onClick={onSubmit}>
-          <Upload className="size-4" aria-hidden />
-          {submitting
-            ? progress
-              ? `Processando ${progress.current}/${progress.total}…`
-              : "Processando…"
-            : `Importar ${files.length || ""} PDF(s)`}
-        </Button>
-        {files.length > 0 && !submitting && (
-          <Button type="button" variant="ghost" onClick={() => setFiles([])}>
+        {phase === "idle" || phase === "previewing" ? (
+          <Button type="button" disabled={busy || files.length === 0} onClick={() => void onAnalisar()}>
+            <Upload className="size-4" aria-hidden />
+            {phase === "previewing"
+              ? progress
+                ? `Analisando ${progress.current}/${progress.total}…`
+                : "Analisando…"
+              : `Analisar ${files.length || ""} PDF(s)`}
+          </Button>
+        ) : null}
+
+        {phase === "review" ? (
+          <>
+            <Button
+              type="button"
+              disabled={busy || selectedForCommit.length === 0}
+              onClick={() => void onConfirmar()}
+            >
+              <CheckCircle2 className="size-4" aria-hidden />
+              Confirmar importação ({selectedForCommit.length})
+            </Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => void cancelarRevisao()}>
+              Cancelar revisão
+            </Button>
+          </>
+        ) : null}
+
+        {(phase === "idle" || phase === "done") && files.length > 0 && !busy ? (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setFiles([]);
+              setPhase("idle");
+              setDonePayload(null);
+              setGlobalError(null);
+              setDeletedIds([]);
+            }}
+          >
             <Eraser className="size-4" aria-hidden />
             Limpar lista
           </Button>
-        )}
-        {importadosOk.length > 0 && !submitting && (
+        ) : null}
+
+        {importadosOk.length > 0 && phase === "done" && !busy ? (
           <Button
             type="button"
             variant="destructive"
             disabled={deleting}
-            onClick={() => excluirImportados(importadosOk)}
+            onClick={() => void excluirImportados(importadosOk)}
           >
             <Trash2 className="size-4" aria-hidden />
-            {deleting
-              ? "Excluindo…"
-              : `Excluir o que foi importado (${importadosOk.length})`}
+            {deleting ? "Excluindo…" : `Excluir o que foi importado (${importadosOk.length})`}
           </Button>
-        )}
-        {submitting && (
-          <span className="text-sm text-muted-foreground">
-            Fila: {doneCount}/{files.length} concluídos · 1 PDF por vez
-          </span>
-        )}
-        {donePayload?.competencia && !submitting && (
+        ) : null}
+
+        {donePayload?.competencia && phase === "done" && !busy ? (
           <Link
             href={`/?competencia=${donePayload.competencia}`}
             className="text-sm font-medium text-primary underline-offset-2 hover:underline"
           >
             Ver painel · {formatCompetencia(donePayload.competencia)}
           </Link>
-        )}
+        ) : null}
       </div>
+
+      {phase === "review" ? (
+        <p className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
+          Revise os dados abaixo. Duplicados (mesmo arquivo já importado) ficam desmarcados e não
+          serão gravados. Nada entra no painel até você confirmar.
+        </p>
+      ) : null}
 
       {globalError && (
         <p
@@ -633,7 +859,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           {globalError}
         </p>
       )}
-      {donePayload && !submitting && !globalError && (
+      {donePayload && phase === "done" && !busy && !globalError && (
         <div
           role="status"
           aria-live="polite"
@@ -648,10 +874,10 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         >
           <p className="text-base font-semibold tracking-tight">
             {donePayload.ok && errorCount === 0
-              ? "OK — Extração concluída"
+              ? "OK — Importação concluída"
               : donePayload.ok
-                ? "Extração concluída com pendências"
-                : "Extração finalizada com erro"}
+                ? "Importação concluída com pendências"
+                : "Importação finalizada com erro"}
           </p>
           <p className="mt-1">
             {okCount} OK
@@ -660,16 +886,6 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               ? ` · competência ${formatCompetencia(donePayload.competencia)}`
               : ""}
           </p>
-          {donePayload.ok && donePayload.competencia ? (
-            <p className="mt-2">
-              <Link
-                href={`/?competencia=${donePayload.competencia}`}
-                className="font-medium underline underline-offset-2"
-              >
-                Abrir painel · {formatCompetencia(donePayload.competencia)}
-              </Link>
-            </p>
-          ) : null}
         </div>
       )}
       {donePayload?.aviso_global && (
@@ -678,18 +894,21 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         </p>
       )}
 
-      {files.length > 0 && (
+      {files.length > 0 && (phase === "review" || phase === "done" || phase === "committing") && (
         <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-base">Fila de extração</CardTitle>
+            <CardTitle className="text-base">
+              {phase === "review" ? "Revisão antes de gravar" : "Resultado da importação"}
+            </CardTitle>
             <CardDescription>
-              Empresa detectada automaticamente · destino e valores por arquivo
+              Empresa detectada · destino previsto · valores por arquivo
             </CardDescription>
           </CardHeader>
           <div className="overflow-auto">
-            <table className="w-full min-w-[900px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[960px] border-collapse text-left text-sm">
               <thead className="border-b bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <tr>
+                  {phase === "review" ? <th className="px-3 py-2">Incluir</th> : null}
                   <th className="px-3 py-2">#</th>
                   <th className="px-3 py-2">Arquivo</th>
                   <th className="px-3 py-2">Tipo</th>
@@ -699,29 +918,51 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                   <th className="px-3 py-2">Lanç.</th>
                   <th className="px-3 py-2">Saldo</th>
                   <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Ações</th>
+                  {phase === "done" ? <th className="px-3 py-2">Ações</th> : null}
                 </tr>
               </thead>
               <tbody>
                 {files.map((f, idx) => {
                   const r = f.result;
-                  const compItem = r?.competencia || competenciaEfetiva;
+                  const duplicado = Boolean(r?.duplicado);
                   const wasDeleted = deletedIds.includes(f.id);
+                  const canSelect =
+                    phase === "review" && f.status === "ok" && !duplicado && Boolean(r?.inbox_path);
                   return (
                     <tr
                       key={f.id}
                       className={cn(
                         "border-b border-border/70",
                         f.status === "uploading" && "bg-sky-50/80",
+                        duplicado && "bg-amber-50/70",
                         wasDeleted && "bg-slate-50 opacity-60",
                       )}
                     >
+                      {phase === "review" ? (
+                        <td className="px-3 py-2 align-top">
+                          <input
+                            type="checkbox"
+                            className="size-4"
+                            checked={Boolean(f.selected) && canSelect}
+                            disabled={!canSelect || busy}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setFiles((prev) =>
+                                prev.map((row) =>
+                                  row.id === f.id ? { ...row, selected: checked } : row,
+                                ),
+                              );
+                            }}
+                            aria-label={`Incluir ${f.file.name}`}
+                          />
+                        </td>
+                      ) : null}
                       <td className="px-3 py-2 tabular text-muted-foreground">{idx + 1}</td>
                       <td className="px-3 py-2 align-top">
                         <div className="font-medium">{r?.arquivo_final || f.file.name}</div>
                         {r?.avisos?.length ? (
                           <div className="mt-1 text-[11px] text-muted-foreground">
-                            {r.avisos.slice(0, 3).join(" · ")}
+                            {r.avisos.slice(0, 4).join(" · ")}
                           </div>
                         ) : null}
                         {f.error ? (
@@ -730,34 +971,13 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                       </td>
                       <td className="px-3 py-2 align-top">
                         <Badge variant="outline">{r?.tipo || f.tipo}</Badge>
-                        {r?.tipo && r.tipo !== f.tipo ? (
-                          <div className="mt-1 text-[11px] text-amber-800">
-                            zona {f.tipo} → {r.tipo}
-                          </div>
-                        ) : null}
                         <div className="mt-1 text-[11px] text-muted-foreground">{r?.esfera}</div>
                       </td>
                       <td className="px-3 py-2 align-top text-xs">
                         {r?.competencia ? formatCompetencia(r.competencia) : "—"}
-                        {r?.competencia_selecionada &&
-                        r.competencia &&
-                        r.competencia_selecionada !== r.competencia ? (
-                          <div className="mt-1 text-[11px] text-amber-700">
-                            selecionada {formatCompetencia(r.competencia_selecionada)}
-                          </div>
-                        ) : null}
                       </td>
                       <td className="px-3 py-2 align-top">
-                        {r?.empresa_id ? (
-                          <Link
-                            href={`/empresas/${r.empresa_id}?competencia=${compItem}`}
-                            className="font-medium text-teal-800 hover:underline"
-                          >
-                            {r.empresa || "Abrir empresa"}
-                          </Link>
-                        ) : (
-                          <span>{r?.empresa || (f.status === "uploading" ? "identificando…" : "—")}</span>
-                        )}
+                        <span>{r?.empresa || "—"}</span>
                         <div className="tabular text-[11px] text-muted-foreground">{r?.cnpj || ""}</div>
                       </td>
                       <td className="px-3 py-2 align-top text-xs">{r?.destino || "—"}</td>
@@ -768,16 +988,17 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                       <td className="px-3 py-2 align-top">
                         {wasDeleted ? (
                           <Badge variant="outline">Excluído</Badge>
+                        ) : duplicado ? (
+                          <div className="space-y-1">
+                            <Badge variant="outline">Duplicado</Badge>
+                            <div className="text-[11px] text-amber-900">
+                              Já existe nesta competência — não será reimportado.
+                            </div>
+                          </div>
                         ) : f.status === "ok" ? (
                           r?.classe === "REVISAR" ||
-                          (r?.destino || "").toLowerCase().includes("revisar") ||
-                          (r?.avisos || []).some((a) => /revisar|layout municipal/i.test(a)) ? (
-                            <div className="space-y-1">
-                              <Badge variant="outline">Revisar</Badge>
-                              <div className="text-[11px] text-amber-800">
-                                Arquivo foi para revisão — aparece no painel com aviso; confira o PDF.
-                              </div>
-                            </div>
+                          (r?.destino || "").toLowerCase().includes("revisar") ? (
+                            <Badge variant="outline">Revisar</Badge>
                           ) : (
                             <Badge variant="success">{r?.classe || "OK"}</Badge>
                           )
@@ -791,26 +1012,29 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                           <Badge variant="outline">Pronto</Badge>
                         )}
                       </td>
-                      <td className="px-3 py-2 align-top">
-                        {f.status === "ok" &&
-                        r?.destino &&
-                        !wasDeleted &&
-                        !(r?.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a)) ? (
-                          <button
-                            type="button"
-                            className="text-xs font-medium text-red-700 hover:underline disabled:opacity-50"
-                            disabled={deleting || submitting}
-                            onClick={() => excluirImportados([f])}
-                          >
-                            Excluir
-                          </button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </td>
+                      {phase === "done" ? (
+                        <td className="px-3 py-2 align-top">
+                          {f.status === "ok" &&
+                          r?.destino &&
+                          !wasDeleted &&
+                          !duplicado ? (
+                            <button
+                              type="button"
+                              className="text-xs font-medium text-red-700 hover:underline disabled:opacity-50"
+                              disabled={deleting || busy}
+                              onClick={() => void excluirImportados([f])}
+                            >
+                              Excluir
+                            </button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      ) : null}
                     </tr>
                   );
-                })}              </tbody>
+                })}
+              </tbody>
             </table>
           </div>
         </Card>

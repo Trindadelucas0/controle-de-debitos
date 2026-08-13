@@ -6,11 +6,17 @@ type Props = {
   open: boolean;
   title: string;
   description?: string;
+  progress?: { current: number; total: number } | null;
 };
 
 /** Overlay em tela cheia que bloqueia cliques enquanto uma operação termina. */
-export function BlockingOverlay({ open, title, description }: Props) {
+export function BlockingOverlay({ open, title, description, progress }: Props) {
   if (!open) return null;
+
+  const pct =
+    progress && progress.total > 0
+      ? Math.min(100, Math.round((progress.current / progress.total) * 100))
+      : null;
 
   return (
     <div
@@ -31,6 +37,20 @@ export function BlockingOverlay({ open, title, description }: Props) {
           <p id="blocking-overlay-desc" className="mt-2 text-sm text-slate-600">
             {description}
           </p>
+        ) : null}
+        {progress && progress.total > 0 ? (
+          <div className="mt-4 space-y-2">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-teal-600 transition-[width] duration-300"
+                style={{ width: `${pct ?? 0}%` }}
+              />
+            </div>
+            <p className="text-xs tabular-nums text-slate-500">
+              {progress.current}/{progress.total}
+              {pct != null ? ` · ${pct}%` : ""}
+            </p>
+          </div>
         ) : null}
       </div>
     </div>

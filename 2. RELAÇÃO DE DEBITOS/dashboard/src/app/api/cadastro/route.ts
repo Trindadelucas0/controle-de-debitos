@@ -4,7 +4,6 @@ import {
   saveCadastroOverlayItem,
   type CadastroMatchKey,
 } from "@/lib/cadastro";
-import { updateEmpresaIdentity } from "@/lib/data";
 import type { CadastroConsulta } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -19,10 +18,6 @@ type DeleteBody = {
   match?: CadastroMatchKey;
 };
 
-function digits(value: string | null | undefined): string {
-  return (value || "").replace(/\D/g, "");
-}
-
 export async function PATCH(request: Request) {
   let body: PatchBody;
   try {
@@ -36,31 +31,9 @@ export async function PATCH(request: Request) {
   }
 
   try {
+    // Somente overlay de consultas — sem sync com empresas.json / painel de débitos.
     const saved = saveCadastroOverlayItem(body.item, body.match);
-
-    // Propaga identidade (nome/CNPJ/Nº) para empresas.json em todas as competências.
-    const sync = updateEmpresaIdentity(
-      {
-        matchId: body.match?.id,
-        matchCnpj: body.match?.cnpj ?? saved.cnpj,
-        matchCodigo: body.match?.numero ?? saved.numero,
-      },
-      {
-        nome: saved.empresa,
-        cnpj: saved.cnpj,
-        codigo: saved.numero && saved.numero !== "—" ? saved.numero : undefined,
-      },
-    );
-
-    return NextResponse.json({
-      ok: true,
-      item: saved,
-      sync: {
-        updated: sync.updated,
-        ids: sync.ids,
-        cnpjDigits: digits(saved.cnpj),
-      },
-    });
+    return NextResponse.json({ ok: true, item: saved });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha ao salvar.";
     return NextResponse.json({ error: message }, { status: 400 });

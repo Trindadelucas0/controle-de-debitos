@@ -1,24 +1,11 @@
 import { Suspense } from "react";
 import { ConsultasTable } from "@/components/ConsultasTable";
-import { loadCadastroConsultas, listEmpresasSistema } from "@/lib/cadastro";
-import { resolveCompetencia } from "@/lib/data";
+import { loadCadastroConsultas } from "@/lib/cadastro";
 
 export const dynamic = "force-dynamic";
 
-type Props = {
-  searchParams: Promise<{ competencia?: string }>;
-};
-
-export default async function ConsultasPage({ searchParams }: Props) {
-  const sp = await searchParams;
-  const competencia = resolveCompetencia(sp.competencia);
+export default async function ConsultasPage() {
   const cadastro = loadCadastroConsultas();
-  const debitoLinks = listEmpresasSistema().map((empresa) => ({
-    id: empresa.id,
-    codigo: empresa.codigo,
-    cnpj: empresa.cnpj,
-    nome: empresa.nome,
-  }));
 
   return (
     <Suspense
@@ -29,11 +16,7 @@ export default async function ConsultasPage({ searchParams }: Props) {
           Cadastro indisponível: {cadastro.error}
         </p>
       ) : null}
-      <ConsultasTable
-        empresas={cadastro.empresas}
-        competencia={competencia}
-        debitoLinks={debitoLinks}
-      />
+      <ConsultasTable empresas={cadastro.empresas} />
     </Suspense>
   );
 }

@@ -1,6 +1,7 @@
 import path from "path";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
+import { mkdir, unlink, writeFile } from "fs/promises";
+import { existsSync } from "fs";
 import { listCompetencias } from "@/lib/data";
 import { resolveWorkspaceRoot, spawnPythonScript } from "@/lib/workspace";
 
@@ -24,13 +25,137 @@ function sanitizeFileName(name: string): string {
   return cleaned.slice(0, 180);
 }
 
-/** Aceita %PDF no início ou após BOM/espaços (mesmo tamanho dos buffers — equals exige length igual). */
+/** Aceita %PDF no início ou após BOM/espaços. */
 function looksLikePdf(buffer: Buffer): boolean {
   if (!buffer.length) return false;
   const marker = Buffer.from("%PDF");
   const head = buffer.subarray(0, Math.min(buffer.length, 1024));
   const at = head.indexOf(marker);
   return at >= 0 && at < 32;
+}
+
+function assertInboxPath(workspace: string, filePath: string, competencia: string): string | null {
+  const inboxRoot = path.resolve(workspace, "resultados", "inbox_upload", competencia);
+  const resolved = path.resolve(filePath);
+  const rootWithSep = inboxRoot.endsWith(path.sep) ? inboxRoot : inboxRoot + path.sep;
+  const normalizedResolved = resolved.toLowerCase();
+  const normalizedRoot = rootWithSep.toLowerCase();
+  if (!normalizedResolved.startsWith(normalizedRoot) && normalizedResolved !== inboxRoot.toLowerCase()) {
+    return null;
+  }
+  if (!existsSync(resolved)) return null;
+  if (!resolved.toLowerCase().endsWith(".pdf")) return null;
+  return resolved;
+}
+
+function streamPython(
+  workspace: string,
+  pyArgs: string[],
+  competencia: string,
+): Response {
+  const child = spawnPythonScript(workspace, "ingest_upload.py", pyArgs);
+  const encoder = new TextEncoder();
+  let settled = false;
+
+  const stream = new ReadableStream({
+    start(controller) {
+      let buffer = "";
+      const timer = setTimeout(() => {
+        if (!settled) {
+          child.kill();
+          try {
+            controller.enqueue(
+              encoder.encode(
+                `${JSON.stringify({
+                  event: "done",
+                  ok: false,
+                  erro: "Timeout na extração do lote",
+                  competencia,
+                })}\n`,
+              ),
+            );
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+          settled = true;
+        }
+      }, BATCH_TIMEOUT_MS);
+
+      child.stdout.on("data", (chunk: Buffer) => {
+        buffer += chunk.toString("utf-8");
+        let nl = buffer.indexOf("\n");
+        while (nl >= 0) {
+          const line = buffer.slice(0, nl).trim();
+          buffer = buffer.slice(nl + 1);
+          if (line) {
+            try {
+              controller.enqueue(encoder.encode(`${line}\n`));
+            } catch {
+              /* ignore */
+            }
+          }
+          nl = buffer.indexOf("\n");
+        }
+      });
+
+      child.stderr.on("data", (chunk: Buffer) => {
+        void chunk;
+      });
+
+      child.on("close", () => {
+        clearTimeout(timer);
+        if (settled) return;
+        settled = true;
+        const rest = buffer.trim();
+        if (rest) {
+          try {
+            controller.enqueue(encoder.encode(`${rest}\n`));
+          } catch {
+            /* ignore */
+          }
+        }
+        try {
+          controller.close();
+        } catch {
+          /* ignore */
+        }
+      });
+
+      child.on("error", (err) => {
+        clearTimeout(timer);
+        if (settled) return;
+        settled = true;
+        try {
+          controller.enqueue(
+            encoder.encode(
+              `${JSON.stringify({
+                event: "done",
+                ok: false,
+                erro: err.message,
+                competencia,
+              })}\n`,
+            ),
+          );
+          controller.close();
+        } catch {
+          /* ignore */
+        }
+      });
+    },
+    cancel() {
+      child.kill();
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+    },
+  });
 }
 
 export async function GET() {
@@ -51,6 +176,60 @@ export async function POST(request: Request) {
       );
     }
 
+    const modeRaw = String(form.get("mode") || "preview").toLowerCase();
+    const mode = modeRaw === "commit" ? "commit" : "preview";
+    const workspace = resolveWorkspaceRoot();
+
+    if (mode === "commit") {
+      const pathsRaw = form.getAll("paths").map((p) => String(p));
+      const tiposRaw = form.getAll("tipos").map((t) => String(t).toUpperCase());
+
+      if (pathsRaw.length === 0) {
+        return NextResponse.json({ ok: false, erro: "Nenhum arquivo selecionado para confirmar." }, { status: 400 });
+      }
+      if (pathsRaw.length > MAX_FILES) {
+        return NextResponse.json(
+          { ok: false, erro: `Máximo de ${MAX_FILES} arquivos por vez.` },
+          { status: 400 },
+        );
+      }
+      if (tiposRaw.length !== pathsRaw.length) {
+        return NextResponse.json(
+          { ok: false, erro: "Envie um tipo (ECAC/AGENCIANET/MUNICIPAL) por arquivo." },
+          { status: 400 },
+        );
+      }
+      for (const tipo of tiposRaw) {
+        if (!TIPOS.has(tipo)) {
+          return NextResponse.json({ ok: false, erro: `Tipo inválido: ${tipo}` }, { status: 400 });
+        }
+      }
+
+      const savedPaths: string[] = [];
+      for (const raw of pathsRaw) {
+        const safe = assertInboxPath(workspace, raw, competencia);
+        if (!safe) {
+          return NextResponse.json(
+            { ok: false, erro: `Caminho inválido ou fora do inbox: ${path.basename(raw)}` },
+            { status: 400 },
+          );
+        }
+        savedPaths.push(safe);
+      }
+
+      const pyArgs = [
+        "--stream",
+        "--competencia",
+        competencia,
+        "--files",
+        ...savedPaths,
+        "--tipos",
+        ...tiposRaw,
+      ];
+      return streamPython(workspace, pyArgs, competencia);
+    }
+
+    // preview
     const files = form.getAll("files").filter((f): f is File => f instanceof File);
     const tiposRaw = form.getAll("tipos").map((t) => String(t).toUpperCase());
 
@@ -75,8 +254,8 @@ export async function POST(request: Request) {
       }
     }
 
-    const workspace = resolveWorkspaceRoot();
-    const inbox = path.join(workspace, "resultados", "inbox_upload", competencia);
+    const batchId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const inbox = path.join(workspace, "resultados", "inbox_upload", competencia, batchId);
     await mkdir(inbox, { recursive: true });
 
     const savedPaths: string[] = [];
@@ -89,7 +268,7 @@ export async function POST(request: Request) {
         );
       }
       const safe = sanitizeFileName(file.name);
-      const dest = path.join(inbox, `${Date.now()}_${i}_${safe}`);
+      const dest = path.join(inbox, `${i}_${safe}`);
       const buffer = Buffer.from(await file.arrayBuffer());
       if (!looksLikePdf(buffer)) {
         return NextResponse.json(
@@ -106,6 +285,7 @@ export async function POST(request: Request) {
 
     const pyArgs = [
       "--stream",
+      "--dry-run",
       "--competencia",
       competencia,
       "--files",
@@ -114,121 +294,47 @@ export async function POST(request: Request) {
       ...tiposRaw,
     ];
 
-    const child = spawnPythonScript(workspace, "ingest_upload.py", pyArgs);
-    const encoder = new TextEncoder();
-    let settled = false;
-
-    const stream = new ReadableStream({
-      start(controller) {
-        let buffer = "";
-        const timer = setTimeout(() => {
-          if (!settled) {
-            child.kill();
-            try {
-              controller.enqueue(
-                encoder.encode(
-                  `${JSON.stringify({
-                    event: "done",
-                    ok: false,
-                    erro: "Timeout na extração do lote",
-                    competencia,
-                  })}\n`,
-                ),
-              );
-              controller.close();
-            } catch {
-              /* already closed */
-            }
-            settled = true;
-          }
-        }, BATCH_TIMEOUT_MS);
-
-        child.stdout.on("data", (chunk: Buffer) => {
-          buffer += chunk.toString("utf-8");
-          let nl = buffer.indexOf("\n");
-          while (nl >= 0) {
-            const line = buffer.slice(0, nl).trim();
-            buffer = buffer.slice(nl + 1);
-            if (line) {
-              try {
-                const parsed = JSON.parse(line) as { code?: string };
-                if (parsed.code === "LOCKED") {
-                  controller.enqueue(encoder.encode(`${line}\n`));
-                } else {
-                  controller.enqueue(encoder.encode(`${line}\n`));
-                }
-              } catch {
-                controller.enqueue(encoder.encode(`${line}\n`));
-              }
-            }
-            nl = buffer.indexOf("\n");
-          }
-        });
-
-        child.stderr.on("data", (chunk: Buffer) => {
-          // stderr não vai para o cliente; opcionalmente poderia logar
-          void chunk;
-        });
-
-        child.on("close", () => {
-          clearTimeout(timer);
-          if (settled) return;
-          settled = true;
-          const rest = buffer.trim();
-          if (rest) {
-            try {
-              controller.enqueue(encoder.encode(`${rest}\n`));
-            } catch {
-              /* ignore */
-            }
-          }
-          try {
-            controller.close();
-          } catch {
-            /* ignore */
-          }
-        });
-
-        child.on("error", (err) => {
-          clearTimeout(timer);
-          if (settled) return;
-          settled = true;
-          try {
-            controller.enqueue(
-              encoder.encode(
-                `${JSON.stringify({
-                  event: "done",
-                  ok: false,
-                  erro: err.message,
-                  competencia,
-                })}\n`,
-              ),
-            );
-            controller.close();
-          } catch {
-            /* ignore */
-          }
-        });
-      },
-      cancel() {
-        child.kill();
-      },
-    });
-
-    return new Response(stream, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/x-ndjson; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        "X-Accel-Buffering": "no",
-      },
-    });
+    return streamPython(workspace, pyArgs, competencia);
   } catch (err) {
     return NextResponse.json(
       {
         ok: false,
         erro: err instanceof Error ? err.message : "Erro interno no ingest",
       },
+      { status: 500 },
+    );
+  }
+}
+
+/** Limpa PDFs do inbox após cancelar a revisão. */
+export async function DELETE(request: Request) {
+  try {
+    const body = (await request.json()) as { paths?: string[]; competencia?: string };
+    const competencia = String(body.competencia || "").trim();
+    if (!COMPETENCIA_RE.test(competencia)) {
+      return NextResponse.json({ ok: false, erro: "Competência inválida." }, { status: 400 });
+    }
+    const paths = Array.isArray(body.paths) ? body.paths.map(String) : [];
+    if (paths.length === 0) {
+      return NextResponse.json({ ok: true, removidos: 0 });
+    }
+
+    const workspace = resolveWorkspaceRoot();
+    let removidos = 0;
+    for (const raw of paths) {
+      const safe = assertInboxPath(workspace, raw, competencia);
+      if (!safe) continue;
+      try {
+        await unlink(safe);
+        removidos += 1;
+      } catch {
+        /* ignore */
+      }
+    }
+    return NextResponse.json({ ok: true, removidos });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, erro: err instanceof Error ? err.message : "Falha ao limpar inbox" },
       { status: 500 },
     );
   }

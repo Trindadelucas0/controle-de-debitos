@@ -38,6 +38,8 @@ from extrair_debitos import (  # noqa: E402
     ensure_competencia_dir,
     extract_company,
     fold,
+    list_competencia_dirs,
+    competencias_parent_dir,
     resolve_workspace_root,
     strip_inbox_upload_prefix,
 )
@@ -404,6 +406,16 @@ def paste_status_from_classe(classe: str) -> str:
     return "revisar"
 
 
+def resolve_month_for_ingest(competencia: str, *, dry_run: bool) -> Path:
+    """Pasta MM-YYYY: cria subdirs no commit; no preview só resolve o caminho."""
+    if not dry_run:
+        return ensure_competencia_dir(competencia)
+    for existing in list_competencia_dirs():
+        if existing.name == competencia:
+            return existing
+    return competencias_parent_dir() / competencia
+
+
 def ingest_one(
     path: Path,
     *,
@@ -411,6 +423,7 @@ def ingest_one(
     month: Path,
     indexes: dict[str, list[dict[str, Any]]],
     selected_competencia: str | None = None,
+    dry_run: bool = False,
 ) -> dict[str, Any]:
     tipo = tipo.upper()
     selected = selected_competencia or month.name
@@ -432,6 +445,9 @@ def ingest_one(
         "competencia": selected,
         "competencia_selecionada": selected,
         "layout_municipal": None,
+        "duplicado": False,
+        "inbox_path": str(path.resolve()) if path.exists() else str(path),
+        "dry_run": dry_run,
     }
 
     if tipo not in TIPOS_VALIDOS:
@@ -469,12 +485,16 @@ def ingest_one(
             result["avisos"].append(
                 f"competência detectada {detected} (emissão {emissao_txt}); selecionada era {selected}"
             )
-            month = ensure_competencia_dir(detected)
+            month = resolve_month_for_ingest(detected, dry_run=dry_run)
     else:
         result["competencia"] = selected
-        month = ensure_competencia_dir(selected) if month.name != selected else month
+        if month.name != selected:
+            month = resolve_month_for_ingest(selected, dry_run=dry_run)
 
-    index = indexes.setdefault(result["competencia"], load_empresa_index(month))
+    index = indexes.setdefault(
+        result["competencia"],
+        load_empresa_index(month) if month.exists() else [],
+    )
 
     classe, tipos = classify_text(text)
     cnpj, nome = extract_company(text)
@@ -580,12 +600,16 @@ def ingest_one(
             dest_folder,
             month,
             should_promote=bool(rows) or status_folder == "pendencias",
+            dry_run=dry_run,
         )
         if promo_msg:
             result["avisos"].append(promo_msg)
             matched["pasta"] = dest_folder
         dest_folder, rename_msg = rename_cnpj_folder_to_nome(
-            dest_folder, nome=result.get("empresa") or nome, cnpj=cnpj
+            dest_folder,
+            nome=result.get("empresa") or nome,
+            cnpj=cnpj,
+            dry_run=dry_run,
         )
         if rename_msg:
             result["avisos"].append(rename_msg)
@@ -607,16 +631,18 @@ def ingest_one(
             dest_folder,
             month,
             should_promote=bool(rows) or status_folder == "pendencias",
+            dry_run=dry_run,
         )
         if promo_msg:
             result["avisos"].append(promo_msg)
         dest_folder, rename_msg = rename_cnpj_folder_to_nome(
-            dest_folder, nome=nome, cnpj=cnpj
+            dest_folder, nome=nome, cnpj=cnpj, dry_run=dry_run
         )
         if rename_msg:
             result["avisos"].append(rename_msg)
             result["empresa"] = dest_folder.name
-        dest_folder.mkdir(parents=True, exist_ok=True)
+        if not dry_run:
+            dest_folder.mkdir(parents=True, exist_ok=True)
         index.append(
             {
                 "nome": dest_folder.name,
@@ -642,6 +668,14 @@ def ingest_one(
         result["ok"] = True
         result["arquivo_final"] = dest_path.name
         result["avisos"].append(skip_reason)
+        if "já importado (mesmo hash)" in skip_reason:
+            result["duplicado"] = True
+        return result
+
+    if dry_run:
+        result["ok"] = True
+        result["arquivo_final"] = dest_path.name
+        result["avisos"].append(f"preview — tipos: {', '.join(tipos) if tipos else '—'}")
         return result
 
     try:
@@ -689,6 +723,7 @@ def promote_revisar_to_pendencias(
     month: Path,
     *,
     should_promote: bool,
+    dry_run: bool = False,
 ) -> tuple[Path, str | None]:
     """Sobe pasta de revisar → pendencias quando a importação extraiu débitos."""
     if not should_promote:
@@ -700,11 +735,14 @@ def promote_revisar_to_pendencias(
         return dest_folder, None
 
     target = month / "pendencias" / dest_folder.name
-    if target.exists() and target.resolve() != dest_folder.resolve():
-        # Já existe em pendencias: anexa lá (PDF vai para a pasta ativa)
+    if target.exists() and (
+        not dest_folder.exists() or target.resolve() != dest_folder.resolve()
+    ):
         return target, f"promovido para pasta existente em pendencias: {target.name}"
-    if target.resolve() == dest_folder.resolve():
+    if dest_folder.exists() and target.resolve() == dest_folder.resolve():
         return dest_folder, None
+    if dry_run:
+        return target, f"destino previsto pendencias: {target.name}"
     target.parent.mkdir(parents=True, exist_ok=True)
     if dest_folder.exists():
         shutil.move(str(dest_folder), str(target))
@@ -718,6 +756,7 @@ def rename_cnpj_folder_to_nome(
     *,
     nome: str | None,
     cnpj: str | None,
+    dry_run: bool = False,
 ) -> tuple[Path, str | None]:
     """Troca pasta só-dígitos (CNPJ) pelo nome da empresa quando disponível."""
     if not nome or _nome_generico(nome):
@@ -731,8 +770,12 @@ def rename_cnpj_folder_to_nome(
     if safe == folder_name:
         return dest_folder, None
     target = dest_folder.parent / safe
-    if target.exists() and target.resolve() != dest_folder.resolve():
+    if target.exists() and (
+        not dest_folder.exists() or target.resolve() != dest_folder.resolve()
+    ):
         return target, f"pasta CNPJ redirecionada para nome existente: {target.name}"
+    if dry_run:
+        return target, f"destino previsto nome: {target.name}"
     if dest_folder.exists():
         shutil.move(str(dest_folder), str(target))
         return target, f"pasta renomeada {folder_name} → {target.name}"
@@ -784,6 +827,7 @@ def run(
     items: list[tuple[Path, str]],
     *,
     stream: bool = False,
+    dry_run: bool = False,
 ) -> dict[str, Any]:
     if not COMPETENCIA_DIR_RE.match(competencia):
         payload = {
@@ -812,9 +856,9 @@ def run(
         return payload
 
     try:
-        month = ensure_competencia_dir(competencia)
+        month = resolve_month_for_ingest(competencia, dry_run=dry_run)
         indexes: dict[str, list[dict[str, Any]]] = {
-            competencia: load_empresa_index(month),
+            competencia: load_empresa_index(month) if month.exists() else [],
         }
         results: list[dict[str, Any]] = []
         total = len(items)
@@ -824,6 +868,7 @@ def run(
                     "event": "start",
                     "competencia": competencia,
                     "total": total,
+                    "dry_run": dry_run,
                 }
             )
 
@@ -845,6 +890,7 @@ def run(
                     month=month,
                     indexes=indexes,
                     selected_competencia=competencia,
+                    dry_run=dry_run,
                 )
             except Exception as exc:  # noqa: BLE001
                 item = {
@@ -857,6 +903,9 @@ def run(
                     "avisos": [],
                     "qtd_debitos": 0,
                     "totais": sum_totais([]),
+                    "duplicado": False,
+                    "inbox_path": str(path),
+                    "dry_run": dry_run,
                 }
             results.append(item)
             if stream:
@@ -864,13 +913,14 @@ def run(
 
         rebuild_ok = True
         rebuild_error = None
-        try:
-            payload_dash = rebuild_dashboard(only_competencias=[competencia])
-            attach_empresa_ids(results, payload_dash)
-        except Exception as exc:  # noqa: BLE001
-            rebuild_ok = False
-            rebuild_error = str(exc)
-            print(f"REBUILD_FAILED: {exc}", file=sys.stderr)
+        if not dry_run:
+            try:
+                payload_dash = rebuild_dashboard(only_competencias=[competencia])
+                attach_empresa_ids(results, payload_dash)
+            except Exception as exc:  # noqa: BLE001
+                rebuild_ok = False
+                rebuild_error = str(exc)
+                print(f"REBUILD_FAILED: {exc}", file=sys.stderr)
 
         # Competência efetiva mais frequente entre itens OK (para link do painel)
         effective_comps = [
@@ -885,27 +935,30 @@ def run(
         )
 
         payload = {
-            "ok": rebuild_ok and any(r.get("ok") for r in results),
-            "code": None if rebuild_ok else "REBUILD_FAILED",
+            "ok": (rebuild_ok or dry_run) and any(r.get("ok") for r in results),
+            "code": None if rebuild_ok or dry_run else "REBUILD_FAILED",
             "erro": rebuild_error,
             "competencia": competencia_painel,
             "competencia_selecionada": competencia,
             "itens": results,
-            "aviso_global": None
-            if rebuild_ok
-            else "PDFs movidos, mas JSON falhou — rode npm run data",
+            "dry_run": dry_run,
+            "aviso_global": (
+                None
+                if dry_run or rebuild_ok
+                else "PDFs movidos, mas JSON falhou — rode npm run data"
+            ),
         }
         if stream:
-            # Reemite itens com empresa_id após rebuild
-            for idx, item in enumerate(results):
-                emit_line(
-                    {
-                        "event": "item_final",
-                        "index": idx,
-                        "total": total,
-                        **item,
-                    }
-                )
+            if not dry_run:
+                for idx, item in enumerate(results):
+                    emit_line(
+                        {
+                            "event": "item_final",
+                            "index": idx,
+                            "total": total,
+                            **item,
+                        }
+                    )
             emit_line({"event": "done", **payload})
         return payload
     finally:
@@ -930,6 +983,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--stream",
         action="store_true",
         help="Emite NDJSON (1 evento por linha) e rebuild só no fim",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Extrai e valida sem mover PDF nem regenerar o painel",
     )
     return parser.parse_args(argv)
 
@@ -966,7 +1024,12 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(err, ensure_ascii=False))
         return 2
 
-    payload = run(args.competencia, list(zip(files, tipos)), stream=bool(args.stream))
+    payload = run(
+        args.competencia,
+        list(zip(files, tipos)),
+        stream=bool(args.stream),
+        dry_run=bool(args.dry_run),
+    )
     if not args.stream:
         print(json.dumps(payload, ensure_ascii=False))
     return 0 if payload.get("ok") else 1

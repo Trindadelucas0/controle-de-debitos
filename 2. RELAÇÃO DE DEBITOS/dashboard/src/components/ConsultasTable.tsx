@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createColumnHelper,
@@ -21,28 +20,18 @@ import { resolveMunicipal } from "@/lib/cadastro-utils";
 import { formatCnpj } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CadastroConsulta } from "@/lib/types";
-import { ClipboardList, ExternalLink, Plus, Search, Trash2, X } from "lucide-react";
-
-type DebitoLink = {
-  id: string;
-  codigo?: string;
-  cnpj: string | null;
-  nome?: string;
-};
+import { ClipboardList, Plus, Search, Trash2, X } from "lucide-react";
 
 type Props = {
   empresas: CadastroConsulta[];
-  competencia: string;
-  debitoLinks: DebitoLink[];
 };
 
 type EditableRow = CadastroConsulta & {
   /** Identidade estável da linha no React (não vai para a API). */
   _clientId: string;
-  /** Identidade estável da linha (número/CNPJ/id originais ao carregar). */
+  /** Identidade estável da linha (número/CNPJ originais ao carregar). */
   _matchNumero: string;
   _matchCnpj: string | null;
-  _matchId: string | null;
 };
 
 type FieldKey = keyof CadastroConsulta;
@@ -76,16 +65,12 @@ function municipalForSave(uf: string, value: string): string {
   return resolveMunicipal(uf, trimmed);
 }
 
-function toEditableRows(
-  empresas: CadastroConsulta[],
-  resolveId: (row: CadastroConsulta) => string | null,
-): EditableRow[] {
+function toEditableRows(empresas: CadastroConsulta[]): EditableRow[] {
   return empresas.map((row, index) => ({
     ...row,
     _clientId: `loaded-${digits(row.cnpj) || row.numero || "x"}-${index}`,
     _matchNumero: row.numero,
     _matchCnpj: row.cnpj,
-    _matchId: resolveId(row),
   }));
 }
 
@@ -202,53 +187,8 @@ function CellInput({ value, className, ariaLabel, disabled, onCommit }: CellInpu
   );
 }
 
-export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
-  const resolveDebitoId = useCallback((row: CadastroConsulta) => {
-    const dig = digits(row.cnpj);
-    const codigo = row.numero.trim();
-    const nomeFold = fold(row.empresa);
-
-    const byBoth = debitoLinks.filter((item) => {
-      const sameCnpj = dig.length > 0 && digits(item.cnpj) === dig;
-      const sameCodigo = Boolean(codigo) && String(item.codigo ?? "").trim() === codigo;
-      return sameCnpj && sameCodigo;
-    });
-    if (byBoth.length === 1) return byBoth[0].id;
-    if (byBoth.length > 1) {
-      const byNome = byBoth.find((item) => fold(item.nome) === nomeFold);
-      if (byNome) return byNome.id;
-      // Preferir id cujo slug contém pedaço do nome.
-      const slugHit = byBoth.find((item) =>
-        nomeFold.split(/\s+/).some((part) => part.length > 3 && item.id.includes(part.slice(0, 6))),
-      );
-      if (slugHit) return slugHit.id;
-      return byBoth[0].id;
-    }
-
-    const byCnpj = debitoLinks.filter(
-      (item) => dig.length > 0 && digits(item.cnpj) === dig,
-    );
-    if (byCnpj.length === 1) return byCnpj[0].id;
-    if (byCnpj.length > 1) {
-      const byNome = byCnpj.find((item) => fold(item.nome) === nomeFold);
-      if (byNome) return byNome.id;
-    }
-
-    const byCodigo = debitoLinks.filter(
-      (item) => Boolean(codigo) && String(item.codigo ?? "").trim() === codigo,
-    );
-    if (byCodigo.length === 1) return byCodigo[0].id;
-    if (byCodigo.length > 1) {
-      const byNome = byCodigo.find((item) => fold(item.nome) === nomeFold);
-      if (byNome) return byNome.id;
-    }
-
-    return byCnpj[0]?.id ?? byCodigo[0]?.id ?? null;
-  }, [debitoLinks]);
-
-  const [rows, setRows] = useState<EditableRow[]>(() =>
-    toEditableRows(empresas, resolveDebitoId),
-  );
+export function ConsultasTable({ empresas }: Props) {
+  const [rows, setRows] = useState<EditableRow[]>(() => toEditableRows(empresas));
   const [query, setQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "numero", desc: false }]);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -269,8 +209,8 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
   const empresaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setRows(toEditableRows(empresas, resolveDebitoId));
-  }, [empresas, resolveDebitoId]);
+    setRows(toEditableRows(empresas));
+  }, [empresas]);
 
   useEffect(() => {
     if (!panelOpen) return;
@@ -284,23 +224,6 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
       window.removeEventListener("keydown", onKey);
     };
   }, [panelOpen, creating]);
-
-  const linkByCnpj = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const item of debitoLinks) {
-      const d = digits(item.cnpj);
-      if (d) map.set(d, item.id);
-    }
-    return map;
-  }, [debitoLinks]);
-
-  const linkByCodigo = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const item of debitoLinks) {
-      if (item.codigo) map.set(String(item.codigo).trim(), item.id);
-    }
-    return map;
-  }, [debitoLinks]);
 
   const filtered = useMemo(
     () => rows.filter((row) => matchesQuery(row, query)),
@@ -341,7 +264,6 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
         match: {
           numero: row._matchNumero,
           cnpj: row._matchCnpj,
-          id: row._matchId ?? undefined,
         },
       };
       const res = await fetch("/api/cadastro", {
@@ -362,7 +284,6 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
                 _clientId: row._clientId,
                 _matchNumero: data.item!.numero,
                 _matchCnpj: data.item!.cnpj,
-                _matchId: row._matchId,
               }
             : r,
         ),
@@ -482,7 +403,6 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
           _clientId: clientId,
           _matchNumero: saved.numero,
           _matchCnpj: saved.cnpj,
-          _matchId: null,
         },
         ...prev,
       ]);
@@ -503,7 +423,7 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
   const excluirEmpresa = useCallback(async (row: EditableRow) => {
     const nome = row.empresa.trim() || row.numero || "esta empresa";
     const ok = window.confirm(
-      `Excluir "${nome}" só do cadastro de Consultas?\n\nOs débitos e a empresa no restante do sistema continuam.`,
+      `Excluir "${nome}" do cadastro de Consultas?`,
     );
     if (!ok) return;
 
@@ -517,7 +437,6 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
           match: {
             numero: row._matchNumero || row.numero,
             cnpj: row._matchCnpj ?? row.cnpj,
-            id: row._matchId ?? undefined,
           },
         }),
       });
@@ -630,29 +549,6 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
         },
       }),
       columnHelper.display({
-        id: "debitos",
-        header: "",
-        cell: (info) => {
-          const row = info.row.original;
-          const id =
-            info.row.original._matchId ??
-            linkByCnpj.get(digits(row.cnpj)) ??
-            linkByCodigo.get(row.numero) ??
-            linkByCodigo.get(row._matchNumero) ??
-            null;
-          if (!id || !competencia) return null;
-          return (
-            <Link
-              href={`/empresas/${id}?competencia=${encodeURIComponent(competencia)}`}
-              className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-2 hover:underline"
-            >
-              Ver débitos
-              <ExternalLink className="size-3" aria-hidden />
-            </Link>
-          );
-        },
-      }),
-      columnHelper.display({
         id: "acoes",
         header: "",
         cell: (info) => {
@@ -674,7 +570,7 @@ export function ConsultasTable({ empresas, competencia, debitoLinks }: Props) {
         },
       }),
     ],
-    [commitField, competencia, deletingId, excluirEmpresa, linkByCnpj, linkByCodigo],
+    [commitField, deletingId, excluirEmpresa],
   );
 
   const table = useReactTable({
