@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-08-13T14:00:14",
+  "gerado_em": "2026-08-13T14:57:08",
   "competencias": [
     "06-2026",
     "08-2026"
@@ -778,15 +778,15 @@
     },
     "08-2026": {
       "competencia": "08-2026",
-      "gerado_em": "2026-08-13T13:56:06",
+      "gerado_em": "2026-08-13T14:57:08",
       "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
       "totais_gerais": {
-        "empresas": 7,
-        "com_pendencia": 6,
+        "empresas": 8,
+        "com_pendencia": 7,
         "regulares": 1,
-        "saldo": 20182.33,
-        "consolidado": 23600.21,
-        "docs_federal": 5,
+        "saldo": 20680.5,
+        "consolidado": 24188.19,
+        "docs_federal": 6,
         "docs_estadual": 4,
         "docs_municipal": 2
       },
@@ -1934,6 +1934,299 @@
           "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
           "avisos": [],
           "qtd_debitos": 2,
+          "competencia": "08-2026"
+        },
+        {
+          "id": "0-01-exito-contabilidade-ltda",
+          "nome": "EXITO CONTABILIDADE LTDA",
+          "cnpj": "29.859.815/0001-02",
+          "codigo": "0_01",
+          "codigos": [
+            "0_01"
+          ],
+          "status": "pendencia",
+          "tipos": [
+            "DEBITO",
+            "INSCRICAO",
+            "DEBITO_SUSPENSO"
+          ],
+          "totais": {
+            "original": 498.17,
+            "saldo": 498.17,
+            "multa": 69.63,
+            "juros": 20.18,
+            "consolidado": 587.98
+          },
+          "debitos": [
+            {
+              "receita": "4406-01 - MAED - PGDAS-D",
+              "pa": "21/05/2026",
+              "vencimento": "29/07/2026",
+              "original": 50.0,
+              "saldo": 50.0,
+              "multa": 0.0,
+              "juros": 0.5,
+              "consolidado": 50.5,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "numero_lancamento": "29859815202604001",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "4406-01 - MAED - PGDAS-D",
+              "pa": "23/06/2026",
+              "vencimento": "29/07/2026",
+              "original": 50.0,
+              "saldo": 50.0,
+              "multa": 0.0,
+              "juros": 0.5,
+              "consolidado": 50.5,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "numero_lancamento": "29859815202605001",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "SIMPLES NAC.",
+              "pa": "01/2026",
+              "vencimento": "20/02/2026",
+              "original": 39.9,
+              "saldo": 39.9,
+              "multa": 7.98,
+              "juros": 2.67,
+              "consolidado": 50.55,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "SIMPLES NAC.",
+              "pa": "02/2026",
+              "vencimento": "20/03/2026",
+              "original": 268.37,
+              "saldo": 268.37,
+              "multa": 53.67,
+              "juros": 14.76,
+              "consolidado": 336.8,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "SIMPLES NAC.",
+              "pa": "03/2026",
+              "vencimento": "20/04/2026",
+              "original": 39.9,
+              "saldo": 39.9,
+              "multa": 7.98,
+              "juros": 1.75,
+              "consolidado": 49.63,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "4406-01 - MAED - PGDAS-D",
+              "pa": "21/07/2026",
+              "vencimento": "25/08/2026",
+              "original": 50.0,
+              "saldo": 50.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 50.0,
+              "situacao": "A VENCER",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "numero_lancamento": "29859815202606001",
+              "titulo": "DEBITO SUSPENSO"
+            }
+          ],
+          "documentos": [
+            {
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "origemLabel": "ECAC",
+              "statusDoc": "pendencia",
+              "debitos": [
+                {
+                  "receita": "4406-01 - MAED - PGDAS-D",
+                  "pa": "21/05/2026",
+                  "vencimento": "29/07/2026",
+                  "original": 50.0,
+                  "saldo": 50.0,
+                  "multa": 0.0,
+                  "juros": 0.5,
+                  "consolidado": 50.5,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "0_01-ECAC.pdf",
+                  "codigo": "0_01",
+                  "esfera": "federal",
+                  "numero_lancamento": "29859815202604001",
+                  "titulo": "DEBITO (SIEF)"
+                },
+                {
+                  "receita": "4406-01 - MAED - PGDAS-D",
+                  "pa": "23/06/2026",
+                  "vencimento": "29/07/2026",
+                  "original": 50.0,
+                  "saldo": 50.0,
+                  "multa": 0.0,
+                  "juros": 0.5,
+                  "consolidado": 50.5,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "0_01-ECAC.pdf",
+                  "codigo": "0_01",
+                  "esfera": "federal",
+                  "numero_lancamento": "29859815202605001",
+                  "titulo": "DEBITO (SIEF)"
+                },
+                {
+                  "receita": "SIMPLES NAC.",
+                  "pa": "01/2026",
+                  "vencimento": "20/02/2026",
+                  "original": 39.9,
+                  "saldo": 39.9,
+                  "multa": 7.98,
+                  "juros": 2.67,
+                  "consolidado": 50.55,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "0_01-ECAC.pdf",
+                  "codigo": "0_01",
+                  "esfera": "federal",
+                  "titulo": "DEBITO (SIEF)"
+                },
+                {
+                  "receita": "SIMPLES NAC.",
+                  "pa": "02/2026",
+                  "vencimento": "20/03/2026",
+                  "original": 268.37,
+                  "saldo": 268.37,
+                  "multa": 53.67,
+                  "juros": 14.76,
+                  "consolidado": 336.8,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "0_01-ECAC.pdf",
+                  "codigo": "0_01",
+                  "esfera": "federal",
+                  "titulo": "DEBITO (SIEF)"
+                },
+                {
+                  "receita": "SIMPLES NAC.",
+                  "pa": "03/2026",
+                  "vencimento": "20/04/2026",
+                  "original": 39.9,
+                  "saldo": 39.9,
+                  "multa": 7.98,
+                  "juros": 1.75,
+                  "consolidado": 49.63,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "0_01-ECAC.pdf",
+                  "codigo": "0_01",
+                  "esfera": "federal",
+                  "titulo": "DEBITO (SIEF)"
+                },
+                {
+                  "receita": "4406-01 - MAED - PGDAS-D",
+                  "pa": "21/07/2026",
+                  "vencimento": "25/08/2026",
+                  "original": 50.0,
+                  "saldo": 50.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 50.0,
+                  "situacao": "A VENCER",
+                  "origem": "ECAC",
+                  "arquivo": "0_01-ECAC.pdf",
+                  "codigo": "0_01",
+                  "esfera": "federal",
+                  "numero_lancamento": "29859815202606001",
+                  "titulo": "DEBITO SUSPENSO"
+                }
+              ],
+              "totais": {
+                "original": 498.17,
+                "saldo": 498.17,
+                "multa": 69.63,
+                "juros": 20.18,
+                "consolidado": 587.98
+              }
+            }
+          ],
+          "esferas": {
+            "federal": {
+              "qtdDocs": 1,
+              "status": "pendencia",
+              "totais": {
+                "original": 498.17,
+                "saldo": 498.17,
+                "multa": 69.63,
+                "juros": 20.18,
+                "consolidado": 587.98
+              },
+              "arquivos": [
+                "0_01-ECAC.pdf"
+              ],
+              "qtd_debitos": 6
+            },
+            "estadual": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            },
+            "municipal": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            }
+          },
+          "temFederal": true,
+          "temEstadual": false,
+          "temMunicipal": false,
+          "arquivos": [
+            "0_01-ECAC.pdf"
+          ],
+          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\EXITO CONTABILIDADE LTDA",
+          "avisos": [],
+          "qtd_debitos": 6,
           "competencia": "08-2026"
         },
         {
@@ -3191,12 +3484,12 @@
   "competencia": "08-2026",
   "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
   "totais_gerais": {
-    "empresas": 7,
-    "com_pendencia": 6,
+    "empresas": 8,
+    "com_pendencia": 7,
     "regulares": 1,
-    "saldo": 20182.33,
-    "consolidado": 23600.21,
-    "docs_federal": 5,
+    "saldo": 20680.5,
+    "consolidado": 24188.19,
+    "docs_federal": 6,
     "docs_estadual": 4,
     "docs_municipal": 2
   },
@@ -4344,6 +4637,299 @@
       "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\DIVEMARCA INDUSTRIA, COMERCIO E DISTRIBUICAO LTDA",
       "avisos": [],
       "qtd_debitos": 2,
+      "competencia": "08-2026"
+    },
+    {
+      "id": "0-01-exito-contabilidade-ltda",
+      "nome": "EXITO CONTABILIDADE LTDA",
+      "cnpj": "29.859.815/0001-02",
+      "codigo": "0_01",
+      "codigos": [
+        "0_01"
+      ],
+      "status": "pendencia",
+      "tipos": [
+        "DEBITO",
+        "INSCRICAO",
+        "DEBITO_SUSPENSO"
+      ],
+      "totais": {
+        "original": 498.17,
+        "saldo": 498.17,
+        "multa": 69.63,
+        "juros": 20.18,
+        "consolidado": 587.98
+      },
+      "debitos": [
+        {
+          "receita": "4406-01 - MAED - PGDAS-D",
+          "pa": "21/05/2026",
+          "vencimento": "29/07/2026",
+          "original": 50.0,
+          "saldo": 50.0,
+          "multa": 0.0,
+          "juros": 0.5,
+          "consolidado": 50.5,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "0_01-ECAC.pdf",
+          "codigo": "0_01",
+          "esfera": "federal",
+          "numero_lancamento": "29859815202604001",
+          "titulo": "DEBITO (SIEF)"
+        },
+        {
+          "receita": "4406-01 - MAED - PGDAS-D",
+          "pa": "23/06/2026",
+          "vencimento": "29/07/2026",
+          "original": 50.0,
+          "saldo": 50.0,
+          "multa": 0.0,
+          "juros": 0.5,
+          "consolidado": 50.5,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "0_01-ECAC.pdf",
+          "codigo": "0_01",
+          "esfera": "federal",
+          "numero_lancamento": "29859815202605001",
+          "titulo": "DEBITO (SIEF)"
+        },
+        {
+          "receita": "SIMPLES NAC.",
+          "pa": "01/2026",
+          "vencimento": "20/02/2026",
+          "original": 39.9,
+          "saldo": 39.9,
+          "multa": 7.98,
+          "juros": 2.67,
+          "consolidado": 50.55,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "0_01-ECAC.pdf",
+          "codigo": "0_01",
+          "esfera": "federal",
+          "titulo": "DEBITO (SIEF)"
+        },
+        {
+          "receita": "SIMPLES NAC.",
+          "pa": "02/2026",
+          "vencimento": "20/03/2026",
+          "original": 268.37,
+          "saldo": 268.37,
+          "multa": 53.67,
+          "juros": 14.76,
+          "consolidado": 336.8,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "0_01-ECAC.pdf",
+          "codigo": "0_01",
+          "esfera": "federal",
+          "titulo": "DEBITO (SIEF)"
+        },
+        {
+          "receita": "SIMPLES NAC.",
+          "pa": "03/2026",
+          "vencimento": "20/04/2026",
+          "original": 39.9,
+          "saldo": 39.9,
+          "multa": 7.98,
+          "juros": 1.75,
+          "consolidado": 49.63,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "0_01-ECAC.pdf",
+          "codigo": "0_01",
+          "esfera": "federal",
+          "titulo": "DEBITO (SIEF)"
+        },
+        {
+          "receita": "4406-01 - MAED - PGDAS-D",
+          "pa": "21/07/2026",
+          "vencimento": "25/08/2026",
+          "original": 50.0,
+          "saldo": 50.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 50.0,
+          "situacao": "A VENCER",
+          "origem": "ECAC",
+          "arquivo": "0_01-ECAC.pdf",
+          "codigo": "0_01",
+          "esfera": "federal",
+          "numero_lancamento": "29859815202606001",
+          "titulo": "DEBITO SUSPENSO"
+        }
+      ],
+      "documentos": [
+        {
+          "arquivo": "0_01-ECAC.pdf",
+          "codigo": "0_01",
+          "esfera": "federal",
+          "origemLabel": "ECAC",
+          "statusDoc": "pendencia",
+          "debitos": [
+            {
+              "receita": "4406-01 - MAED - PGDAS-D",
+              "pa": "21/05/2026",
+              "vencimento": "29/07/2026",
+              "original": 50.0,
+              "saldo": 50.0,
+              "multa": 0.0,
+              "juros": 0.5,
+              "consolidado": 50.5,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "numero_lancamento": "29859815202604001",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "4406-01 - MAED - PGDAS-D",
+              "pa": "23/06/2026",
+              "vencimento": "29/07/2026",
+              "original": 50.0,
+              "saldo": 50.0,
+              "multa": 0.0,
+              "juros": 0.5,
+              "consolidado": 50.5,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "numero_lancamento": "29859815202605001",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "SIMPLES NAC.",
+              "pa": "01/2026",
+              "vencimento": "20/02/2026",
+              "original": 39.9,
+              "saldo": 39.9,
+              "multa": 7.98,
+              "juros": 2.67,
+              "consolidado": 50.55,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "SIMPLES NAC.",
+              "pa": "02/2026",
+              "vencimento": "20/03/2026",
+              "original": 268.37,
+              "saldo": 268.37,
+              "multa": 53.67,
+              "juros": 14.76,
+              "consolidado": 336.8,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "SIMPLES NAC.",
+              "pa": "03/2026",
+              "vencimento": "20/04/2026",
+              "original": 39.9,
+              "saldo": 39.9,
+              "multa": 7.98,
+              "juros": 1.75,
+              "consolidado": 49.63,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "titulo": "DEBITO (SIEF)"
+            },
+            {
+              "receita": "4406-01 - MAED - PGDAS-D",
+              "pa": "21/07/2026",
+              "vencimento": "25/08/2026",
+              "original": 50.0,
+              "saldo": 50.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 50.0,
+              "situacao": "A VENCER",
+              "origem": "ECAC",
+              "arquivo": "0_01-ECAC.pdf",
+              "codigo": "0_01",
+              "esfera": "federal",
+              "numero_lancamento": "29859815202606001",
+              "titulo": "DEBITO SUSPENSO"
+            }
+          ],
+          "totais": {
+            "original": 498.17,
+            "saldo": 498.17,
+            "multa": 69.63,
+            "juros": 20.18,
+            "consolidado": 587.98
+          }
+        }
+      ],
+      "esferas": {
+        "federal": {
+          "qtdDocs": 1,
+          "status": "pendencia",
+          "totais": {
+            "original": 498.17,
+            "saldo": 498.17,
+            "multa": 69.63,
+            "juros": 20.18,
+            "consolidado": 587.98
+          },
+          "arquivos": [
+            "0_01-ECAC.pdf"
+          ],
+          "qtd_debitos": 6
+        },
+        "estadual": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        },
+        "municipal": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        }
+      },
+      "temFederal": true,
+      "temEstadual": false,
+      "temMunicipal": false,
+      "arquivos": [
+        "0_01-ECAC.pdf"
+      ],
+      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\EXITO CONTABILIDADE LTDA",
+      "avisos": [],
+      "qtd_debitos": 6,
       "competencia": "08-2026"
     },
     {

@@ -553,7 +553,8 @@ def score_text(text: str) -> int:
     return score
 
 
-CNPJ_STRICT_RE = re.compile(r"(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})")
+# Lookbehind evita inscrição SIDA colada (ex. 12376.850.567/2021-83)
+CNPJ_STRICT_RE = re.compile(r"(?<!\d)(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})(?!\d)")
 CNPJ_DIGITS_RE = re.compile(r"\b(\d{14})\b")
 PDF_JUNK_RE = re.compile(
     r"(?:\)Tj|Tj\b|Tf\b|Tm\b|ET\b|BT\b|cm\b|/F\d+|\\\\\(|\\\\\)|\bobj\b|\bendobj\b)",
@@ -574,13 +575,44 @@ NOME_BLOQUEADOS = (
 )
 
 
-def format_cnpj_digits(digits: str) -> str | None:
+def cnpj_checksum_ok(digits: str) -> bool:
+    raw = re.sub(r"\D", "", digits)
+    if len(raw) != 14 or raw == raw[0] * 14:
+        return False
+
+    def _dv(base: str, weights: tuple[int, ...]) -> str:
+        total = sum(int(d) * w for d, w in zip(base, weights))
+        rest = total % 11
+        return "0" if rest < 2 else str(11 - rest)
+
+    d1 = _dv(raw[:12], (5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2))
+    d2 = _dv(raw[:12] + d1, (6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2))
+    return raw[-2:] == d1 + d2
+
+
+def format_cnpj_digits(digits: str, *, allow_blocked: bool = False) -> str | None:
     raw = re.sub(r"\D", "", digits)
     if len(raw) != 14:
         return None
-    if raw in CNPJ_BLOQUEADOS:
+    if not cnpj_checksum_ok(raw):
+        return None
+    if raw in CNPJ_BLOQUEADOS and not allow_blocked:
         return None
     return f"{raw[:2]}.{raw[2:5]}.{raw[5:8]}/{raw[8:12]}-{raw[12:]}"
+
+
+def _cnpj_window_is_certificado(text: str, start: int) -> bool:
+    return "certificado" in text[max(0, start - 40) : start].lower()
+
+
+def _prefer_cnpj_matriz(cnpjs: list[str]) -> str | None:
+    if not cnpjs:
+        return None
+    for item in cnpjs:
+        digits = re.sub(r"\D", "", item)
+        if len(digits) == 14 and digits[8:12] == "0001":
+            return item
+    return cnpjs[0]
 
 
 def clean_company_name(name: str | None) -> str | None:
@@ -639,16 +671,23 @@ def extract_company(text: str) -> tuple[str | None, str | None]:
     if m:
         name = clean_company_name(m.group(2))
         prefix = re.sub(r"\D", "", m.group(1))
-        # completa com ocorrência estrita do mesmo prefixo
+        matches: list[str] = []
+        blocked_matches: list[str] = []
         for hit in CNPJ_STRICT_RE.finditer(text):
+            if _cnpj_window_is_certificado(text, hit.start()):
+                continue
+            digits = re.sub(r"\D", "", hit.group(1))
+            if not digits.startswith(prefix):
+                continue
             formatted = format_cnpj_digits(hit.group(1))
-            if formatted and re.sub(r"\D", "", formatted).startswith(prefix):
-                # ignora se for "CNPJ do certificado"
-                window = text[max(0, hit.start() - 40) : hit.start()].lower()
-                if "certificado" in window:
-                    continue
-                cnpj = formatted
-                break
+            if formatted:
+                matches.append(formatted)
+                continue
+            # Mesmo CNPJ do certificado PGFN, mas no cabeçalho da empresa
+            allowed = format_cnpj_digits(hit.group(1), allow_blocked=True)
+            if allowed:
+                blocked_matches.append(allowed)
+        cnpj = _prefer_cnpj_matriz(matches) or _prefer_cnpj_matriz(blocked_matches)
 
     # 2) Label explícito "CNPJ: xx.xxx.xxx/xxxx-xx" (não certificado)
     if not cnpj:
@@ -657,22 +696,22 @@ def extract_company(text: str) -> tuple[str | None, str | None]:
             text,
             re.I,
         ):
-            window = text[max(0, m.start() - 40) : m.start()].lower()
-            if "certificado" in window:
+            if _cnpj_window_is_certificado(text, m.start()):
                 continue
             cnpj = format_cnpj_digits(m.group(1))
             if cnpj:
                 break
 
-    # 3) Qualquer CNPJ estrito que não seja do certificado / bloqueado
+    # 3) Qualquer CNPJ estrito válido que não seja do certificado / bloqueado
     if not cnpj:
+        matches = []
         for hit in CNPJ_STRICT_RE.finditer(text):
-            window = text[max(0, hit.start() - 40) : hit.start()].lower()
-            if "certificado" in window:
+            if _cnpj_window_is_certificado(text, hit.start()):
                 continue
-            cnpj = format_cnpj_digits(hit.group(1))
-            if cnpj:
-                break
+            formatted = format_cnpj_digits(hit.group(1))
+            if formatted:
+                matches.append(formatted)
+        cnpj = _prefer_cnpj_matriz(matches)
 
     # 4) Agenci@net: Razão Social: EMPRESA ... CPF/CNPJ: ...
     if not name or not cnpj:

@@ -136,6 +136,12 @@ def is_cnpj_matriz(cnpj: str | None) -> bool:
     return cnpj_estabelecimento(cnpj) == "0001"
 
 
+def is_cnpj_filial(cnpj: str | None) -> bool:
+    """Filial real: CNPJ válido com estabelecimento diferente de /0001."""
+    est = cnpj_estabelecimento(cnpj)
+    return bool(est and est != "0001")
+
+
 def parse_brl(value: str) -> float:
     return float(value.replace(".", "").replace(",", "."))
 
@@ -1758,16 +1764,14 @@ def build_snapshot_for_month(month: Path) -> dict:
             cnpj: str | None = None
             cnpj_matriz: str | None = None
             codigo_ecac_matriz: str | None = None
-            had_ecac = False
             had_ecac_matriz = False
-            had_ecac_filial = False
             tipos: list[str] = []
             debitos: list[dict] = []
             documentos: list[dict] = []
-            # Só arquivos que entram no painel/download (ECAC filial /0002+ fica de fora)
             arquivos: list[str] = []
             codigos: set[str] = set()
             avisos: list[str] = []
+            parsed_pdfs: list[dict] = []
 
             for pdf in pdfs:
                 label = origem_label(pdf.name)
@@ -1775,6 +1779,71 @@ def build_snapshot_for_month(month: Path) -> dict:
                 codigos.add(codigo)
                 text, _mode, text_avisos = resolve_pdf_text(pdf, label)
                 avisos.extend(text_avisos)
+                found_cnpj, found_nome = extract_company(text) if text.strip() else (None, None)
+                parsed_pdfs.append(
+                    {
+                        "pdf": pdf,
+                        "label": label,
+                        "codigo": codigo,
+                        "text": text,
+                        "found_cnpj": found_cnpj,
+                        "found_nome": found_nome,
+                    }
+                )
+                if label == "ECAC" and found_cnpj and is_cnpj_matriz(found_cnpj):
+                    had_ecac_matriz = True
+                    codigo_ecac_matriz = codigo
+
+            for item in parsed_pdfs:
+                pdf = item["pdf"]
+                label = item["label"]
+                text = item["text"]
+                found_cnpj = item["found_cnpj"]
+                found_nome = item["found_nome"]
+
+                if found_cnpj:
+                    if is_cnpj_matriz(found_cnpj):
+                        cnpj_matriz = found_cnpj
+                        cnpj = found_cnpj
+                    elif not cnpj or not is_cnpj_matriz(cnpj):
+                        if not cnpj:
+                            cnpj = found_cnpj
+
+                folder_is_generic = fold(nome).replace(" ", "_") in {
+                    "sem_nome",
+                    "semnome",
+                    "revisar",
+                } or nome.strip().isdigit()
+                if found_nome and folder_is_generic:
+                    nome = found_nome
+                elif found_nome and not folder_is_generic:
+                    if fold(found_nome).startswith(fold(nome)[:12]) and len(found_nome) > len(nome) + 5:
+                        nome = found_nome
+
+                # ECAC filial só fica de fora dos totais se a matriz (/0001) também veio.
+                # PDF único (ou CNPJ ilegível/SIDA) continua no painel para abrir e extrair.
+                skip_filial = (
+                    label == "ECAC"
+                    and is_cnpj_filial(found_cnpj)
+                    and had_ecac_matriz
+                )
+                if skip_filial:
+                    est = cnpj_estabelecimento(found_cnpj) or "?"
+                    avisos.append(
+                        f"ECAC filial ignorado nos totais ({pdf.name}, /{est}) — matriz /0001 já importada"
+                    )
+                    arquivos.append(pdf.name)
+                    documentos.append(
+                        make_documento(
+                            arquivo=pdf.name,
+                            esfera="federal",
+                            origem_label=label,
+                            status_doc="indeterminado",
+                            debitos=[],
+                        )
+                    )
+                    continue
+
                 if not text.strip():
                     avisos.append(f"sem texto em {pdf.name}")
                     esfera = esfera_por_nome(pdf.name) or "federal"
@@ -1790,42 +1859,6 @@ def build_snapshot_for_month(month: Path) -> dict:
                     )
                     continue
 
-                found_cnpj, found_nome = extract_company(text)
-                if found_cnpj:
-                    if is_cnpj_matriz(found_cnpj):
-                        cnpj_matriz = found_cnpj
-                        cnpj = found_cnpj
-                    elif not cnpj or not is_cnpj_matriz(cnpj):
-                        # só sobrescreve se ainda não temos matriz
-                        if not cnpj:
-                            cnpj = found_cnpj
-
-                folder_is_generic = fold(nome).replace(" ", "_") in {
-                    "sem_nome",
-                    "semnome",
-                    "revisar",
-                } or nome.strip().isdigit()
-                if found_nome and folder_is_generic:
-                    nome = found_nome
-                elif found_nome and not folder_is_generic:
-                    if fold(found_nome).startswith(fold(nome)[:12]) and len(found_nome) > len(nome) + 5:
-                        nome = found_nome
-
-                # ECAC: só matriz (CNPJ /0001) entra em totais, documentos e download
-                if label == "ECAC":
-                    had_ecac = True
-                    if found_cnpj and is_cnpj_matriz(found_cnpj):
-                        had_ecac_matriz = True
-                        codigo_ecac_matriz = codigo
-                    elif found_cnpj and not is_cnpj_matriz(found_cnpj):
-                        had_ecac_filial = True
-                        est = cnpj_estabelecimento(found_cnpj) or "?"
-                        avisos.append(
-                            f"ECAC filial ignorado ({pdf.name}, /{est}) — usar só matriz /0001"
-                        )
-                        # PDF permanece no disco; fora de documentos/arquivos
-                        continue
-
                 arquivos.append(pdf.name)
                 docs, found_tipos = extract_documentos_from_pdf(
                     pdf_name=pdf.name,
@@ -1840,8 +1873,12 @@ def build_snapshot_for_month(month: Path) -> dict:
                 for doc in docs:
                     debitos.extend(doc["debitos"])
 
-            if had_ecac and had_ecac_filial and not had_ecac_matriz:
-                avisos.append("falta ECAC da matriz (/0001)")
+            if debitos:
+                avisos = [
+                    item
+                    for item in avisos
+                    if "OCR indisponível" not in item and "OCR sem texto" not in item
+                ]
 
             if status == "pendencia" and not debitos and not tipos:
                 tipos = ["PENDENCIA_SEM_VALORES_EXTRAIDOS"]

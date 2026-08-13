@@ -43,14 +43,18 @@ export async function GET(request: Request, { params }: Params) {
   }
 
   const fullPath = path.join(empresa.pasta, fileName);
+  const forceDownload = url.searchParams.get("download") === "1";
 
   try {
     const bytes = await readFile(fullPath);
+    const disposition = forceDownload
+      ? `attachment; filename="${fileName}"`
+      : `inline; filename="${fileName}"`;
     return new NextResponse(bytes, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${fileName}"`,
+        "Content-Disposition": disposition,
         "Content-Length": String(bytes.byteLength),
         "Cache-Control": "private, max-age=60",
       },

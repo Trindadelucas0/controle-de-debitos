@@ -7,6 +7,8 @@ import {
   ArrowLeft,
   Building2,
   Download,
+  ExternalLink,
+  FileText,
   Landmark,
   MapPin,
   Trash2,
@@ -113,6 +115,18 @@ export function EmpresaDetail({
             .join(" · ")}
           actions={
             <>
+              {empresa.arquivos.slice(0, 3).map((arquivo) => (
+                <Button key={arquivo} asChild size="sm" variant="outline">
+                  <a
+                    href={pdfHref(empresa.id, arquivo, competencia)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink />
+                    Abrir PDF
+                  </a>
+                </Button>
+              ))}
               <BaixarRelatorioButton empresa={empresa} competencia={competencia} />
               <StatusBadge status={empresa.status} />
             </>
@@ -140,9 +154,13 @@ export function EmpresaDetail({
           />
         </div>
 
-        {empresa.avisos.length > 0 && (
+        {visibleAvisos(empresa.avisos).length > 0 && (
           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            {empresa.avisos.join(" · ")}
+            <ul className="list-disc space-y-1 pl-4">
+              {visibleAvisos(empresa.avisos).map((aviso) => (
+                <li key={aviso}>{aviso}</li>
+              ))}
+            </ul>
           </div>
         )}
       </header>
@@ -156,16 +174,45 @@ export function EmpresaDetail({
         />
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {analytics.composicao.length === 0 ? (
         <Card>
-          <CardHeader>
-            <CardTitle>Composição do valor</CardTitle>
-            <CardDescription>Saldo, multa e juros desta empresa</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[240px]">
-            {analytics.composicao.length === 0 ? (
-              <Empty message="Sem valores para compor o gráfico." />
-            ) : (
+          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+            <span className="flex size-10 items-center justify-center rounded-md bg-muted text-slate-600">
+              <FileText className="size-5" aria-hidden />
+            </span>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-slate-900">Ainda sem valores extraídos</p>
+              <p className="text-sm text-muted-foreground">
+                Abra o PDF para conferir o diagnóstico. Se os valores existirem no arquivo, eles
+                devem aparecer aqui após a extração.
+              </p>
+            </div>
+            {empresa.arquivos.length > 0 ? (
+              <div className="flex flex-wrap justify-center gap-2">
+                {empresa.arquivos.map((arquivo) => (
+                  <Button key={arquivo} asChild size="sm">
+                    <a
+                      href={pdfHref(empresa.id, arquivo, competencia)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <ExternalLink />
+                      Abrir {arquivo}
+                    </a>
+                  </Button>
+                ))}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Composição do valor</CardTitle>
+              <CardDescription>Saldo, multa e juros desta empresa</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -186,40 +233,40 @@ export function EmpresaDetail({
                   />
                 </PieChart>
               </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Saldo por esfera</CardTitle>
-            <CardDescription>
-              ECAC · Receita Federal · Agenci@Net · Prefeitura
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics.porEsfera} margin={{ left: 0, right: 8, top: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#64748b" }} />
-                <YAxis
-                  tickFormatter={(v) => compactBRL(Number(v))}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
-                />
-                <Tooltip
-                  formatter={(value) => formatBRL(Number(value ?? 0))}
-                  contentStyle={tooltipStyle}
-                />
-                <Bar dataKey="consolidado" radius={[6, 6, 0, 0]} barSize={36}>
-                  {analytics.porEsfera.map((entry) => (
-                    <Cell key={entry.esfera} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Saldo por esfera</CardTitle>
+              <CardDescription>
+                ECAC · Receita Federal · Agenci@Net · Prefeitura
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.porEsfera} margin={{ left: 0, right: 8, top: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#64748b" }} />
+                  <YAxis
+                    tickFormatter={(v) => compactBRL(Number(v))}
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                  />
+                  <Tooltip
+                    formatter={(value) => formatBRL(Number(value ?? 0))}
+                    contentStyle={tooltipStyle}
+                  />
+                  <Bar dataKey="consolidado" radius={[6, 6, 0, 0]} barSize={36}>
+                    {analytics.porEsfera.map((entry) => (
+                      <Cell key={entry.esfera} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList>
@@ -338,11 +385,30 @@ function EsferaPanel({
   };
 
   if (!bucket || bucket.qtdDocs === 0) {
+    const arquivosOrfaos = empresa.arquivos.filter((arquivo) => inferEsfera(arquivo) === esfera);
     return (
       <Card>
-        <CardContent className="py-10 text-center text-sm text-muted-foreground">
-          Não há documento {ESFERA_LABELS[esfera].toLowerCase()} nesta competência
-          ({ESFERA_FONTES[esfera]}).
+        <CardContent className="space-y-3 py-8 text-center">
+          <p className="text-sm font-medium text-slate-800">
+            Ainda não há documento {ESFERA_LABELS[esfera].toLowerCase()} nesta competência
+          </p>
+          <p className="text-xs text-muted-foreground">Fonte: {ESFERA_FONTES[esfera]}</p>
+          {arquivosOrfaos.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-2 pt-1">
+              {arquivosOrfaos.map((arquivo) => (
+                <Button key={arquivo} asChild size="sm" variant="outline">
+                  <a
+                    href={pdfHref(empresa.id, arquivo, competencia)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink />
+                    Abrir {arquivo}
+                  </a>
+                </Button>
+              ))}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     );
@@ -431,13 +497,23 @@ function EsferaPanel({
                 >
                   <span className="text-sm">{arquivo}</span>
                   <div className="flex flex-wrap items-center gap-2">
+                    <Button asChild size="sm">
+                      <a
+                        href={pdfHref(empresa.id, arquivo, competencia)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink />
+                        Abrir PDF
+                      </a>
+                    </Button>
                     <Button asChild size="sm" variant="outline">
                       <a
-                        href={`/api/pdf/${empresa.id}/${encodeURIComponent(arquivo)}?competencia=${encodeURIComponent(competencia)}`}
+                        href={pdfHref(empresa.id, arquivo, competencia, true)}
                         download={arquivo}
                       >
                         <Download />
-                        Baixar PDF
+                        Baixar
                       </a>
                     </Button>
                     <Button
@@ -660,12 +736,38 @@ function Kpi({
   );
 }
 
-function Empty({ message }: { message: string }) {
-  return (
-    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-      {message}
-    </div>
-  );
+function pdfHref(
+  empresaId: string,
+  arquivo: string,
+  competencia: string,
+  download = false,
+) {
+  const params = new URLSearchParams({ competencia });
+  if (download) params.set("download", "1");
+  return `/api/pdf/${empresaId}/${encodeURIComponent(arquivo)}?${params.toString()}`;
+}
+
+function visibleAvisos(avisos: string[]) {
+  return avisos
+    .map(humanizeAviso)
+    .filter((item): item is string => Boolean(item));
+}
+
+function humanizeAviso(aviso: string): string | null {
+  if (/OCR indisponível|OCR sem texto/i.test(aviso)) return null;
+  if (/ECAC filial ignorado/i.test(aviso)) {
+    return "Há um ECAC de filial. Os totais usam só a matriz (/0001). O PDF da filial continua disponível para abrir.";
+  }
+  if (/falta ECAC da matriz/i.test(aviso)) {
+    return "Falta o ECAC da matriz (/0001).";
+  }
+  if (/valores não extraídos/i.test(aviso)) {
+    return "Não foi possível ler os valores automaticamente. Abra o PDF para conferir.";
+  }
+  if (/sem texto em /i.test(aviso)) {
+    return "O PDF veio sem texto legível. Abra o arquivo para conferir.";
+  }
+  return aviso;
 }
 
 function statusBadgeVariant(status: StatusEsfera) {
