@@ -2,7 +2,7 @@ import path from "path";
 import { NextResponse } from "next/server";
 import { mkdir, unlink, writeFile } from "fs/promises";
 import { existsSync } from "fs";
-import { listCompetencias } from "@/lib/data";
+import { invalidateDashboardCache, listCompetencias } from "@/lib/data";
 import { resolveWorkspaceRoot, spawnPythonScript } from "@/lib/workspace";
 
 export const runtime = "nodejs";
@@ -56,6 +56,8 @@ function streamPython(
   const child = spawnPythonScript(workspace, "ingest_upload.py", pyArgs);
   const encoder = new TextEncoder();
   let settled = false;
+  let sawDone = false;
+  const shouldInvalidate = !pyArgs.includes("--dry-run");
 
   const stream = new ReadableStream({
     start(controller) {
@@ -89,6 +91,7 @@ function streamPython(
           const line = buffer.slice(0, nl).trim();
           buffer = buffer.slice(nl + 1);
           if (line) {
+            if (/"event"\s*:\s*"done"/.test(line)) sawDone = true;
             try {
               controller.enqueue(encoder.encode(`${line}\n`));
             } catch {
@@ -109,8 +112,28 @@ function streamPython(
         settled = true;
         const rest = buffer.trim();
         if (rest) {
+          if (/"event"\s*:\s*"done"/.test(rest)) sawDone = true;
           try {
             controller.enqueue(encoder.encode(`${rest}\n`));
+          } catch {
+            /* ignore */
+          }
+        }
+        if (shouldInvalidate) {
+          invalidateDashboardCache();
+        }
+        if (!sawDone) {
+          try {
+            controller.enqueue(
+              encoder.encode(
+                `${JSON.stringify({
+                  event: "done",
+                  ok: false,
+                  erro: "A extração terminou sem resultado. Tente novamente.",
+                  competencia,
+                })}\n`,
+              ),
+            );
           } catch {
             /* ignore */
           }

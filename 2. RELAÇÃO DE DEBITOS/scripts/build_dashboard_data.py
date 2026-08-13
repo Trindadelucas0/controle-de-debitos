@@ -24,6 +24,7 @@ from extrair_debitos import (  # noqa: E402
     codigo_from_filename,
     extract_company,
     fold,
+    has_fiscal_markers,
     list_competencia_dirs,
     pdf_string_literals,
     resolve_month_dir,
@@ -61,6 +62,7 @@ EMPTY_TOTAIS = {"original": 0.0, "saldo": 0.0, "multa": 0.0, "juros": 0.0, "cons
 
 RECEITA_LIT_RE = re.compile(r"^(\d{4}-\d{2})\s*-\s*(.+)$", re.I)
 SIMPLES_LIT_RE = re.compile(r"^SIMPLES\s+NAC\.?$", re.I)
+SIMPLES_CODE_LIT_RE = re.compile(r"^(\d{4})(?:-\d{2})?-SIMPLES(?:\s+NAC\.?)?$", re.I)
 PA_LIT_RE = re.compile(
     r"^(?:\d{2}/\d{4}|\d{2}/\d{2}/\d{4}|[123][oº]?\s*TRIM/\d{4}|[A-ZÇÁ-Ú]{3}/\d{4})$",
     re.I,
@@ -84,13 +86,21 @@ YEAR_MONTHS_RE = re.compile(
 )
 YEAR_ONLY_RE = re.compile(r"^(20\d{2})\s*[-–]?\s*$")
 ECAC_TITULO_RE = re.compile(
-    r"(pendencia\s*-+\s*[a-z0-9 *()/.-]{3,80}?"
-    r"(?=\s+(?:\(\s*periodo de apuracao\s*\)|20\d{2}\s*-|receita\b|pa/exerc|"
-    r"\d{4}-\d{2}|pendencia\s*-|debito com exigibilidade|inscricao com exigibilidade|"
-    r"parcelamento com exigibilidade|nao foram|diagnostico|$))"
+    r"(?:pendencia\s*-+\s*)?(?:"
+    r"omissao de dctfweb|"
+    r"omissao de dctf\b|"
+    r"omissao de dirf|"
+    r"debito\s*\(\s*sief\s*\)|"
+    r"debito\s*\(\s*sida\s*\)|"
+    r"processo fiscal\s*\(\s*sief\s*\)|"
+    r"inscricao\s*\(\s*sida\s*\)|"
+    r"inscricao\s*\(\s*sistema divida\s*\)|"
+    r"divergencia gfip\s*x\s*gps|"
+    r"parcelamento\s*\([^)]{3,40}\)"
+    r")"
     r"|debito com exigibilidade suspensa"
     r"|inscricao com exigibilidade suspensa"
-    r"|parcelamento com exigibilidade suspensa)",
+    r"|parcelamento com exigibilidade suspensa",
     re.I,
 )
 
@@ -139,7 +149,8 @@ def best_text(path: Path) -> tuple[str, str]:
         cnpj, nome = extract_company(res.text or "")
         has_cnpj = 1 if cnpj and len(re.sub(r"\D", "", cnpj)) == 14 else 0
         has_nome = 1 if nome else 0
-        return (res.score, has_cnpj, has_nome, len(res.text or ""))
+        has_fiscal = 1 if has_fiscal_markers(res.text or "") else 0
+        return (has_fiscal, res.score, has_cnpj, has_nome, len(res.text or ""))
 
     ranked = sorted(modes.items(), key=rank_key, reverse=True)
     best_mode, best = ranked[0]
@@ -165,6 +176,8 @@ def text_is_weak(text: str) -> bool:
         return True
     printable = sum(1 for ch in text if ch.isascii() and (ch.isalnum() or ch.isspace()))
     if printable / max(len(text), 1) < 0.2:
+        return True
+    if not has_fiscal_markers(text):
         return True
     if score_text(text) >= OCR_TEXT_MIN_SCORE:
         return False
@@ -348,6 +361,8 @@ def normalize_ecac_titulo(raw: str) -> str:
         return "OMISSAO DE DCTFWEB"
     if "omissao de dctf" in f:
         return "OMISSAO DE DCTF"
+    if "omissao de dirf" in f:
+        return "OMISSAO DE DIRF"
     # Exigibilidade suspensa antes de Débito (SIEF): o título traz "(SIEF)" no fim.
     if "parcelamento" in f and "exigibilidade suspensa" in f:
         return "PARCELAMENTO SUSPENSO"
@@ -359,10 +374,18 @@ def normalize_ecac_titulo(raw: str) -> str:
         return "DEBITO (SIEF)"
     if "debito" in f and "sida" in f:
         return "DEBITO (SIDA)"
+    if "processo fiscal" in f:
+        return "PROCESSO FISCAL (SIEF)"
     if "divergencia gfip" in f:
         return "DIVERGENCIA GFIP X GPS"
+    if "inscricao" in f and "sida" in f:
+        return "INSCRICAO (SIDA)"
     if "inscricao" in f and "divida" in f:
         return "INSCRICAO (SISTEMA DIVIDA)"
+    if "parcelamento" in f and ("parcsn" in f or "parcmei" in f):
+        return "PARCELAMENTO (PARCSN/PARCMEI)"
+    if f.startswith("parcelamento"):
+        return "PARCELAMENTO"
     return f.upper().strip()
 
 
@@ -375,11 +398,21 @@ def receita_for_omissao(titulo: str) -> str:
         return "Omissão de DCTFWeb"
     if "DCTF" in titulo:
         return "Omissão de DCTF"
+    if "DIRF" in titulo:
+        return "Omissão de DIRF"
     return "Omissão"
 
 
 def _titulo_is_complete(folded: str) -> bool:
     if "exigibilidade suspensa" in folded:
+        return True
+    if folded.startswith("omissao de") and len(folded) >= 12:
+        return True
+    if "processo fiscal" in folded:
+        return True
+    if "inscricao" in folded and "sida" in folded:
+        return True
+    if folded.startswith("parcelamento") and len(folded) >= 12:
         return True
     match = re.search(r"pendencia\s*-+\s*(.+)", folded)
     if not match:
@@ -390,7 +423,12 @@ def _titulo_is_complete(folded: str) -> bool:
 
 def _token_breaks_titulo(token: str) -> bool:
     stripped = token.strip()
-    if RECEITA_LIT_RE.match(stripped) or SIMPLES_LIT_RE.match(stripped) or PA_LIT_RE.match(stripped):
+    if (
+        RECEITA_LIT_RE.match(stripped)
+        or SIMPLES_LIT_RE.match(stripped)
+        or SIMPLES_CODE_LIT_RE.match(stripped)
+        or PA_LIT_RE.match(stripped)
+    ):
         return True
     if YEAR_MONTHS_RE.match(stripped) or YEAR_ONLY_RE.match(stripped):
         return True
@@ -408,7 +446,15 @@ def match_ecac_titulo_at(literals: list[str], i: int) -> tuple[str | None, int]:
     if i >= n:
         return None, 0
     first = fold(literals[i])
-    if not (first.startswith("pendencia") or "exigibilidade suspensa" in first):
+    starts_titulo = (
+        first.startswith("pendencia")
+        or first.startswith("omissao de")
+        or first.startswith("parcelamento")
+        or "exigibilidade suspensa" in first
+        or "processo fiscal" in first
+        or ("inscricao" in first and "sida" in first)
+    )
+    if not starts_titulo:
         return None, 0
     max_join = min(4, n - i)
     for ntok in range(1, max_join + 1):
@@ -570,6 +616,14 @@ def merge_ecac_rows(primary: list[dict], secondary: list[dict]) -> list[dict]:
     Identidade financeira ignora `titulo` para não duplicar a mesma linha
     quando o regex (texto CID) atribui a seção errada.
     """
+    secondary_by_key = {_debito_row_key(row): row for row in secondary}
+    for row in primary:
+        if row.get("titulo"):
+            continue
+        other = secondary_by_key.get(_debito_row_key(row))
+        if other and other.get("titulo"):
+            row["titulo"] = other["titulo"]
+
     seen = {_debito_row_key(row) for row in primary}
     omissao_extra: list[dict] = []
     other_extra: list[dict] = []
@@ -672,10 +726,13 @@ def parse_ecac_from_literals(
         token = literals[i]
         receita: str | None = None
         m_rec = RECEITA_LIT_RE.match(token)
+        m_simples_code = SIMPLES_CODE_LIT_RE.match(token)
         if m_rec:
             receita = f"{m_rec.group(1)} - {m_rec.group(2).strip()}"
         elif SIMPLES_LIT_RE.match(token):
             receita = "SIMPLES NAC."
+        elif m_simples_code:
+            receita = f"{m_simples_code.group(1)}-SIMPLES"
         else:
             i += 1
             continue
@@ -798,6 +855,16 @@ def parse_ecac_debitos_regex(text: str, origem: str, arquivo: str, esfera: str) 
     return rows
 
 
+def text_to_ecac_literals(text: str) -> list[str]:
+    """Quebra texto extraído (pymupdf/OCR) em tokens no mesmo formato dos literais PDF."""
+    literals: list[str] = []
+    for raw_line in (text or "").replace("\r", "\n").split("\n"):
+        line = re.sub(r"\s+", " ", raw_line).strip()
+        if line:
+            literals.append(line)
+    return literals
+
+
 def parse_ecac_debitos(
     text: str,
     origem: str,
@@ -811,10 +878,19 @@ def parse_ecac_debitos(
             lit_rows = parse_ecac_from_literals(pdf_string_literals(path), origem, arquivo, esfera)
         except Exception:
             lit_rows = []
+    text_rows: list[dict] = []
+    if text and text.strip():
+        try:
+            text_rows = parse_ecac_from_literals(text_to_ecac_literals(text), origem, arquivo, esfera)
+        except Exception:
+            text_rows = []
     regex_rows = parse_ecac_debitos_regex(text, origem, arquivo, esfera)
-    if lit_rows:
-        return merge_ecac_rows(lit_rows, regex_rows)
-    return regex_rows
+    merged = lit_rows
+    if text_rows:
+        merged = merge_ecac_rows(merged, text_rows) if merged else text_rows
+    if regex_rows:
+        merged = merge_ecac_rows(merged, regex_rows) if merged else regex_rows
+    return merged
 
 
 BRL_TOKEN_RE = r"\d{1,3}(?:\.\d{3})*,\d{2}"

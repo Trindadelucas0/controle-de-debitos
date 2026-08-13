@@ -8,11 +8,16 @@ export function formatBRL(value: number): string {
 const TITULO_PENDENCIA_LABELS: Record<string, string> = {
   "OMISSAO DE DCTFWEB": "Pendência · Omissão de DCTFWeb",
   "OMISSAO DE DCTF": "Pendência · Omissão de DCTF",
+  "OMISSAO DE DIRF": "Pendência · Omissão de DIRF",
   "DEBITO (SIEF)": "Pendência · Débito (SIEF)",
   "DEBITO (SIDA)": "Pendência · Débito (SIDA)",
   "DEBITO SUSPENSO": "Débito com exigibilidade suspensa",
   "INSCRICAO SUSPENSA": "Inscrição com exigibilidade suspensa",
   "PARCELAMENTO SUSPENSO": "Parcelamento com exigibilidade suspensa",
+  "PARCELAMENTO (PARCSN/PARCMEI)": "Pendência · Parcelamento (PARCSN/PARCMEI)",
+  PARCELAMENTO: "Pendência · Parcelamento",
+  "PROCESSO FISCAL (SIEF)": "Pendência · Processo Fiscal (SIEF)",
+  "INSCRICAO (SIDA)": "Pendência · Inscrição (SIDA)",
   "DIVERGENCIA GFIP X GPS": "Pendência · Divergência GFIP x GPS",
   "INSCRICAO (SISTEMA DIVIDA)": "Pendência · Inscrição (Sistema Dívida)",
 };

@@ -38,6 +38,7 @@ from extrair_debitos import (  # noqa: E402
     ensure_competencia_dir,
     extract_company,
     fold,
+    has_fiscal_markers,
     list_competencia_dirs,
     competencias_parent_dir,
     resolve_workspace_root,
@@ -439,6 +440,7 @@ def ingest_one(
         "destino": None,
         "empresa_id": None,
         "qtd_debitos": 0,
+        "titulos": [],
         "totais": {"original": 0, "saldo": 0, "multa": 0, "juros": 0, "consolidado": 0},
         "avisos": [],
         "erro": None,
@@ -563,11 +565,39 @@ def ingest_one(
 
     result["qtd_debitos"] = len(rows)
     result["totais"] = sum_totais(rows)
+    titulos: list[str] = []
+    for row in rows:
+        titulo = str(row.get("titulo") or "").strip()
+        if titulo and titulo not in titulos:
+            titulos.append(titulo)
+    result["titulos"] = titulos
 
     if not rows:
         result["avisos"].append(
             "conteúdo sem layout de débitos reconhecido — revisar PDF"
         )
+
+    extract_failed = False
+    if not rows and classe != "SEM_PENDENCIA":
+        extract_failed = True
+        if tipo == "ECAC" and not has_fiscal_markers(text):
+            result["erro"] = (
+                "Não foi possível ler o Diagnóstico Fiscal deste PDF "
+                "(texto ilegível). Reexporte o arquivo ou instale pymupdf."
+            )
+        else:
+            result["erro"] = (
+                "Nenhum lançamento extraído. A importação não pode ser "
+                "confirmada até extrair de verdade."
+            )
+        result["classe"] = "REVISAR"
+        classe = "REVISAR"
+        result["avisos"].append("extração incompleta — não gravar no painel")
+
+    if extract_failed:
+        result["ok"] = False
+        result["arquivo_final"] = forced_name
+        return result
 
     if classe == "REVISAR" and not rows:
         status_folder = "revisar"
@@ -899,6 +929,7 @@ def run(
                     "erro": f"{type(exc).__name__}: {exc}",
                     "avisos": [],
                     "qtd_debitos": 0,
+                    "titulos": [],
                     "totais": sum_totais([]),
                     "duplicado": False,
                     "inbox_path": str(path),

@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatCompetencia } from "@/lib/competencia";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, formatTituloPendencia } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type DocTipo = "ECAC" | "AGENCIANET" | "MUNICIPAL";
@@ -51,6 +51,7 @@ type IngestItem = {
   destino?: string | null;
   empresa_id?: string | null;
   qtd_debitos?: number;
+  titulos?: string[];
   totais?: { saldo?: number; consolidado?: number };
   avisos?: string[];
   erro?: string | null;
@@ -119,6 +120,14 @@ const ZONES: {
 
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function hasRealExtract(item?: IngestItem): boolean {
+  if (!item?.ok) return false;
+  if (item.duplicado) return false;
+  const qtd = item.qtd_debitos ?? 0;
+  if (qtd > 0) return true;
+  return item.classe === "SEM_PENDENCIA";
 }
 
 async function readNdjsonStream(
@@ -197,6 +206,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     (f) =>
       f.selected &&
       f.status === "ok" &&
+      hasRealExtract(f.result) &&
       f.result?.inbox_path &&
       !f.result.duplicado &&
       !(f.result.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a)),
@@ -267,7 +277,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           status: item.ok ? "ok" : "error",
           result: { ...item, duplicado },
           error: item.erro || undefined,
-          selected: selectDefault ? (item.ok && !duplicado) : f.selected,
+          selected: selectDefault
+            ? Boolean(item.ok && !duplicado && hasRealExtract({ ...item, duplicado }))
+            : f.selected,
         };
       }),
     );
@@ -464,7 +476,19 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         }
       });
 
-      if (finalDone?.erro && !finalDone.ok) {
+      if (!finalDone) {
+        setGlobalError("A extração não terminou. O carregamento não pode ser concluído.");
+        setFiles((prev) =>
+          prev.map((f) => ({
+            ...f,
+            status: f.status === "ok" ? f.status : "error",
+            error: f.error || "Extração incompleta",
+          })),
+        );
+        setPhase("idle");
+        return;
+      }
+      if (finalDone.erro && !finalDone.ok) {
         setGlobalError(finalDone.erro);
         setPhase("idle");
         return;
@@ -564,6 +588,12 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         }
       });
 
+      if (!finalDone) {
+        setGlobalError("A gravação não terminou. O painel não foi atualizado.");
+        setPhase("review");
+        return;
+      }
+
       // Limpa inbox dos não confirmados (duplicados / desmarcados)
       const selectedIds = new Set(selectedForCommit.map((s) => s.id));
       const leftover = files
@@ -572,11 +602,11 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       await limparInbox(leftover);
 
       setDonePayload({
-        ok: Boolean(finalDone?.ok),
-        competencia: finalDone?.competencia || competenciaEfetiva,
-        aviso_global: finalDone?.aviso_global,
+        ok: Boolean(finalDone.ok),
+        competencia: finalDone.competencia || competenciaEfetiva,
+        aviso_global: finalDone.aviso_global,
       });
-      if (finalDone?.erro && !finalDone.ok) {
+      if (finalDone.erro && !finalDone.ok) {
         setGlobalError(finalDone.erro);
       }
       setPhase("done");
@@ -599,9 +629,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           : "";
   const overlayDesc =
     phase === "previewing"
-      ? "Extraindo dados sem gravar. Não feche nem saia desta página."
+      ? "Extraindo lançamentos de verdade. A tela só libera quando cada PDF terminar."
       : phase === "committing"
-        ? "Gravando arquivos e atualizando o painel. Não feche nem saia desta página."
+        ? "Gravando arquivos e atualizando o painel. Só libera depois do rebuild."
         : "Aguarde a exclusão terminar. Não feche a página nem clique em outra ação.";
 
   return (
@@ -920,7 +950,8 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               {phase === "review" ? "Revisão antes de gravar" : "Resultado da importação"}
             </CardTitle>
             <CardDescription>
-              Empresa detectada · destino previsto · valores por arquivo
+              Só confirme PDFs com lançamentos extraídos (ex.: Lançamentos · Federal /
+              Pendência · Omissão de DCTFWeb)
             </CardDescription>
           </CardHeader>
           <div className="overflow-auto">
@@ -935,6 +966,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                   <th className="px-3 py-2">Empresa</th>
                   <th className="px-3 py-2">Destino</th>
                   <th className="px-3 py-2">Lanç.</th>
+                  <th className="px-3 py-2">Seções</th>
                   <th className="px-3 py-2">Saldo</th>
                   <th className="px-3 py-2">Status</th>
                   {phase === "done" ? <th className="px-3 py-2">Ações</th> : null}
@@ -946,7 +978,11 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                   const duplicado = Boolean(r?.duplicado);
                   const wasDeleted = deletedIds.includes(f.id);
                   const canSelect =
-                    phase === "review" && f.status === "ok" && !duplicado && Boolean(r?.inbox_path);
+                    phase === "review" &&
+                    f.status === "ok" &&
+                    !duplicado &&
+                    Boolean(r?.inbox_path) &&
+                    hasRealExtract(r);
                   return (
                     <tr
                       key={f.id}
@@ -1001,6 +1037,13 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                       </td>
                       <td className="px-3 py-2 align-top text-xs">{r?.destino || "—"}</td>
                       <td className="px-3 py-2 align-top tabular">{r?.qtd_debitos ?? "—"}</td>
+                      <td className="px-3 py-2 align-top text-[11px] text-muted-foreground">
+                        {r?.titulos?.length
+                          ? r.titulos.map((titulo) => formatTituloPendencia(titulo)).join(" · ")
+                          : r?.classe === "SEM_PENDENCIA"
+                            ? "Sem pendência"
+                            : "—"}
+                      </td>
                       <td className="px-3 py-2 align-top tabular">
                         {r?.totais?.saldo != null ? formatBRL(r.totais.saldo) : "—"}
                       </td>

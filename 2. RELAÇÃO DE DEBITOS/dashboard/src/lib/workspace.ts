@@ -54,18 +54,25 @@ export function resolvePythonCommand(): PythonCmd {
     return cachedPython;
   }
 
+  const pdfProbe =
+    "import importlib.util as u; assert u.find_spec('pypdf') or u.find_spec('fitz')";
   const attempts: { cmd: string; prefix: string[]; probe: string[] }[] =
     process.platform === "win32"
       ? [
+          { cmd: "py", prefix: ["-3.14"], probe: ["-3.14", "-c", pdfProbe] },
+          { cmd: "py", prefix: ["-3"], probe: ["-3", "-c", pdfProbe] },
+          { cmd: "python", prefix: [], probe: ["-c", pdfProbe] },
+          { cmd: "python3", prefix: [], probe: ["-c", pdfProbe] },
           { cmd: "py", prefix: ["-3.14"], probe: ["-3.14", "-c", "print(1)"] },
           { cmd: "py", prefix: ["-3"], probe: ["-3", "-c", "print(1)"] },
           { cmd: "python", prefix: [], probe: ["-c", "print(1)"] },
-          { cmd: "python3", prefix: [], probe: ["-c", "print(1)"] },
         ]
       : [
+          { cmd: "python3", prefix: [], probe: ["-c", pdfProbe] },
+          { cmd: "python", prefix: [], probe: ["-c", pdfProbe] },
+          { cmd: "py", prefix: ["-3"], probe: ["-3", "-c", pdfProbe] },
           { cmd: "python3", prefix: [], probe: ["-c", "print(1)"] },
           { cmd: "python", prefix: [], probe: ["-c", "print(1)"] },
-          { cmd: "py", prefix: ["-3"], probe: ["-3", "-c", "print(1)"] },
         ];
 
   for (const attempt of attempts) {

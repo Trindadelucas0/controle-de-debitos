@@ -196,6 +196,121 @@ def fold(text: str) -> str:
     return re.sub(r"\s+", " ", text)
 
 
+FISCAL_MARKERS = (
+    "cnpj",
+    "diagnostico fiscal",
+    "pendencia",
+    "omissao de",
+    "sief",
+    "sida",
+    "receita federal",
+    "certidao negativa",
+    "certidao positiva",
+    "nao constam debitos",
+    "nao foram detectadas",
+    "exigibilidade suspensa",
+    "exibir debitos",
+    "simples nac",
+    "dctfweb",
+    "prefeitura",
+    "agencianet",
+    "guia de recolhimento",
+    "divida ativa",
+    "portalcidadao",
+    "prefeituraunai",
+    "municipio de",
+)
+
+
+def has_fiscal_markers(text: str) -> bool:
+    """True se o texto parece um documento fiscal legível (não lixo CID)."""
+    if not text:
+        return False
+    f = fold(text)
+    return any(marker in f for marker in FISCAL_MARKERS)
+
+
+def _caesar_printable(text: str, shift: int) -> str:
+    out: list[str] = []
+    for ch in text:
+        code = ord(ch)
+        if 32 + shift <= code <= 126 + shift:
+            out.append(chr(code - shift))
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def _literal_quality(text: str) -> int:
+    if not text:
+        return -999
+    f = fold(text)
+    score = 0
+    for key in (
+        "pendencia",
+        "omissao",
+        "dctf",
+        "sief",
+        "sida",
+        "receita",
+        "devedor",
+        "simples",
+        "cnpj",
+        "diagnostico",
+        "parcelamento",
+        "dirf",
+        "certificado",
+        "federal",
+        "apuracao",
+        "exigibilidade",
+        "processo fiscal",
+    ):
+        if key in f:
+            score += 20
+    words = re.findall(r"[A-Za-zÁ-ú]{3,}", text)
+    score += len(words)
+    score += sum(1 for word in words for ch in word.lower() if ch in "aeiou")
+    score -= text.count("\x00") * 8
+    return score
+
+
+def decode_pdf_literal_bytes(raw: bytes) -> str:
+    """Decodifica literal PDF; tenta UTF-16/CID + Caesar quando há NULs."""
+    latin = raw.decode("latin-1", errors="ignore").strip()
+    nul_count = raw.count(b"\x00")
+    if nul_count < 2 or nul_count < max(2, len(raw) // 10):
+        return latin
+
+    candidates = [latin]
+    for enc in ("utf-16-be", "utf-16-le"):
+        try:
+            decoded = raw.decode(enc, errors="ignore").strip()
+        except Exception:
+            decoded = ""
+        if decoded:
+            candidates.append(decoded)
+
+    interleaved = bytearray()
+    i = 0
+    while i + 1 < len(raw):
+        a, b = raw[i], raw[i + 1]
+        if a == 0 and 1 <= b <= 255:
+            interleaved.append(b)
+            i += 2
+            continue
+        if b == 0 and 32 <= a < 127:
+            interleaved.append(a)
+            i += 2
+            continue
+        i += 1
+    inter = interleaved.decode("latin-1", errors="ignore").strip()
+    if inter:
+        candidates.append(inter)
+        for shift in range(1, 8):
+            candidates.append(_caesar_printable(inter, shift))
+    return max(candidates, key=_literal_quality)
+
+
 def _zlib_decompressed_streams(path: Path) -> bytes:
     data = path.read_bytes()
     texts: list[bytes] = []
@@ -217,7 +332,7 @@ def pdf_string_literals(path: Path) -> list[str]:
     for lit in re.findall(rb"\((?:\\.|[^\\)]){1,}\)", raw):
         s = lit[1:-1].replace(b"\\n", b" ").replace(b"\\r", b" ")
         s = re.sub(rb"\\([()\\])", rb"\1", s)
-        text = s.decode("latin-1", errors="ignore").strip()
+        text = decode_pdf_literal_bytes(s)
         if text:
             decoded.append(text)
     return decoded
@@ -267,7 +382,12 @@ def extract_cid_utf16_interleaved(path: Path) -> str:
             i += 2
             continue
         i += 1
-    recovered.append("".join(chars))
+    interleaved = "".join(chars)
+    recovered.append(interleaved)
+    for shift in (3, 1, 2, 4, 5):
+        shifted = _caesar_printable(interleaved, shift)
+        if shifted and shifted != interleaved:
+            recovered.append(shifted)
     recovered.append(base)
     return "\n".join(recovered)
 
@@ -422,10 +542,14 @@ def score_text(text: str) -> int:
     if "balneario camboriu" in f or "parcela(s) em aberto" in f:
         score += 3
     useful = len(re.findall(r"[A-Za-z0-9]{3,}", f))
-    score += min(useful // 40, 4)
+    if has_fiscal_markers(text):
+        score += min(useful // 40, 4)
+    else:
+        # Lixo CID/binário não pode ganhar de um modo com texto fiscal real
+        score = min(score, 1)
     # Penaliza lixo com NULs (CID mal decodificado)
     if text.count("\x00") > 50:
-        score = min(score, 2)
+        score = min(score, 1)
     return score
 
 

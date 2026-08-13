@@ -55,6 +55,7 @@ FIXTURE_DCTFWEB_SIEF_LITERALS = [
     "Notificação de lançamento: 50000433345672",
 ]
 from extrair_debitos import (  # noqa: E402
+    decode_pdf_literal_bytes,
     find_pdf_by_name,
     pdf_string_literals,
     resolve_month_dir,
@@ -225,6 +226,78 @@ def test_pdf_138_conect_calibracao(failures: list[str]) -> None:
         assert_true(suspenso[0]["situacao"] == "A VENCER", f"pdf 138: suspenso sit={suspenso[0]['situacao']}", failures)
 
 
+FIXTURE_OUTRAS_SECOES_LITERALS = [
+    "Pendência - Omissão de DIRF*",
+    "(Período de Apuração)",
+    "2024 - JAN FEV",
+    "Pendência - Inscrição (SIDA)",
+    "1082-01 - CP-SEGUR.",
+    "01/2024",
+    "20/02/2024",
+    "100,00",
+    "100,00",
+    "10,00",
+    "5,00",
+    "115,00",
+    "DEVEDOR",
+    "Pendência - Processo Fiscal (SIEF)",
+    "1099-01 - CP-SEGUR.",
+    "02/2024",
+    "20/03/2024",
+    "200,00",
+    "200,00",
+    "0,00",
+    "0,00",
+    "200,00",
+    "DEVEDOR",
+    "Pendência - Parcelamento (PARCSN/PARCMEI)",
+    "1507-SIMPLES",
+    "03/2024",
+    "20/04/2024",
+    "300,00",
+    "300,00",
+    "0,00",
+    "0,00",
+    "300,00",
+    "PARCELADO",
+]
+
+
+def test_fixture_outras_secoes_ecac(failures: list[str]) -> None:
+    rows = parse_ecac_from_literals(
+        FIXTURE_OUTRAS_SECOES_LITERALS, "ECAC", "30-ECAC.pdf", "federal"
+    )
+    titulos = {r.get("titulo") for r in rows}
+    assert_true("OMISSAO DE DIRF" in titulos, f"outras: falta DIRF {titulos}", failures)
+    assert_true("INSCRICAO (SIDA)" in titulos, f"outras: falta SIDA {titulos}", failures)
+    assert_true("PROCESSO FISCAL (SIEF)" in titulos, f"outras: falta processo {titulos}", failures)
+    assert_true(
+        "PARCELAMENTO (PARCSN/PARCMEI)" in titulos,
+        f"outras: falta parcelamento {titulos}",
+        failures,
+    )
+    dirf = [r for r in rows if r.get("titulo") == "OMISSAO DE DIRF"]
+    assert_true(len(dirf) == 2, f"outras: esperado 2 DIRF, obtido {len(dirf)}", failures)
+    sida = next((r for r in rows if r.get("titulo") == "INSCRICAO (SIDA)"), None)
+    assert_true(sida is not None and "1082-01" in (sida.get("receita") or ""), "outras: linha SIDA", failures)
+    proc = next((r for r in rows if r.get("titulo") == "PROCESSO FISCAL (SIEF)"), None)
+    assert_true(proc is not None and "1099-01" in (proc.get("receita") or ""), "outras: linha processo", failures)
+    parc = next((r for r in rows if r.get("titulo") == "PARCELAMENTO (PARCSN/PARCMEI)"), None)
+    assert_true(parc is not None and "SIMPLES" in (parc.get("receita") or ""), "outras: linha parcelamento", failures)
+
+
+def test_cid_literal_caesar(failures: list[str]) -> None:
+    plain = "Pendencia - Omissao de DCTFWeb"
+    shifted = "".join(chr(ord(ch) + 3) if 32 <= ord(ch) <= 123 else ch for ch in plain)
+    raw = b"\x00".join(bytes([ord(ch)]) for ch in shifted)
+    decoded = decode_pdf_literal_bytes(raw)
+    assert_true(
+        "pendencia" in decoded.lower() or "omissao" in decoded.lower() or "dctf" in decoded.lower(),
+        f"cid caesar: decoded={decoded!r}",
+        failures,
+    )
+
+
 def test_fixture_merge_nao_descarta_omissao(failures: list[str]) -> None:
     rows = parse_ecac_debitos(
         FIXTURE_DCTFWEB_SIEF_TEXT,
@@ -310,6 +383,8 @@ def main() -> int:
     test_fixture_titulo_quebrado_em_tokens(failures)
     test_fixture_titulo_suspenso_sief_antes_de_debito_sief(failures)
     test_fixture_merge_nao_descarta_omissao(failures)
+    test_fixture_outras_secoes_ecac(failures)
+    test_cid_literal_caesar(failures)
     test_pdf_138_conect_calibracao(failures)
     test_sample_86(month, failures)
     test_sample_03_no_regression(month, failures)
