@@ -283,49 +283,53 @@ export function DashboardOverview({
 
         <Card>
           <CardHeader>
-            <CardTitle>Tipos de pendência</CardTitle>
+            <CardTitle>Sdo. consol. por título</CardTitle>
             <CardDescription>
               {esfera
-                ? `Natureza recorrente · ${fonteEsfera}`
-                : "Natureza mais recorrente no portfólio"}
+                ? `Diagnóstico fiscal · ${fonteEsfera}`
+                : "Saldo consolidado por seção do diagnóstico"}
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            {analytics.porTipo.length === 0 ? (
-              <EmptyChart message="Sem tipagem agregada nesta competência." />
+            {analytics.porTitulo.length === 0 ? (
+              <EmptyChart message="Sem títulos com saldo consolidado nesta competência." />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={analytics.porTipo}
-                  margin={{ left: 0, right: 8, top: 8, bottom: 48 }}
+                  data={analytics.porTitulo}
+                  layout="vertical"
+                  margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                   <XAxis
-                    dataKey="tipo"
-                    interval={0}
-                    angle={-28}
-                    textAnchor="end"
-                    tick={{ fontSize: 10, fill: "#64748b" }}
-                    height={60}
+                    type="number"
+                    tickFormatter={(v) => compactBRL(Number(v))}
+                    tick={{ fontSize: 11, fill: "#64748b" }}
                   />
-                  <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
+                  <YAxis
+                    type="category"
+                    dataKey="labelCurto"
+                    width={148}
+                    tick={{ fontSize: 11, fill: "#334155" }}
+                  />
                   <Tooltip
-                    formatter={(value, name) =>
-                      name === "consolidado"
-                        ? formatBRL(Number(value ?? 0))
-                        : String(value ?? 0)
-                    }
+                    formatter={(value, _name, item) => {
+                      const qtd = Number((item?.payload as { qtd?: number })?.qtd ?? 0);
+                      return [
+                        `${formatBRL(Number(value ?? 0))} · ${qtd} lançamento${qtd === 1 ? "" : "s"}`,
+                        "Sdo. consol.",
+                      ];
+                    }}
                     labelFormatter={(_, payload) =>
-                      String(payload?.[0]?.payload?.tipoCompleto ?? "")
+                      String(payload?.[0]?.payload?.label ?? "")
                     }
                     contentStyle={tooltipStyle}
                   />
-                  <Bar
-                    dataKey="count"
-                    fill={esfera ? ESFERA_COLORS[esfera] : "#2563eb"}
-                    radius={[6, 6, 0, 0]}
-                    name="empresas"
-                  />
+                  <Bar dataKey="consolidado" radius={[0, 6, 6, 0]} barSize={18}>
+                    {analytics.porTitulo.map((entry) => (
+                      <Cell key={entry.titulo || entry.label} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}

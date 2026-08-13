@@ -11,6 +11,7 @@ import {
   Circle,
 } from "@react-pdf/renderer";
 import {
+  aggregatePorTitulo,
   buildEmpresaAnalytics,
   buildEsferaComposicao,
   debitosDaEsfera,
@@ -19,10 +20,11 @@ import {
   ESFERA_FONTES,
   ESFERA_LABELS,
   type ComposicaoSlice,
+  type TituloSlice,
 } from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
 import { formatBRL, formatCnpj, isOmissaoDebito } from "@/lib/format";
-import type { DebitoLinha, Empresa, Esfera, StatusEsfera, Totais } from "@/lib/types";
+import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
 
 const ESFERAS: Esfera[] = ["federal", "estadual", "municipal"];
 
@@ -75,29 +77,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 14,
     color: "#0f172a",
-  },
-  kpiGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  kpiCard: {
-    width: "18.5%",
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 4,
-    backgroundColor: "#f8fafc",
-  },
-  kpiLabel: {
-    fontSize: 7,
-    color: "#64748b",
-    marginBottom: 3,
-    textTransform: "uppercase",
-  },
-  kpiValue: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
   },
   chartsRow: {
     flexDirection: "row",
@@ -256,26 +235,6 @@ function StatusBadge({ status }: { status: StatusEsfera | "pendencia" | "regular
   );
 }
 
-function KpiCards({ totais }: { totais: Totais }) {
-  const items = [
-    { label: "Original", value: totais.original },
-    { label: "Saldo", value: totais.saldo },
-    { label: "Multa", value: totais.multa },
-    { label: "Juros", value: totais.juros },
-    { label: "Consolidado", value: totais.consolidado },
-  ];
-  return (
-    <View style={styles.kpiGrid}>
-      {items.map((item) => (
-        <View key={item.label} style={styles.kpiCard} wrap={false}>
-          <Text style={styles.kpiLabel}>{item.label}</Text>
-          <Text style={styles.kpiValue}>{formatBRL(item.value)}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
 function Legend({ items }: { items: { label: string; fill: string; value?: string }[] }) {
   return (
     <View style={styles.legendRow}>
@@ -412,6 +371,44 @@ function BarChartPdf({
   );
 }
 
+function TituloBarChartPdf({ items }: { items: TituloSlice[] }) {
+  if (items.length === 0) {
+    return <Text style={styles.emptyChart}>Sem títulos com saldo consolidado.</Text>;
+  }
+
+  const width = 480;
+  const rowH = 18;
+  const padL = 8;
+  const padR = 8;
+  const padT = 4;
+  const height = padT + items.length * rowH + 8;
+  const max = Math.max(...items.map((i) => i.consolidado), 1);
+  const barMax = width - padL - padR;
+
+  return (
+    <View>
+      <Svg width={width} height={height}>
+        {items.map((item, index) => {
+          const y = padT + index * rowH;
+          const w = Math.max((item.consolidado / max) * barMax, 2);
+          return (
+            <G key={item.titulo || item.label}>
+              <Rect x={padL} y={y + 4} width={w} height={10} fill={item.fill} />
+            </G>
+          );
+        })}
+      </Svg>
+      <Legend
+        items={items.map((item) => ({
+          label: item.label,
+          fill: item.fill,
+          value: `${formatBRL(item.consolidado)} · ${item.qtd} lanç.`,
+        }))}
+      />
+    </View>
+  );
+}
+
 function moneyCell(row: DebitoLinha, value: number): string {
   return isOmissaoDebito(row) ? "—" : formatBRL(value);
 }
@@ -463,10 +460,10 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
   const bucket = empresa.esferas?.[esfera];
   const status: StatusEsfera = bucket?.status ?? "sem_documento";
   const qtdDocs = bucket?.qtdDocs ?? 0;
-  const totais = bucket?.totais;
   const composicao = buildEsferaComposicao(empresa, esfera);
   const debitos = debitosDaEsfera(empresa, esfera);
   const grupos = groupDebitosByTitulo(debitos);
+  const porTitulo = aggregatePorTitulo(debitos);
   const agruparPorTitulo =
     esfera === "federal" && (grupos.length > 1 || grupos.some((grupo) => Boolean(grupo.titulo)));
 
@@ -488,12 +485,19 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
         <Text style={styles.semDoc}>Sem documento nesta esfera para a competência.</Text>
       ) : (
         <>
-          {totais ? <KpiCards totais={totais} /> : null}
-          <View style={[styles.chartCard, { marginTop: 8 }]} wrap={false}>
-            <Text style={styles.chartTitle}>Composição — {ESFERA_LABELS[esfera]}</Text>
-            <Text style={styles.chartDesc}>Saldo, multa e juros</Text>
-            <PieChartPdf data={composicao} size={110} />
-          </View>
+          {agruparPorTitulo && porTitulo.length > 0 ? (
+            <View style={[styles.chartCard, { marginTop: 8 }]} wrap={false}>
+              <Text style={styles.chartTitle}>Sdo. consol. por título</Text>
+              <Text style={styles.chartDesc}>Lançamentos · {ESFERA_LABELS[esfera]}</Text>
+              <TituloBarChartPdf items={porTitulo} />
+            </View>
+          ) : (
+            <View style={[styles.chartCard, { marginTop: 8 }]} wrap={false}>
+              <Text style={styles.chartTitle}>Composição — {ESFERA_LABELS[esfera]}</Text>
+              <Text style={styles.chartDesc}>Saldo, multa e juros</Text>
+              <PieChartPdf data={composicao} size={110} />
+            </View>
+          )}
           {agruparPorTitulo ? (
             grupos.map((grupo) => (
               <View key={grupo.titulo || "__sem_titulo__"}>
@@ -546,7 +550,6 @@ export function EmpresaRelatorioPdfDocument({ empresa, competencia }: Props) {
         </View>
 
         <Text style={[styles.sectionTitle, { marginTop: 0 }]}>Resumo geral</Text>
-        <KpiCards totais={empresa.totais} />
 
         <View style={styles.chartsRow} wrap={false}>
           <View style={styles.chartCard}>
@@ -566,6 +569,14 @@ export function EmpresaRelatorioPdfDocument({ empresa, competencia }: Props) {
             />
           </View>
         </View>
+
+        {analytics.porTitulo.length > 0 ? (
+          <View style={[styles.chartCard, { marginTop: 10 }]} wrap={false}>
+            <Text style={styles.chartTitle}>Sdo. consol. por título</Text>
+            <Text style={styles.chartDesc}>Seções do diagnóstico fiscal</Text>
+            <TituloBarChartPdf items={analytics.porTitulo} />
+          </View>
+        ) : null}
 
         {ESFERAS.map((esfera) => (
           <EsferaSection key={esfera} empresa={empresa} esfera={esfera} />

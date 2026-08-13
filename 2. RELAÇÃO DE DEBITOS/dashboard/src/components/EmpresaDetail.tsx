@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   ArrowLeft,
   Building2,
   Download,
@@ -12,7 +11,6 @@ import {
   Landmark,
   MapPin,
   Trash2,
-  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -49,7 +47,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { buildEmpresaAnalytics, groupDebitosByTitulo, ESFERA_FONTES, ESFERA_LABELS } from "@/lib/analytics";
+import {
+  aggregatePorTitulo,
+  buildEmpresaAnalytics,
+  groupDebitosByTitulo,
+  ESFERA_FONTES,
+  ESFERA_LABELS,
+} from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
 import { formatBRL, formatCnpj, isOmissaoDebito } from "@/lib/format";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
@@ -141,19 +145,6 @@ export function EmpresaDetail({
           hideCompetencia
         />
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <Kpi label="Original" value={formatBRL(empresa.totais.original)} />
-          <Kpi label="Saldo" value={formatBRL(empresa.totais.saldo)} accent="text-cyan-800" icon={Wallet} />
-          <Kpi label="Multa" value={formatBRL(empresa.totais.multa)} accent="text-amber-700" icon={AlertTriangle} />
-          <Kpi label="Juros" value={formatBRL(empresa.totais.juros)} accent="text-red-600" />
-          <Kpi
-            label="Consolidado"
-            value={formatBRL(empresa.totais.consolidado)}
-            accent="text-teal-700"
-            icon={Wallet}
-          />
-        </div>
-
         {visibleAvisos(empresa.avisos).length > 0 && (
           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
             <ul className="list-disc space-y-1 pl-4">
@@ -206,7 +197,11 @@ export function EmpresaDetail({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div
+          className={`grid gap-4 ${
+            analytics.porTitulo.length > 1 ? "lg:grid-cols-3" : "lg:grid-cols-2"
+          }`}
+        >
           <Card>
             <CardHeader>
               <CardTitle>Composição do valor</CardTitle>
@@ -265,6 +260,56 @@ export function EmpresaDetail({
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          {analytics.porTitulo.length > 1 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Sdo. consol. por título</CardTitle>
+                <CardDescription>Seções do diagnóstico fiscal</CardDescription>
+              </CardHeader>
+              <CardContent className="flex h-[240px] flex-col gap-2">
+                <div className="min-h-0 flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={analytics.porTitulo}
+                        dataKey="consolidado"
+                        nameKey="label"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={3}
+                      >
+                        {analytics.porTitulo.map((entry) => (
+                          <Cell key={entry.titulo || entry.label} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, _name, item) => {
+                          const qtd = Number((item?.payload as { qtd?: number })?.qtd ?? 0);
+                          return [
+                            `${formatBRL(Number(value ?? 0))} · ${qtd} lançamento${qtd === 1 ? "" : "s"}`,
+                            "Sdo. consol.",
+                          ];
+                        }}
+                        contentStyle={tooltipStyle}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex shrink-0 flex-wrap justify-center gap-x-3 gap-y-1 pb-1 text-[11px] text-slate-700">
+                  {analytics.porTitulo.map((item) => (
+                    <div key={item.titulo || item.label} className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block size-2.5 shrink-0 rounded-full"
+                        style={{ background: item.fill }}
+                      />
+                      {item.labelCurto}: {formatBRL(item.consolidado)}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       )}
 
@@ -317,6 +362,7 @@ function EsferaPanel({
       : empresa.documentos?.filter((d) => d.esfera === esfera).map((d) => d.arquivo) ?? [];
 
   const grupos = useMemo(() => groupDebitosByTitulo(debitos), [debitos]);
+  const porTitulo = useMemo(() => aggregatePorTitulo(debitos), [debitos]);
   const agruparPorTitulo =
     esfera === "federal" && (grupos.length > 1 || grupos.some((grupo) => Boolean(grupo.titulo)));
   const [removedFiles, setRemovedFiles] = useState<string[]>([]);
@@ -434,17 +480,54 @@ function EsferaPanel({
         <EsferaBadge esfera={esfera} label={ESFERA_LABELS[esfera]} />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Kpi label="Original" value={formatBRL(bucket.totais.original)} />
-        <Kpi label="Saldo" value={formatBRL(bucket.totais.saldo)} accent="text-cyan-800" />
-        <Kpi label="Multa" value={formatBRL(bucket.totais.multa)} accent="text-amber-700" />
-        <Kpi label="Juros" value={formatBRL(bucket.totais.juros)} accent="text-red-600" />
-        <Kpi
-          label="Consolidado"
-          value={formatBRL(bucket.totais.consolidado)}
-          accent="text-teal-700"
-        />
-      </div>
+      {agruparPorTitulo && porTitulo.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sdo. consol. por título</CardTitle>
+            <CardDescription>Lançamentos · {ESFERA_LABELS[esfera]}</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={porTitulo}
+                layout="vertical"
+                margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v) => compactBRL(Number(v))}
+                  tick={{ fontSize: 11, fill: "#64748b" }}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="labelCurto"
+                  width={148}
+                  tick={{ fontSize: 11, fill: "#334155" }}
+                />
+                <Tooltip
+                  formatter={(value, _name, item) => {
+                    const qtd = Number((item?.payload as { qtd?: number })?.qtd ?? 0);
+                    return [
+                      `${formatBRL(Number(value ?? 0))} · ${qtd} lançamento${qtd === 1 ? "" : "s"}`,
+                      "Sdo. consol.",
+                    ];
+                  }}
+                  labelFormatter={(_, payload) =>
+                    String(payload?.[0]?.payload?.label ?? "")
+                  }
+                  contentStyle={tooltipStyle}
+                />
+                <Bar dataKey="consolidado" radius={[0, 6, 6, 0]} barSize={18}>
+                  {porTitulo.map((entry) => (
+                    <Cell key={entry.titulo || entry.label} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="overflow-hidden">
         <div className="border-b border-border px-4 py-3">
@@ -703,36 +786,6 @@ function DebitosTableBlock({
         />
       ) : null}
     </div>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  accent,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  accent?: string;
-  icon?: LucideIcon;
-}) {
-  return (
-    <Card className="shadow-none">
-      <CardContent className="pt-4">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-            {label}
-          </p>
-          {Icon ? (
-            <span className="flex size-7 items-center justify-center rounded-md bg-muted text-slate-600">
-              <Icon className="size-3.5" aria-hidden />
-            </span>
-          ) : null}
-        </div>
-        <p className={`mt-1 tabular text-lg font-bold ${accent ?? "text-slate-900"}`}>{value}</p>
-      </CardContent>
-    </Card>
   );
 }
 

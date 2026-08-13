@@ -20,6 +20,25 @@ export const ESFERA_FONTES: Record<Esfera, string> = {
   municipal: "Relatório da Prefeitura",
 };
 
+const TITULO_COLORS: Record<string, string> = {
+  "DEBITO (SIEF)": "#d97706",
+  "DEBITO SUSPENSO": "#0d9488",
+  "OMISSAO DE DCTFWEB": "#dc2626",
+  "OMISSAO DE DCTF": "#b91c1c",
+  "OMISSAO DE DIRF": "#9f1239",
+  "DEBITO (SIDA)": "#c2410c",
+  "INSCRICAO SUSPENSA": "#0891b2",
+  "PARCELAMENTO SUSPENSO": "#7c3aed",
+  "PARCELAMENTO (PARCSN/PARCMEI)": "#6366f1",
+  PARCELAMENTO: "#4f46e5",
+  "PROCESSO FISCAL (SIEF)": "#2563eb",
+  "INSCRICAO (SIDA)": "#ea580c",
+  "DIVERGENCIA GFIP X GPS": "#ca8a04",
+  "INSCRICAO (SISTEMA DIVIDA)": "#64748b",
+};
+
+const TITULO_FALLBACK_COLORS = ["#2563eb", "#0d9488", "#ea580c", "#7c3aed", "#db2777", "#0891b2"];
+
 const EMPTY: Totais = {
   original: 0,
   saldo: 0,
@@ -170,46 +189,14 @@ export function buildPortfolioAnalytics(empresas: Empresa[], esfera?: Esfera | n
     .sort((a, b) => b.consolidado - a.consolidado)
     .slice(0, 10);
 
-  const tipoCount = new Map<string, { count: number; consolidado: number }>();
-  for (const empresa of base) {
-    const debitos = esfera
+  const allDebitos = base.flatMap((empresa) =>
+    esfera
       ? empresa.debitos.filter((d) => (d.esfera ?? inferEsferaDebito(d)) === esfera)
-      : empresa.debitos;
+      : empresa.debitos,
+  );
+  const porTitulo = aggregatePorTitulo(allDebitos);
 
-    if (esfera) {
-      const receitaCount = new Map<string, number>();
-      for (const debito of debitos) {
-        const key = debito.receita || "Outros";
-        receitaCount.set(key, (receitaCount.get(key) ?? 0) + debito.consolidado);
-      }
-      for (const [tipo, consolidado] of receitaCount) {
-        const current = tipoCount.get(tipo) ?? { count: 0, consolidado: 0 };
-        current.count += 1;
-        current.consolidado += consolidado;
-        tipoCount.set(tipo, current);
-      }
-      continue;
-    }
-
-    for (const tipo of empresa.tipos ?? []) {
-      const current = tipoCount.get(tipo) ?? { count: 0, consolidado: 0 };
-      current.count += 1;
-      current.consolidado += empresa.totais.consolidado / Math.max(empresa.tipos.length, 1);
-      tipoCount.set(tipo, current);
-    }
-  }
-
-  const porTipo = [...tipoCount.entries()]
-    .map(([tipo, data]) => ({
-      tipo: truncate(tipo, 24),
-      tipoCompleto: tipo,
-      count: data.count,
-      consolidado: round2(data.consolidado),
-    }))
-    .sort((a, b) => b.count - a.count || b.consolidado - a.consolidado)
-    .slice(0, 8);
-
-  return { porEsfera, composicao, statusDonut, topEmpresas, porTipo };
+  return { porEsfera, composicao, statusDonut, topEmpresas, porTitulo };
 }
 
 function inferEsferaDebito(debito: DebitoLinha): Esfera | null {
@@ -252,6 +239,36 @@ export type DebitoGrupo = {
   debitos: DebitoLinha[];
   consolidado: number;
 };
+
+export type TituloSlice = {
+  titulo: string;
+  label: string;
+  labelCurto: string;
+  consolidado: number;
+  qtd: number;
+  fill: string;
+};
+
+function colorForTitulo(titulo: string, index: number) {
+  const key = (titulo || "").trim();
+  if (key && TITULO_COLORS[key]) return TITULO_COLORS[key];
+  return TITULO_FALLBACK_COLORS[index % TITULO_FALLBACK_COLORS.length];
+}
+
+/** Soma Sdo. consol. por título do diagnóstico (labels amigáveis). */
+export function aggregatePorTitulo(debitos: DebitoLinha[]): TituloSlice[] {
+  return groupDebitosByTitulo(debitos)
+    .map((grupo, index) => ({
+      titulo: grupo.titulo,
+      label: grupo.label,
+      labelCurto: truncate(grupo.label, 28),
+      consolidado: grupo.consolidado,
+      qtd: grupo.debitos.length,
+      fill: colorForTitulo(grupo.titulo, index),
+    }))
+    .filter((item) => item.consolidado > 0)
+    .sort((a, b) => b.consolidado - a.consolidado);
+}
 
 /** Agrupa lançamentos pela seção do Diagnóstico Fiscal, na ordem de aparição. */
 export function groupDebitosByTitulo(debitos: DebitoLinha[]): DebitoGrupo[] {
@@ -300,8 +317,9 @@ export function buildEmpresaAnalytics(empresa: Empresa) {
   });
 
   const topReceitas = aggregateReceitas(empresa.debitos).slice(0, 8);
+  const porTitulo = aggregatePorTitulo(empresa.debitos);
 
-  return { composicao, porEsfera, topReceitas };
+  return { composicao, porEsfera, topReceitas, porTitulo };
 }
 
 function inferEsferaArquivo(arquivo: string): Esfera | null {
