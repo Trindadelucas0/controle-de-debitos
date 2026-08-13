@@ -55,7 +55,8 @@ import {
   ESFERA_LABELS,
 } from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
-import { formatBRL, formatCnpj, isOmissaoDebito } from "@/lib/format";
+import { formatBRL, formatCnpj, formatItensETotal, isOmissaoDebito } from "@/lib/format";
+import { TituloConsolChart } from "@/components/TituloConsolList";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
 
 const columnHelper = createColumnHelper<DebitoLinha>();
@@ -199,7 +200,7 @@ export function EmpresaDetail({
       ) : (
         <div
           className={`grid gap-4 ${
-            analytics.porTitulo.length > 1 ? "lg:grid-cols-3" : "lg:grid-cols-2"
+            analytics.porTitulo.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"
           }`}
         >
           <Card>
@@ -261,52 +262,14 @@ export function EmpresaDetail({
             </CardContent>
           </Card>
 
-          {analytics.porTitulo.length > 1 ? (
+          {analytics.porTitulo.length > 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle>Sdo. consol. por título</CardTitle>
-                <CardDescription>Seções do diagnóstico fiscal</CardDescription>
+                <CardDescription>Mesmos títulos e totais do relatório</CardDescription>
               </CardHeader>
-              <CardContent className="flex h-[240px] flex-col gap-2">
-                <div className="min-h-0 flex-1">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={analytics.porTitulo}
-                        dataKey="consolidado"
-                        nameKey="label"
-                        innerRadius={50}
-                        outerRadius={80}
-                        paddingAngle={3}
-                      >
-                        {analytics.porTitulo.map((entry) => (
-                          <Cell key={entry.titulo || entry.label} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value, _name, item) => {
-                          const qtd = Number((item?.payload as { qtd?: number })?.qtd ?? 0);
-                          return [
-                            `${formatBRL(Number(value ?? 0))} · ${qtd} lançamento${qtd === 1 ? "" : "s"}`,
-                            "Sdo. consol.",
-                          ];
-                        }}
-                        contentStyle={tooltipStyle}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex shrink-0 flex-wrap justify-center gap-x-3 gap-y-1 pb-1 text-[11px] text-slate-700">
-                  {analytics.porTitulo.map((item) => (
-                    <div key={item.titulo || item.label} className="flex items-center gap-1.5">
-                      <span
-                        className="inline-block size-2.5 shrink-0 rounded-full"
-                        style={{ background: item.fill }}
-                      />
-                      {item.labelCurto}: {formatBRL(item.consolidado)}
-                    </div>
-                  ))}
-                </div>
+              <CardContent>
+                <TituloConsolChart items={analytics.porTitulo} pieHeight={160} />
               </CardContent>
             </Card>
           ) : null}
@@ -484,47 +447,12 @@ function EsferaPanel({
         <Card>
           <CardHeader>
             <CardTitle>Sdo. consol. por título</CardTitle>
-            <CardDescription>Lançamentos · {ESFERA_LABELS[esfera]}</CardDescription>
+            <CardDescription>
+              Lançamentos · {ESFERA_LABELS[esfera]} · total de cada seção
+            </CardDescription>
           </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={porTitulo}
-                layout="vertical"
-                margin={{ left: 8, right: 16, top: 8, bottom: 8 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                <XAxis
-                  type="number"
-                  tickFormatter={(v) => compactBRL(Number(v))}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="labelCurto"
-                  width={148}
-                  tick={{ fontSize: 11, fill: "#334155" }}
-                />
-                <Tooltip
-                  formatter={(value, _name, item) => {
-                    const qtd = Number((item?.payload as { qtd?: number })?.qtd ?? 0);
-                    return [
-                      `${formatBRL(Number(value ?? 0))} · ${qtd} lançamento${qtd === 1 ? "" : "s"}`,
-                      "Sdo. consol.",
-                    ];
-                  }}
-                  labelFormatter={(_, payload) =>
-                    String(payload?.[0]?.payload?.label ?? "")
-                  }
-                  contentStyle={tooltipStyle}
-                />
-                <Bar dataKey="consolidado" radius={[0, 6, 6, 0]} barSize={18}>
-                  {porTitulo.map((entry) => (
-                    <Cell key={entry.titulo || entry.label} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent>
+            <TituloConsolChart items={porTitulo} pieHeight={160} />
           </CardContent>
         </Card>
       ) : null}
@@ -730,8 +658,7 @@ function DebitosTableBlock({
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border bg-slate-50 px-4 py-2.5">
           <h4 className="text-sm font-semibold text-slate-800">{heading}</h4>
           <p className="text-xs text-muted-foreground">
-            {debitos.length} {debitos.length === 1 ? "item" : "itens"}
-            {subtotal && subtotal > 0 ? ` · ${formatBRL(subtotal)}` : null}
+            {formatItensETotal(debitos.length, subtotal ?? 0)}
           </p>
         </div>
       ) : null}

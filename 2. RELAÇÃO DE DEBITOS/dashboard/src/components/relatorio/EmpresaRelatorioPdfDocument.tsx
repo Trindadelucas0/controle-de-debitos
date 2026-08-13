@@ -23,7 +23,7 @@ import {
   type TituloSlice,
 } from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
-import { formatBRL, formatCnpj, isOmissaoDebito } from "@/lib/format";
+import { formatBRL, formatCnpj, formatItensETotal, isOmissaoDebito } from "@/lib/format";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
 
 const ESFERAS: Esfera[] = ["federal", "estadual", "municipal"];
@@ -277,9 +277,11 @@ function slicePath(
 function PieChartPdf({
   data,
   size = 120,
+  showLegend = true,
 }: {
   data: ComposicaoSlice[];
   size?: number;
+  showLegend?: boolean;
 }) {
   if (data.length === 0) {
     return <Text style={styles.emptyChart}>Sem valores para compor o gráfico.</Text>;
@@ -318,13 +320,15 @@ function PieChartPdf({
           <Circle cx={cx} cy={cy} r={r * 0.45} fill="#ffffff" />
         </G>
       </Svg>
-      <Legend
-        items={data.map((item) => ({
-          label: item.name,
-          fill: item.fill,
-          value: formatBRL(item.value),
-        }))}
-      />
+      {showLegend ? (
+        <Legend
+          items={data.map((item) => ({
+            label: item.name,
+            fill: item.fill,
+            value: formatBRL(item.value),
+          }))}
+        />
+      ) : null}
     </View>
   );
 }
@@ -371,38 +375,27 @@ function BarChartPdf({
   );
 }
 
-function TituloBarChartPdf({ items }: { items: TituloSlice[] }) {
+function TituloPieChartPdf({ items }: { items: TituloSlice[] }) {
   if (items.length === 0) {
     return <Text style={styles.emptyChart}>Sem títulos com saldo consolidado.</Text>;
   }
 
-  const width = 480;
-  const rowH = 18;
-  const padL = 8;
-  const padR = 8;
-  const padT = 4;
-  const height = padT + items.length * rowH + 8;
-  const max = Math.max(...items.map((i) => i.consolidado), 1);
-  const barMax = width - padL - padR;
-
   return (
     <View>
-      <Svg width={width} height={height}>
-        {items.map((item, index) => {
-          const y = padT + index * rowH;
-          const w = Math.max((item.consolidado / max) * barMax, 2);
-          return (
-            <G key={item.titulo || item.label}>
-              <Rect x={padL} y={y + 4} width={w} height={10} fill={item.fill} />
-            </G>
-          );
-        })}
-      </Svg>
+      <PieChartPdf
+        data={items.map((item) => ({
+          name: item.label,
+          value: item.consolidado,
+          fill: item.fill,
+        }))}
+        size={120}
+        showLegend={false}
+      />
       <Legend
         items={items.map((item) => ({
           label: item.label,
           fill: item.fill,
-          value: `${formatBRL(item.consolidado)} · ${item.qtd} lanç.`,
+          value: formatItensETotal(item.qtd, item.consolidado),
         }))}
       />
     </View>
@@ -489,7 +482,7 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
             <View style={[styles.chartCard, { marginTop: 8 }]} wrap={false}>
               <Text style={styles.chartTitle}>Sdo. consol. por título</Text>
               <Text style={styles.chartDesc}>Lançamentos · {ESFERA_LABELS[esfera]}</Text>
-              <TituloBarChartPdf items={porTitulo} />
+              <TituloPieChartPdf items={porTitulo} />
             </View>
           ) : (
             <View style={[styles.chartCard, { marginTop: 8 }]} wrap={false}>
@@ -503,8 +496,7 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
               <View key={grupo.titulo || "__sem_titulo__"}>
                 <Text style={[styles.sectionTitle, { marginTop: 10 }]}>{grupo.label}</Text>
                 <Text style={styles.esferaMeta}>
-                  {grupo.debitos.length} item(ns)
-                  {grupo.consolidado > 0 ? ` · ${formatBRL(grupo.consolidado)}` : ""}
+                  {formatItensETotal(grupo.debitos.length, grupo.consolidado)}
                 </Text>
                 <DebitosTable debitos={grupo.debitos} codigoEmpresa={empresa.codigo} />
               </View>
@@ -574,7 +566,7 @@ export function EmpresaRelatorioPdfDocument({ empresa, competencia }: Props) {
           <View style={[styles.chartCard, { marginTop: 10 }]} wrap={false}>
             <Text style={styles.chartTitle}>Sdo. consol. por título</Text>
             <Text style={styles.chartDesc}>Seções do diagnóstico fiscal</Text>
-            <TituloBarChartPdf items={analytics.porTitulo} />
+            <TituloPieChartPdf items={analytics.porTitulo} />
           </View>
         ) : null}
 

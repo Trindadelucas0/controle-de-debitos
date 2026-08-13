@@ -28,6 +28,13 @@ export function formatTituloPendencia(titulo?: string | null): string {
   return TITULO_PENDENCIA_LABELS[key] ?? `Pendência · ${key}`;
 }
 
+/** Espelha o subtotal do relatório: "5 itens · R$ 537,98". */
+export function formatItensETotal(qtd: number, consolidado: number): string {
+  const itens = qtd === 1 ? "1 item" : `${qtd} itens`;
+  if (consolidado > 0) return `${itens} · ${formatBRL(consolidado)}`;
+  return itens;
+}
+
 export function isOmissaoDebito(row: { situacao?: string; titulo?: string }): boolean {
   const situacao = (row.situacao || "").toUpperCase();
   const titulo = (row.titulo || "").toUpperCase();
