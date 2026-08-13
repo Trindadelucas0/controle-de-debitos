@@ -47,9 +47,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { buildEmpresaAnalytics, ESFERA_FONTES, ESFERA_LABELS } from "@/lib/analytics";
+import { buildEmpresaAnalytics, groupDebitosByTitulo, ESFERA_FONTES, ESFERA_LABELS } from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
-import { formatBRL, formatCnpj } from "@/lib/format";
+import { formatBRL, formatCnpj, isOmissaoDebito } from "@/lib/format";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
 
 const columnHelper = createColumnHelper<DebitoLinha>();
@@ -269,11 +269,9 @@ function EsferaPanel({
       ? bucket.arquivos
       : empresa.documentos?.filter((d) => d.esfera === esfera).map((d) => d.arquivo) ?? [];
 
-  const [sorting, setSorting] = useState<SortingState>([{ id: "consolidado", desc: true }]);
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 25,
-  });
+  const grupos = useMemo(() => groupDebitosByTitulo(debitos), [debitos]);
+  const agruparPorTitulo =
+    esfera === "federal" && (grupos.length > 1 || grupos.some((grupo) => Boolean(grupo.titulo)));
   const [removedFiles, setRemovedFiles] = useState<string[]>([]);
   const [deletingFile, setDeletingFile] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -339,73 +337,6 @@ function EsferaPanel({
     }
   };
 
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor((row) => row.codigo || empresa.codigo || "", {
-        id: "codigo",
-        header: "Cód.",
-        cell: (info) => <span className="tabular">{info.getValue() || "—"}</span>,
-      }),
-      columnHelper.accessor("numero_lancamento", {
-        header: "Nº lanç.",
-        cell: (info) => (
-          <span className="tabular text-[11px]">{info.getValue() || "—"}</span>
-        ),
-      }),
-      columnHelper.accessor("receita", {
-        header: "Receita",
-        cell: (info) => <span className="font-semibold">{info.getValue()}</span>,
-      }),
-      columnHelper.accessor("pa", { header: "PA/Exerc." }),
-      columnHelper.accessor("vencimento", {
-        header: "Vencimento",
-        cell: (info) => <span className="tabular">{info.getValue()}</span>,
-      }),
-      columnHelper.accessor("original", {
-        header: "Vl. original",
-        cell: (info) => <span className="tabular">{formatBRL(info.getValue())}</span>,
-      }),
-      columnHelper.accessor("saldo", {
-        header: "Sdo. devedor",
-        cell: (info) => (
-          <span className="tabular font-semibold text-cyan-800">{formatBRL(info.getValue())}</span>
-        ),
-      }),
-      columnHelper.accessor("multa", {
-        header: "Multa",
-        cell: (info) => <span className="tabular">{formatBRL(info.getValue())}</span>,
-      }),
-      columnHelper.accessor("juros", {
-        header: "Juros",
-        cell: (info) => <span className="tabular">{formatBRL(info.getValue())}</span>,
-      }),
-      columnHelper.accessor("consolidado", {
-        header: "Sdo. consol.",
-        cell: (info) => (
-          <span className="tabular font-semibold text-teal-700">{formatBRL(info.getValue())}</span>
-        ),
-      }),
-      columnHelper.accessor("situacao", {
-        header: "Situação",
-        cell: (info) => (
-          <span className="text-[10px] font-bold uppercase tracking-[0.08em]">{info.getValue()}</span>
-        ),
-      }),
-    ],
-    [empresa.codigo],
-  );
-
-  const table = useReactTable({
-    data: debitos,
-    columns,
-    state: { sorting, pagination },
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  });
-
   if (!bucket || bucket.qtdDocs === 0) {
     return (
       <Card>
@@ -462,57 +393,20 @@ function EsferaPanel({
           <div className="px-4 py-6 text-sm text-muted-foreground">
             Valores não extraídos automaticamente. Baixe o PDF abaixo para conferência.
           </div>
+        ) : agruparPorTitulo ? (
+          <div className="divide-y divide-border">
+            {grupos.map((grupo) => (
+              <DebitosTableBlock
+                key={grupo.titulo || "__sem_titulo__"}
+                debitos={grupo.debitos}
+                codigoEmpresa={empresa.codigo}
+                heading={grupo.label}
+                subtotal={grupo.consolidado}
+              />
+            ))}
+          </div>
         ) : (
-          <>
-            <div className="overflow-auto">
-              <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
-                <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <th
-                          key={header.id}
-                          className="cursor-pointer px-3 py-2 font-semibold"
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                          {{
-                            asc: " ↑",
-                            desc: " ↓",
-                          }[header.column.getIsSorted() as string] ?? null}
-                        </th>
-                      ))}
-                    </tr>
-                  ))}
-                </thead>
-                <tbody>
-                  {table.getRowModel().rows.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="border-b border-border/70 transition-colors hover:bg-slate-50"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="px-3 py-2 align-top">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <PaginationBar
-              pageIndex={table.getState().pagination.pageIndex}
-              pageCount={table.getPageCount()}
-              pageSize={table.getState().pagination.pageSize}
-              totalRows={debitos.length}
-              canPreviousPage={table.getCanPreviousPage()}
-              canNextPage={table.getCanNextPage()}
-              onPrevious={() => table.previousPage()}
-              onNext={() => table.nextPage()}
-              onPageSizeChange={(size) => table.setPageSize(size)}
-            />
-          </>
+          <DebitosTableBlock debitos={debitos} codigoEmpresa={empresa.codigo} />
         )}
 
         <div className="border-t border-border">
@@ -563,6 +457,173 @@ function EsferaPanel({
           </ul>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function DebitosTableBlock({
+  debitos,
+  codigoEmpresa,
+  heading,
+  subtotal,
+}: {
+  debitos: DebitoLinha[];
+  codigoEmpresa?: string;
+  heading?: string;
+  subtotal?: number;
+}) {
+  const [sorting, setSorting] = useState<SortingState>([{ id: "consolidado", desc: true }]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 25,
+  });
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor((row) => row.codigo || codigoEmpresa || "", {
+        id: "codigo",
+        header: "Cód.",
+        cell: (info) => <span className="tabular">{info.getValue() || "—"}</span>,
+      }),
+      columnHelper.accessor("numero_lancamento", {
+        header: "Nº lanç.",
+        cell: (info) => (
+          <span className="tabular text-[11px]">{info.getValue() || "—"}</span>
+        ),
+      }),
+      columnHelper.accessor("receita", {
+        header: "Receita",
+        cell: (info) => <span className="font-semibold">{info.getValue()}</span>,
+      }),
+      columnHelper.accessor("pa", { header: "PA/Exerc." }),
+      columnHelper.accessor("vencimento", {
+        header: "Vencimento",
+        cell: (info) => {
+          const row = info.row.original;
+          if (isOmissaoDebito(row) || !info.getValue()) return <span>—</span>;
+          return <span className="tabular">{info.getValue()}</span>;
+        },
+      }),
+      columnHelper.accessor("original", {
+        header: "Vl. original",
+        cell: (info) => (
+          <span className="tabular">
+            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
+          </span>
+        ),
+      }),
+      columnHelper.accessor("saldo", {
+        header: "Sdo. devedor",
+        cell: (info) => (
+          <span className="tabular font-semibold text-cyan-800">
+            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
+          </span>
+        ),
+      }),
+      columnHelper.accessor("multa", {
+        header: "Multa",
+        cell: (info) => (
+          <span className="tabular">
+            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
+          </span>
+        ),
+      }),
+      columnHelper.accessor("juros", {
+        header: "Juros",
+        cell: (info) => (
+          <span className="tabular">
+            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
+          </span>
+        ),
+      }),
+      columnHelper.accessor("consolidado", {
+        header: "Sdo. consol.",
+        cell: (info) => (
+          <span className="tabular font-semibold text-teal-700">
+            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
+          </span>
+        ),
+      }),
+      columnHelper.accessor("situacao", {
+        header: "Situação",
+        cell: (info) => (
+          <span className="text-[10px] font-bold uppercase tracking-[0.08em]">{info.getValue()}</span>
+        ),
+      }),
+    ],
+    [codigoEmpresa],
+  );
+
+  const table = useReactTable({
+    data: debitos,
+    columns,
+    state: { sorting, pagination },
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
+  return (
+    <div>
+      {heading ? (
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border bg-slate-50 px-4 py-2.5">
+          <h4 className="text-sm font-semibold text-slate-800">{heading}</h4>
+          <p className="text-xs text-muted-foreground">
+            {debitos.length} {debitos.length === 1 ? "item" : "itens"}
+            {subtotal && subtotal > 0 ? ` · ${formatBRL(subtotal)}` : null}
+          </p>
+        </div>
+      ) : null}
+      <div className="overflow-auto">
+        <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
+          <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="cursor-pointer px-3 py-2 font-semibold"
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {{
+                      asc: " ↑",
+                      desc: " ↓",
+                    }[header.column.getIsSorted() as string] ?? null}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                className="border-b border-border/70 transition-colors hover:bg-slate-50"
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="px-3 py-2 align-top">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <PaginationBar
+        pageIndex={table.getState().pagination.pageIndex}
+        pageCount={table.getPageCount()}
+        pageSize={table.getState().pagination.pageSize}
+        totalRows={debitos.length}
+        canPreviousPage={table.getCanPreviousPage()}
+        canNextPage={table.getCanNextPage()}
+        onPrevious={() => table.previousPage()}
+        onNext={() => table.nextPage()}
+        onPageSizeChange={(size) => table.setPageSize(size)}
+      />
     </div>
   );
 }

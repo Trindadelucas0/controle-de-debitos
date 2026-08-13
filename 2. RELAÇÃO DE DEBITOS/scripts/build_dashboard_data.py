@@ -36,7 +36,7 @@ ESFERAS = ("federal", "estadual", "municipal")
 
 DEBITO_ROW_RE = re.compile(
     r"(?P<code>\d{4}-\d{2})\s*-\s*(?P<nome>[a-z0-9Á-ú /.*]+?)\s+"
-    r"(?P<pa>(?:\d{2}/\d{4}|[123]o?\s*trim/\d{4}|[a-zç]{3}/\d{4}))\s+"
+    r"(?P<pa>(?:\d{2}/\d{2}/\d{4}|\d{2}/\d{4}|[123]o?\s*trim/\d{4}|[a-zç]{3}/\d{4}))\s+"
     r"(?P<vcto>\d{2}/\d{2}/\d{4})\s+"
     r"(?P<original>[\d.]+,\d{2})\s+"
     r"(?P<saldo>[\d.]+,\d{2})\s+"

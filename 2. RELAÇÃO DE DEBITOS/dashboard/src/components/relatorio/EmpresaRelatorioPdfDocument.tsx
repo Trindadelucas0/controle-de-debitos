@@ -14,13 +14,14 @@ import {
   buildEmpresaAnalytics,
   buildEsferaComposicao,
   debitosDaEsfera,
+  groupDebitosByTitulo,
   ESFERA_COLORS,
   ESFERA_FONTES,
   ESFERA_LABELS,
   type ComposicaoSlice,
 } from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
-import { formatBRL, formatCnpj } from "@/lib/format";
+import { formatBRL, formatCnpj, isOmissaoDebito } from "@/lib/format";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera, Totais } from "@/lib/types";
 
 const ESFERAS: Esfera[] = ["federal", "estadual", "municipal"];
@@ -411,6 +412,10 @@ function BarChartPdf({
   );
 }
 
+function moneyCell(row: DebitoLinha, value: number): string {
+  return isOmissaoDebito(row) ? "—" : formatBRL(value);
+}
+
 function DebitosTable({ debitos, codigoEmpresa }: { debitos: DebitoLinha[]; codigoEmpresa?: string }) {
   if (debitos.length === 0) {
     return <Text style={styles.semDoc}>Nenhum lançamento nesta esfera.</Text>;
@@ -436,15 +441,17 @@ function DebitosTable({ debitos, codigoEmpresa }: { debitos: DebitoLinha[]; codi
           <Text style={[styles.td, { width: COL.lanc }]}>{row.numero_lancamento || "—"}</Text>
           <Text style={[styles.td, { width: COL.receita }]}>{row.receita || "—"}</Text>
           <Text style={[styles.td, { width: COL.pa }]}>{row.pa || "—"}</Text>
-          <Text style={[styles.td, { width: COL.venc }]}>{row.vencimento || "—"}</Text>
-          <Text style={[styles.td, styles.tdRight, { width: COL.original }]}>
-            {formatBRL(row.original)}
+          <Text style={[styles.td, { width: COL.venc }]}>
+            {isOmissaoDebito(row) || !row.vencimento ? "—" : row.vencimento}
           </Text>
-          <Text style={[styles.td, styles.tdRight, { width: COL.saldo }]}>{formatBRL(row.saldo)}</Text>
-          <Text style={[styles.td, styles.tdRight, { width: COL.multa }]}>{formatBRL(row.multa)}</Text>
-          <Text style={[styles.td, styles.tdRight, { width: COL.juros }]}>{formatBRL(row.juros)}</Text>
+          <Text style={[styles.td, styles.tdRight, { width: COL.original }]}>
+            {moneyCell(row, row.original)}
+          </Text>
+          <Text style={[styles.td, styles.tdRight, { width: COL.saldo }]}>{moneyCell(row, row.saldo)}</Text>
+          <Text style={[styles.td, styles.tdRight, { width: COL.multa }]}>{moneyCell(row, row.multa)}</Text>
+          <Text style={[styles.td, styles.tdRight, { width: COL.juros }]}>{moneyCell(row, row.juros)}</Text>
           <Text style={[styles.td, styles.tdRight, { width: COL.consol }]}>
-            {formatBRL(row.consolidado)}
+            {moneyCell(row, row.consolidado)}
           </Text>
         </View>
       ))}
@@ -459,6 +466,9 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
   const totais = bucket?.totais;
   const composicao = buildEsferaComposicao(empresa, esfera);
   const debitos = debitosDaEsfera(empresa, esfera);
+  const grupos = groupDebitosByTitulo(debitos);
+  const agruparPorTitulo =
+    esfera === "federal" && (grupos.length > 1 || grupos.some((grupo) => Boolean(grupo.titulo)));
 
   return (
     <View style={styles.esferaBlock} break={esfera !== "federal"}>
@@ -484,8 +494,23 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
             <Text style={styles.chartDesc}>Saldo, multa e juros</Text>
             <PieChartPdf data={composicao} size={110} />
           </View>
-          <Text style={[styles.sectionTitle, { marginTop: 10 }]}>Lançamentos</Text>
-          <DebitosTable debitos={debitos} codigoEmpresa={empresa.codigo} />
+          {agruparPorTitulo ? (
+            grupos.map((grupo) => (
+              <View key={grupo.titulo || "__sem_titulo__"}>
+                <Text style={[styles.sectionTitle, { marginTop: 10 }]}>{grupo.label}</Text>
+                <Text style={styles.esferaMeta}>
+                  {grupo.debitos.length} item(ns)
+                  {grupo.consolidado > 0 ? ` · ${formatBRL(grupo.consolidado)}` : ""}
+                </Text>
+                <DebitosTable debitos={grupo.debitos} codigoEmpresa={empresa.codigo} />
+              </View>
+            ))
+          ) : (
+            <>
+              <Text style={[styles.sectionTitle, { marginTop: 10 }]}>Lançamentos</Text>
+              <DebitosTable debitos={debitos} codigoEmpresa={empresa.codigo} />
+            </>
+          )}
         </>
       )}
     </View>

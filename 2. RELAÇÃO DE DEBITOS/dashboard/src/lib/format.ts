@@ -5,6 +5,30 @@ export function formatBRL(value: number): string {
   });
 }
 
+const TITULO_PENDENCIA_LABELS: Record<string, string> = {
+  "OMISSAO DE DCTFWEB": "Pendência · Omissão de DCTFWeb",
+  "OMISSAO DE DCTF": "Pendência · Omissão de DCTF",
+  "DEBITO (SIEF)": "Pendência · Débito (SIEF)",
+  "DEBITO (SIDA)": "Pendência · Débito (SIDA)",
+  "DEBITO SUSPENSO": "Débito com exigibilidade suspensa",
+  "INSCRICAO SUSPENSA": "Inscrição com exigibilidade suspensa",
+  "PARCELAMENTO SUSPENSO": "Parcelamento com exigibilidade suspensa",
+  "DIVERGENCIA GFIP X GPS": "Pendência · Divergência GFIP x GPS",
+  "INSCRICAO (SISTEMA DIVIDA)": "Pendência · Inscrição (Sistema Dívida)",
+};
+
+export function formatTituloPendencia(titulo?: string | null): string {
+  const key = (titulo || "").trim();
+  if (!key) return "Lançamentos";
+  return TITULO_PENDENCIA_LABELS[key] ?? `Pendência · ${key}`;
+}
+
+export function isOmissaoDebito(row: { situacao?: string; titulo?: string }): boolean {
+  const situacao = (row.situacao || "").toUpperCase();
+  const titulo = (row.titulo || "").toUpperCase();
+  return situacao === "OMISSAO" || titulo.startsWith("OMISSAO");
+}
+
 export function formatCnpj(cnpj: string | null | undefined): string {
   if (!cnpj) return "—";
   const digits = cnpj.replace(/\D/g, "");

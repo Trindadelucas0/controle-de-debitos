@@ -37,6 +37,8 @@ export type DebitoLinha = {
   numero_lancamento?: string;
   esfera?: Esfera;
   inscricao?: string;
+  /** Seção do Diagnóstico Fiscal, ex. "DEBITO (SIEF)" | "OMISSAO DE DCTFWEB". */
+  titulo?: string;
 };
 
 export type Totais = {

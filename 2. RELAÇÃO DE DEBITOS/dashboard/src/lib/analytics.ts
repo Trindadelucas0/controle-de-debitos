@@ -1,3 +1,4 @@
+import { formatTituloPendencia } from "@/lib/format";
 import type { DebitoLinha, Empresa, Esfera, Totais, TotaisGerais } from "@/lib/types";
 
 export const ESFERA_COLORS: Record<Esfera, string> = {
@@ -243,6 +244,38 @@ export function debitosDaEsfera(empresa: Empresa, esfera: Esfera): DebitoLinha[]
       inferEsferaArquivo(item.arquivo);
     return inferred === esfera;
   });
+}
+
+export type DebitoGrupo = {
+  titulo: string;
+  label: string;
+  debitos: DebitoLinha[];
+  consolidado: number;
+};
+
+/** Agrupa lançamentos pela seção do Diagnóstico Fiscal, na ordem de aparição. */
+export function groupDebitosByTitulo(debitos: DebitoLinha[]): DebitoGrupo[] {
+  const groups: DebitoGrupo[] = [];
+  const index = new Map<string, number>();
+  for (const row of debitos) {
+    const titulo = (row.titulo || "").trim();
+    const key = titulo || "__sem_titulo__";
+    const existing = index.get(key);
+    if (existing === undefined) {
+      index.set(key, groups.length);
+      groups.push({
+        titulo,
+        label: formatTituloPendencia(titulo || null),
+        debitos: [row],
+        consolidado: round2(row.consolidado || 0),
+      });
+      continue;
+    }
+    const group = groups[existing];
+    group.debitos.push(row);
+    group.consolidado = round2(group.consolidado + (row.consolidado || 0));
+  }
+  return groups;
 }
 
 /** Composição saldo/multa/juros de uma esfera da empresa. */
