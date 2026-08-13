@@ -71,19 +71,8 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-shell text-shell-foreground">
-      <div className="flex h-16 items-center gap-4 px-4 lg:px-5">
-        <Link href={withCompetencia("/")} className="flex shrink-0 items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-md bg-shell-active/25 text-shell-active">
-            <Scale className="size-5" aria-hidden />
-          </span>
-          <p className="text-sm font-bold uppercase tracking-wide sm:text-base">
-            RELAÇÃO DE DEBITOS MENSAL
-          </p>
-        </Link>
-
-        <div className="mx-2 hidden h-8 w-px bg-white/15 sm:block" />
-
-        <nav className="flex items-center gap-1.5" aria-label="Atalhos rápidos">
+      <div className="grid h-16 grid-cols-[auto_1fr_auto] items-center gap-2 px-4 sm:grid-cols-[1fr_auto_1fr] sm:gap-4 lg:px-5">
+        <nav className="flex items-center justify-start gap-1.5" aria-label="Atalhos rápidos">
           {tools.map((tool) => {
             const Icon = tool.icon;
             return (
@@ -105,7 +94,19 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <Link
+          href={withCompetencia("/")}
+          className="flex min-w-0 items-center justify-center gap-2 sm:gap-3"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-shell-active/25 text-shell-active sm:size-10">
+            <Scale className="size-5" aria-hidden />
+          </span>
+          <p className="truncate text-center text-xs font-bold uppercase tracking-wide sm:text-base">
+            RELAÇÃO DE DEBITOS MENSAL
+          </p>
+        </Link>
+
+        <div className="flex items-center justify-end gap-2">
           {list.length > 0 && competencia ? (
             <label className="relative inline-flex cursor-pointer items-center gap-2 rounded-lg border-2 border-white bg-white px-3 py-2 text-shell shadow-lg shadow-black/25 ring-2 ring-shell-active/70 transition-shadow hover:shadow-xl hover:shadow-black/30 has-[:focus-visible]:ring-shell-active sm:px-4">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-shell-muted">

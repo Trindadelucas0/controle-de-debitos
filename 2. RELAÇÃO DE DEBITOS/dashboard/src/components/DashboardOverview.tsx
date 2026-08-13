@@ -8,7 +8,6 @@ import {
   FileText,
   Landmark,
   MapPin,
-  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -53,7 +52,7 @@ export function DashboardOverview({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         <KpiCard
           icon={Building2}
           label="Empresas"
@@ -76,14 +75,6 @@ export function DashboardOverview({
           hint={esfera ? `Regulares nesta esfera` : "Sem cobrança imediata"}
           accent="text-emerald-700"
           iconTone="bg-emerald-100 text-emerald-700"
-        />
-        <KpiCard
-          icon={Wallet}
-          label="Saldo consolidado"
-          value={formatBRL(kpis.consolidado)}
-          hint={esfera ? `Exposição · ${tituloEsfera}` : "Exposição financeira"}
-          accent="text-cyan-800"
-          iconTone="bg-cyan-100 text-cyan-800"
         />
       </div>
 
@@ -233,10 +224,9 @@ export function DashboardOverview({
                     formatter={(value, _name, item) => {
                       const payload = item?.payload as {
                         saldo?: number;
-                        consolidado?: number;
                       };
                       return [
-                        `${value} empresas · consolidado ${formatBRL(payload?.consolidado ?? 0)}`,
+                        `${value} empresas · ${formatBRL(payload?.saldo ?? 0)}`,
                         "Quantidade",
                       ];
                     }}
@@ -265,7 +255,7 @@ export function DashboardOverview({
             <CardDescription>
               {esfera
                 ? `Maiores saldos · ${tituloEsfera}`
-                : "Maiores saldos consolidados — clique para abrir"}
+                : "Maiores saldos — clique para abrir"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -282,26 +272,27 @@ export function DashboardOverview({
           </CardContent>
         </Card>
 
+      </div>
+
+      {analytics.porTitulo.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Sdo. consol. por título</CardTitle>
+            <CardTitle>Por título</CardTitle>
             <CardDescription>
               {esfera
                 ? `Mesmos títulos do relatório · ${fonteEsfera}`
-                : "Títulos do diagnóstico e total de Sdo. consol."}
+                : "Títulos do diagnóstico e total de cada seção"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {analytics.porTitulo.length === 0 ? (
-              <div className="flex h-[280px] items-center justify-center">
-                <EmptyChart message="Sem títulos do diagnóstico nesta competência." />
-              </div>
-            ) : (
-              <TituloConsolChart items={analytics.porTitulo} />
-            )}
+            <div className="flex h-[180px] items-center justify-center">
+              <EmptyChart message="Sem títulos do diagnóstico nesta competência." />
+            </div>
           </CardContent>
         </Card>
-      </div>
+      ) : (
+        <TituloConsolChart items={analytics.porTitulo} />
+      )}
     </div>
   );
 }

@@ -7,7 +7,6 @@ import {
   Building2,
   Download,
   ExternalLink,
-  FileText,
   Landmark,
   MapPin,
   Trash2,
@@ -24,18 +23,6 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { PaginationBar } from "@/components/PaginationBar";
 import { BlockingOverlay } from "@/components/BlockingOverlay";
 import { CompetenciaComparacao } from "@/components/CompetenciaComparacao";
@@ -45,10 +32,9 @@ import { BaixarRelatorioButton } from "@/components/relatorio/BaixarRelatorioBut
 import { EsferaBadge, StatusBadge } from "@/components/StatusBadges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  aggregatePorTitulo,
   buildEmpresaAnalytics,
   groupDebitosByTitulo,
   ESFERA_FONTES,
@@ -166,115 +152,9 @@ export function EmpresaDetail({
         />
       ) : null}
 
-      {analytics.composicao.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <span className="flex size-10 items-center justify-center rounded-md bg-muted text-slate-600">
-              <FileText className="size-5" aria-hidden />
-            </span>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-900">Ainda sem valores extraídos</p>
-              <p className="text-sm text-muted-foreground">
-                Abra o PDF para conferir o diagnóstico. Se os valores existirem no arquivo, eles
-                devem aparecer aqui após a extração.
-              </p>
-            </div>
-            {empresa.arquivos.length > 0 ? (
-              <div className="flex flex-wrap justify-center gap-2">
-                {empresa.arquivos.map((arquivo) => (
-                  <Button key={arquivo} asChild size="sm">
-                    <a
-                      href={pdfHref(empresa.id, arquivo, competencia)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <ExternalLink />
-                      Abrir {arquivo}
-                    </a>
-                  </Button>
-                ))}
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      ) : (
-        <div
-          className={`grid gap-4 ${
-            analytics.porTitulo.length > 0 ? "lg:grid-cols-3" : "lg:grid-cols-2"
-          }`}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Composição do valor</CardTitle>
-              <CardDescription>Saldo, multa e juros desta empresa</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={analytics.composicao}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                  >
-                    {analytics.composicao.map((entry) => (
-                      <Cell key={entry.name} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => formatBRL(Number(value ?? 0))}
-                    contentStyle={tooltipStyle}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Saldo por esfera</CardTitle>
-              <CardDescription>
-                ECAC · Receita Federal · Agenci@Net · Prefeitura
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analytics.porEsfera} margin={{ left: 0, right: 8, top: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#64748b" }} />
-                  <YAxis
-                    tickFormatter={(v) => compactBRL(Number(v))}
-                    tick={{ fontSize: 11, fill: "#64748b" }}
-                  />
-                  <Tooltip
-                    formatter={(value) => formatBRL(Number(value ?? 0))}
-                    contentStyle={tooltipStyle}
-                  />
-                  <Bar dataKey="consolidado" radius={[6, 6, 0, 0]} barSize={36}>
-                    {analytics.porEsfera.map((entry) => (
-                      <Cell key={entry.esfera} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {analytics.porTitulo.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Sdo. consol. por título</CardTitle>
-                <CardDescription>Mesmos títulos e totais do relatório</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TituloConsolChart items={analytics.porTitulo} pieHeight={160} />
-              </CardContent>
-            </Card>
-          ) : null}
-        </div>
-      )}
+      {analytics.porTitulo.length > 0 ? (
+        <TituloConsolChart items={analytics.porTitulo} pieHeight={160} />
+      ) : null}
 
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList>
@@ -325,7 +205,6 @@ function EsferaPanel({
       : empresa.documentos?.filter((d) => d.esfera === esfera).map((d) => d.arquivo) ?? [];
 
   const grupos = useMemo(() => groupDebitosByTitulo(debitos), [debitos]);
-  const porTitulo = useMemo(() => aggregatePorTitulo(debitos), [debitos]);
   const agruparPorTitulo =
     esfera === "federal" && (grupos.length > 1 || grupos.some((grupo) => Boolean(grupo.titulo)));
   const [removedFiles, setRemovedFiles] = useState<string[]>([]);
@@ -443,20 +322,6 @@ function EsferaPanel({
         <EsferaBadge esfera={esfera} label={ESFERA_LABELS[esfera]} />
       </div>
 
-      {agruparPorTitulo && porTitulo.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Sdo. consol. por título</CardTitle>
-            <CardDescription>
-              Lançamentos · {ESFERA_LABELS[esfera]} · total de cada seção
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TituloConsolChart items={porTitulo} pieHeight={160} />
-          </CardContent>
-        </Card>
-      ) : null}
-
       <Card className="overflow-hidden">
         <div className="border-b border-border px-4 py-3">
           <h3 className="text-sm font-semibold">Lançamentos · {ESFERA_LABELS[esfera]}</h3>
@@ -559,7 +424,7 @@ function DebitosTableBlock({
   heading?: string;
   subtotal?: number;
 }) {
-  const [sorting, setSorting] = useState<SortingState>([{ id: "consolidado", desc: true }]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "saldo", desc: true }]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 25,
@@ -623,14 +488,6 @@ function DebitosTableBlock({
           </span>
         ),
       }),
-      columnHelper.accessor("consolidado", {
-        header: "Sdo. consol.",
-        cell: (info) => (
-          <span className="tabular font-semibold text-teal-700">
-            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
-          </span>
-        ),
-      }),
       columnHelper.accessor("situacao", {
         header: "Situação",
         cell: (info) => (
@@ -663,7 +520,7 @@ function DebitosTableBlock({
         </div>
       ) : null}
       <div className="overflow-auto">
-        <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[900px] border-collapse text-left text-sm">
           <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -780,15 +637,3 @@ function inferEsfera(arquivo: string): Esfera {
   return "federal";
 }
 
-function compactBRL(value: number) {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}k`;
-  return String(Math.round(value));
-}
-
-const tooltipStyle = {
-  borderRadius: 10,
-  border: "1px solid #d7dee8",
-  fontSize: 12,
-  boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
-};

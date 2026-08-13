@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   Svg,
-  Rect,
   Path,
   G,
   Circle,
@@ -47,22 +46,27 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
+    alignItems: "center",
+  },
+  reportTitle: {
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 1.2,
+    marginBottom: 8,
+    color: "#475569",
+    textAlign: "center",
   },
   title: {
     fontSize: 16,
     fontFamily: "Helvetica-Bold",
     marginBottom: 4,
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 9,
     color: "#64748b",
     marginBottom: 2,
-  },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 6,
+    textAlign: "center",
   },
   badge: {
     paddingHorizontal: 8,
@@ -77,11 +81,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 14,
     color: "#0f172a",
-  },
-  chartsRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 4,
   },
   chartCard: {
     flex: 1,
@@ -125,6 +124,19 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     marginTop: 24,
     textAlign: "center",
+  },
+  tituloChartsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  tituloChartCard: {
+    width: "48%",
+    flexGrow: 1,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 4,
+    padding: 8,
   },
   esferaBlock: {
     marginTop: 16,
@@ -201,16 +213,15 @@ const styles = StyleSheet.create({
 });
 
 const COL = {
-  codigo: "7%",
-  lanc: "10%",
-  receita: "22%",
-  pa: "9%",
-  venc: "10%",
-  original: "10%",
-  saldo: "10%",
+  codigo: "8%",
+  lanc: "11%",
+  receita: "24%",
+  pa: "10%",
+  venc: "11%",
+  original: "11%",
+  saldo: "11%",
   multa: "7%",
   juros: "7%",
-  consol: "8%",
 } as const;
 
 function statusLabel(status: StatusEsfera | "pendencia" | "regular") {
@@ -333,75 +344,24 @@ function PieChartPdf({
   );
 }
 
-function BarChartPdf({
-  items,
-}: {
-  items: { label: string; value: number; fill: string }[];
-}) {
-  const width = 220;
-  const height = 110;
-  const padL = 8;
-  const padR = 8;
-  const padT = 8;
-  const padB = 22;
-  const max = Math.max(...items.map((i) => i.value), 1);
-  const gap = 12;
-  const barArea = width - padL - padR;
-  const barW = (barArea - gap * (items.length - 1)) / items.length;
-  const chartH = height - padT - padB;
-
-  return (
-    <View>
-      <Svg width={width} height={height}>
-        {items.map((item, index) => {
-          const h = (item.value / max) * chartH;
-          const x = padL + index * (barW + gap);
-          const y = padT + chartH - h;
-          return (
-            <G key={item.label}>
-              <Rect x={x} y={y} width={barW} height={Math.max(h, 1)} fill={item.fill} />
-            </G>
-          );
-        })}
-      </Svg>
-      <Legend
-        items={items.map((item) => ({
-          label: item.label,
-          fill: item.fill,
-          value: formatBRL(item.value),
-        }))}
-      />
-    </View>
-  );
-}
-
-function TituloPieChartPdf({ items }: { items: TituloSlice[] }) {
+function TituloChartsPdf({ items }: { items: TituloSlice[] }) {
   if (items.length === 0) {
     return <Text style={styles.emptyChart}>Sem títulos do diagnóstico.</Text>;
   }
 
-  const pieItems = items.filter((item) => item.consolidado > 0);
-
   return (
-    <View>
-      {pieItems.length > 0 ? (
-        <PieChartPdf
-          data={pieItems.map((item) => ({
-            name: item.label,
-            value: item.consolidado,
-            fill: item.fill,
-          }))}
-          size={120}
-          showLegend={false}
-        />
-      ) : null}
-      <Legend
-        items={items.map((item) => ({
-          label: item.label,
-          fill: item.fill,
-          value: formatItensETotal(item.qtd, item.consolidado),
-        }))}
-      />
+    <View style={styles.tituloChartsGrid}>
+      {items.map((item) => (
+        <View key={item.titulo || item.label} style={styles.tituloChartCard} wrap={false}>
+          <Text style={styles.chartTitle}>{item.label}</Text>
+          <Text style={styles.chartDesc}>{formatItensETotal(item.qtd, item.consolidado)}</Text>
+          {item.composicao.length > 0 ? (
+            <PieChartPdf data={item.composicao} size={96} />
+          ) : (
+            <Text style={styles.emptyChart}>Sem valores neste título.</Text>
+          )}
+        </View>
+      ))}
     </View>
   );
 }
@@ -427,7 +387,6 @@ function DebitosTable({ debitos, codigoEmpresa }: { debitos: DebitoLinha[]; codi
         <Text style={[styles.th, styles.tdRight, { width: COL.saldo }]}>Saldo</Text>
         <Text style={[styles.th, styles.tdRight, { width: COL.multa }]}>Multa</Text>
         <Text style={[styles.th, styles.tdRight, { width: COL.juros }]}>Juros</Text>
-        <Text style={[styles.th, styles.tdRight, { width: COL.consol }]}>Consol.</Text>
       </View>
       {debitos.map((row, index) => (
         <View key={`${row.arquivo}-${row.numero_lancamento}-${index}`} style={styles.tableRow} wrap={false}>
@@ -444,9 +403,6 @@ function DebitosTable({ debitos, codigoEmpresa }: { debitos: DebitoLinha[]; codi
           <Text style={[styles.td, styles.tdRight, { width: COL.saldo }]}>{moneyCell(row, row.saldo)}</Text>
           <Text style={[styles.td, styles.tdRight, { width: COL.multa }]}>{moneyCell(row, row.multa)}</Text>
           <Text style={[styles.td, styles.tdRight, { width: COL.juros }]}>{moneyCell(row, row.juros)}</Text>
-          <Text style={[styles.td, styles.tdRight, { width: COL.consol }]}>
-            {moneyCell(row, row.consolidado)}
-          </Text>
         </View>
       ))}
     </View>
@@ -483,10 +439,8 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
       ) : (
         <>
           {agruparPorTitulo && porTitulo.length > 0 ? (
-            <View style={[styles.chartCard, { marginTop: 8 }]} wrap={false}>
-              <Text style={styles.chartTitle}>Sdo. consol. por título</Text>
-              <Text style={styles.chartDesc}>Lançamentos · {ESFERA_LABELS[esfera]}</Text>
-              <TituloPieChartPdf items={porTitulo} />
+            <View style={{ marginTop: 8 }}>
+              <TituloChartsPdf items={porTitulo} />
             </View>
           ) : (
             <View style={[styles.chartCard, { marginTop: 8 }]} wrap={false}>
@@ -519,58 +473,27 @@ function EsferaSection({ empresa, esfera }: { empresa: Empresa; esfera: Esfera }
 
 export function EmpresaRelatorioPdfDocument({ empresa, competencia }: Props) {
   const analytics = buildEmpresaAnalytics(empresa);
-  const codigoLabel = empresa.codigo
-    ? `Cód. ${empresa.codigo}${(empresa.codigos?.length ?? 0) > 1 ? ` (${empresa.codigos!.join(", ")})` : ""}`
-    : null;
 
   return (
     <Document
-      title={`Relatório — ${empresa.nome} — ${formatCompetencia(competencia)}`}
-      author="Controle de Débitos"
-      subject={`Relatório de débitos por esfera — competência ${formatCompetencia(competencia)}`}
+      title={`Relação de Débitos Mensal — ${empresa.nome} — ${formatCompetencia(competencia)}`}
+      author="Relação de Débitos Mensal"
+      subject={`Relação de Débitos Mensal — competência ${formatCompetencia(competencia)}`}
     >
       <Page size="A4" style={styles.page} wrap>
         <View style={styles.header}>
+          <Text style={styles.reportTitle}>RELAÇÃO DE DEBITOS MENSAL</Text>
           <Text style={styles.title}>{empresa.nome}</Text>
-          {codigoLabel ? <Text style={styles.subtitle}>{codigoLabel}</Text> : null}
           <Text style={styles.subtitle}>CNPJ {formatCnpj(empresa.cnpj)}</Text>
           <Text style={styles.subtitle}>
-            Competência {formatCompetencia(competencia)} · Relatório de débitos por esfera
+            Competência {formatCompetencia(competencia)}
           </Text>
-          <View style={styles.statusRow}>
-            <StatusBadge status={empresa.status} />
-            {empresa.tipos?.length ? (
-              <Text style={styles.subtitle}>{empresa.tipos.join(" · ")}</Text>
-            ) : null}
-          </View>
-        </View>
-
-        <Text style={[styles.sectionTitle, { marginTop: 0 }]}>Resumo geral</Text>
-
-        <View style={styles.chartsRow} wrap={false}>
-          <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Composição do valor</Text>
-            <Text style={styles.chartDesc}>Saldo, multa e juros desta empresa</Text>
-            <PieChartPdf data={analytics.composicao} />
-          </View>
-          <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Saldo por esfera</Text>
-            <Text style={styles.chartDesc}>Federal · Estadual · Municipal</Text>
-            <BarChartPdf
-              items={analytics.porEsfera.map((item) => ({
-                label: item.label,
-                value: item.consolidado,
-                fill: item.fill,
-              }))}
-            />
-          </View>
         </View>
 
         {analytics.porTitulo.length > 0 ? (
-          <View style={[styles.chartCard, { marginTop: 10 }]} wrap={false}>
-            <Text style={styles.chartTitle}>Sdo. consol. por título</Text>
-            <Text style={styles.chartDesc}>Seções do diagnóstico fiscal</Text>
-            <TituloPieChartPdf items={analytics.porTitulo} />
+          <View>
+            <Text style={[styles.sectionTitle, { marginTop: 0 }]}>Por título</Text>
+            <TituloChartsPdf items={analytics.porTitulo} />
           </View>
         ) : null}
 
@@ -579,7 +502,7 @@ export function EmpresaRelatorioPdfDocument({ empresa, competencia }: Props) {
         ))}
 
         <View style={styles.footer} fixed>
-          <Text>Controle de Débitos — relatório por empresa</Text>
+          <Text>Relação de Débitos Mensal</Text>
           <Text
             render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
           />

@@ -240,6 +240,9 @@ export type DebitoGrupo = {
   label: string;
   debitos: DebitoLinha[];
   consolidado: number;
+  saldo: number;
+  multa: number;
+  juros: number;
 };
 
 export type TituloSlice = {
@@ -249,6 +252,10 @@ export type TituloSlice = {
   consolidado: number;
   qtd: number;
   fill: string;
+  saldo: number;
+  multa: number;
+  juros: number;
+  composicao: ComposicaoSlice[];
 };
 
 function colorForTitulo(titulo: string, index: number) {
@@ -268,6 +275,16 @@ export function aggregatePorTitulo(debitos: DebitoLinha[]): TituloSlice[] {
       consolidado: grupo.consolidado,
       qtd: grupo.debitos.length,
       fill: colorForTitulo(grupo.titulo, index),
+      saldo: grupo.saldo,
+      multa: grupo.multa,
+      juros: grupo.juros,
+      composicao: composicaoFromTotais({
+        original: 0,
+        saldo: grupo.saldo,
+        multa: grupo.multa,
+        juros: grupo.juros,
+        consolidado: grupo.consolidado,
+      }),
     }))
     .sort((a, b) => b.consolidado - a.consolidado || b.qtd - a.qtd);
 }
@@ -287,12 +304,18 @@ export function groupDebitosByTitulo(debitos: DebitoLinha[]): DebitoGrupo[] {
         label: formatTituloPendencia(titulo || null),
         debitos: [row],
         consolidado: round2(row.consolidado || 0),
+        saldo: round2(row.saldo || 0),
+        multa: round2(row.multa || 0),
+        juros: round2(row.juros || 0),
       });
       continue;
     }
     const group = groups[existing];
     group.debitos.push(row);
     group.consolidado = round2(group.consolidado + (row.consolidado || 0));
+    group.saldo = round2(group.saldo + (row.saldo || 0));
+    group.multa = round2(group.multa + (row.multa || 0));
+    group.juros = round2(group.juros + (row.juros || 0));
   }
   return groups;
 }

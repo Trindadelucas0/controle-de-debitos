@@ -77,7 +77,7 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencia }: Props
 
   const [query, setQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "totais_consolidado", desc: true },
+    { id: "totais_saldo", desc: true },
   ]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -186,21 +186,6 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencia }: Props
           header: "Saldo",
           cell: (info) => (
             <span className="tabular font-semibold text-slate-800">
-              {formatBRL(info.getValue())}
-            </span>
-          ),
-        },
-      ),
-      columnHelper.accessor(
-        (row) =>
-          esferaFiltro
-            ? (row.esferas?.[esferaFiltro]?.totais.consolidado ?? 0)
-            : row.totais.consolidado,
-        {
-          id: "totais_consolidado",
-          header: "Consolidado",
-          cell: (info) => (
-            <span className="tabular font-semibold text-cyan-800">
               {formatBRL(info.getValue())}
             </span>
           ),

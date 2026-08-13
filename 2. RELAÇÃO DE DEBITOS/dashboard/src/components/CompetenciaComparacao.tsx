@@ -56,11 +56,6 @@ export function CompetenciaComparacao({
       other: other.totais.saldo,
     },
     {
-      label: "Consolidado",
-      base: base.totais.consolidado,
-      other: other.totais.consolidado,
-    },
-    {
       label: "Original",
       base: base.totais.original,
       other: other.totais.original,
@@ -133,8 +128,8 @@ export function CompetenciaComparacao({
 
         <div className="grid gap-2 sm:grid-cols-3">
           {ESFERAS.map((esfera) => {
-            const b = base.esferas?.[esfera]?.totais.consolidado ?? 0;
-            const o = other.esferas?.[esfera]?.totais.consolidado ?? 0;
+            const b = base.esferas?.[esfera]?.totais.saldo ?? 0;
+            const o = other.esferas?.[esfera]?.totais.saldo ?? 0;
             return (
               <div key={esfera} className="rounded-md border bg-muted/20 px-3 py-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
