@@ -1,13 +1,35 @@
 cd ~/projetos/controle-de-debitos
 
-# descarta mudanças nos arquivos .next já rastreados
-git restore -- "2. RELAÇÃO DE DEBITOS/dashboard/.next"
+DATA_DIR="2. RELAÇÃO DE DEBITOS/dashboard/data"
+BACKUP_DIR="/tmp/debitos-data-backup"
+mkdir -p "$BACKUP_DIR"
 
-# remove os untracked que o merge reclamou
+# 1) guarda os dados reais do servidor (não podem ir embora no pull)
+cp -a "$DATA_DIR/empresas.json" "$BACKUP_DIR/empresas.json"
+cp -a "$DATA_DIR/cadastro-consultas.json" "$BACKUP_DIR/cadastro-consultas.json"
+
+# 2) libera o merge: descarta só o diff local desses JSON (os dados estão no backup)
+git restore -- \
+  "$DATA_DIR/empresas.json" \
+  "$DATA_DIR/cadastro-consultas.json" \
+  "2. RELAÇÃO DE DEBITOS/dashboard/.next" \
+  "2. RELAÇÃO DE DEBITOS/scripts/__pycache__/ingest_upload.cpython-314.pyc" \
+  2>/dev/null || true
+
 rm -rf "2. RELAÇÃO DE DEBITOS/dashboard/.next/server/app/_not-found"
 
+# 3) atualiza só o código/interface
 git pull
 
+# 4) devolve os dados do sistema (painel + consultas manuais)
+cp -a "$BACKUP_DIR/empresas.json" "$DATA_DIR/empresas.json"
+cp -a "$BACKUP_DIR/cadastro-consultas.json" "$DATA_DIR/cadastro-consultas.json"
+
+# 5) pull futuro não sobrescreve esses arquivos
+git update-index --skip-worktree \
+  "$DATA_DIR/empresas.json" \
+  "$DATA_DIR/cadastro-consultas.json"
+
 cd "2. RELAÇÃO DE DEBITOS/dashboard"
-npm run build 
+npm run build
 pm2 restart dashboard-debitos

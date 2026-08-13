@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
+  ChevronDown,
   ClipboardList,
   FileUp,
   LayoutDashboard,
@@ -106,23 +107,29 @@ export function AppTopBar({ competencias, competenciaAtual }: Props) {
 
         <div className="ml-auto flex items-center gap-2">
           {list.length > 0 && competencia ? (
-            <label className="inline-flex items-center gap-2 rounded-md border border-shell-active/50 bg-shell-active-bg px-3 py-1.5 text-shell-foreground sm:px-4 sm:py-2">
-              <span className="hidden items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-shell-muted sm:inline-flex">
-                <CalendarDays className="size-3.5 text-shell-active" aria-hidden />
-                Competência
+            <label className="relative inline-flex cursor-pointer items-center gap-2 rounded-lg border-2 border-white bg-white px-3 py-2 text-shell shadow-lg shadow-black/25 ring-2 ring-shell-active/70 transition-shadow hover:shadow-xl hover:shadow-black/30 has-[:focus-visible]:ring-shell-active sm:px-4">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-shell-muted">
+                <CalendarDays className="size-3.5 shrink-0 text-shell-active" aria-hidden />
+                <span className="hidden sm:inline">Competência</span>
               </span>
-              <select
-                className="h-8 min-w-[7.5rem] cursor-pointer rounded border-0 bg-transparent text-base font-bold tabular text-shell-foreground outline-none focus-visible:ring-1 focus-visible:ring-shell-active/60"
-                value={competencia}
-                onChange={(event) => setCompetencia(event.target.value)}
-                aria-label="Competência"
-              >
-                {list.map((id) => (
-                  <option key={id} value={id} className="bg-shell text-shell-foreground">
-                    {formatCompetencia(id)}
-                  </option>
-                ))}
-              </select>
+              <span className="relative">
+                <select
+                  className="h-8 min-w-[7.5rem] cursor-pointer appearance-none rounded border-0 bg-transparent pr-6 text-lg font-bold tabular text-shell outline-none focus-visible:ring-2 focus-visible:ring-shell-active"
+                  value={competencia}
+                  onChange={(event) => setCompetencia(event.target.value)}
+                  aria-label="Competência"
+                >
+                  {list.map((id) => (
+                    <option key={id} value={id} className="bg-white text-shell">
+                      {formatCompetencia(id)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="pointer-events-none absolute right-0 top-1/2 size-4 -translate-y-1/2 text-shell-active"
+                  aria-hidden
+                />
+              </span>
             </label>
           ) : null}
         </div>
