@@ -478,18 +478,15 @@ def ingest_one(
     esfera = TIPO_TO_ESFERA[tipo]
 
     detected, emissao = detect_competencia_from_text(text)
-    if detected and COMPETENCIA_DIR_RE.match(detected):
-        result["competencia"] = detected
-        if detected != selected:
-            emissao_txt = emissao or "?"
-            result["avisos"].append(
-                f"competência detectada {detected} (emissão {emissao_txt}); selecionada era {selected}"
-            )
-            month = resolve_month_for_ingest(detected, dry_run=dry_run)
-    else:
-        result["competencia"] = selected
-        if month.name != selected:
-            month = resolve_month_for_ingest(selected, dry_run=dry_run)
+    result["competencia"] = selected
+    if detected and COMPETENCIA_DIR_RE.match(detected) and detected != selected:
+        emissao_txt = emissao or "?"
+        result["avisos"].append(
+            f"PDF emitido em {detected} (emissão {emissao_txt}); "
+            f"gravando na competência selecionada {selected}"
+        )
+    if month.name != selected:
+        month = resolve_month_for_ingest(selected, dry_run=dry_run)
 
     index = indexes.setdefault(
         result["competencia"],
@@ -915,7 +912,12 @@ def run(
         rebuild_error = None
         if not dry_run:
             try:
-                payload_dash = rebuild_dashboard(only_competencias=[competencia])
+                comps = {competencia}
+                for item in results:
+                    comp = str(item.get("competencia") or "").strip()
+                    if COMPETENCIA_DIR_RE.match(comp):
+                        comps.add(comp)
+                payload_dash = rebuild_dashboard(only_competencias=sorted(comps))
                 attach_empresa_ids(results, payload_dash)
             except Exception as exc:  # noqa: BLE001
                 rebuild_ok = False

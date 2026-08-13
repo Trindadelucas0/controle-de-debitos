@@ -797,7 +797,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               onClick={() => void onConfirmar()}
             >
               <CheckCircle2 className="size-4" aria-hidden />
-              Confirmar importação ({selectedForCommit.length})
+              {selectedForCommit.length === 0
+                ? "Nada para gravar"
+                : `Confirmar e gravar no painel (${selectedForCommit.length})`}
             </Button>
             <Button type="button" variant="ghost" disabled={busy} onClick={() => void cancelarRevisao()}>
               Cancelar revisão
@@ -845,10 +847,27 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       </div>
 
       {phase === "review" ? (
-        <p className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
-          Revise os dados abaixo. Duplicados (mesmo arquivo já importado) ficam desmarcados e não
-          serão gravados. Nada entra no painel até você confirmar.
-        </p>
+        selectedForCommit.length === 0 ? (
+          <p
+            role="status"
+            className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+          >
+            A extração terminou, mas nada será gravado: os PDFs já estão no painel (duplicados) ou
+            vieram com erro. Abra a competência{" "}
+            <Link
+              href={`/?competencia=${encodeURIComponent(competenciaEfetiva)}`}
+              className="font-medium underline underline-offset-2"
+            >
+              {formatCompetencia(competenciaEfetiva)}
+            </Link>
+            , exclua o PDF antigo da empresa e analise de novo para substituir.
+          </p>
+        ) : (
+          <p className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
+            Extração ok. Os dados ainda <strong>não</strong> estão no painel. Marque o que quiser e
+            clique em <strong>Confirmar e gravar no painel</strong>.
+          </p>
+        )
       ) : null}
 
       {globalError && (
