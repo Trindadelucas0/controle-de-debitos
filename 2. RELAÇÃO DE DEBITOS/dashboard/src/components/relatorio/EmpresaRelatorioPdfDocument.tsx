@@ -377,20 +377,24 @@ function BarChartPdf({
 
 function TituloPieChartPdf({ items }: { items: TituloSlice[] }) {
   if (items.length === 0) {
-    return <Text style={styles.emptyChart}>Sem títulos com saldo consolidado.</Text>;
+    return <Text style={styles.emptyChart}>Sem títulos do diagnóstico.</Text>;
   }
+
+  const pieItems = items.filter((item) => item.consolidado > 0);
 
   return (
     <View>
-      <PieChartPdf
-        data={items.map((item) => ({
-          name: item.label,
-          value: item.consolidado,
-          fill: item.fill,
-        }))}
-        size={120}
-        showLegend={false}
-      />
+      {pieItems.length > 0 ? (
+        <PieChartPdf
+          data={pieItems.map((item) => ({
+            name: item.label,
+            value: item.consolidado,
+            fill: item.fill,
+          }))}
+          size={120}
+          showLegend={false}
+        />
+      ) : null}
       <Legend
         items={items.map((item) => ({
           label: item.label,

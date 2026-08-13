@@ -194,7 +194,9 @@ export function buildPortfolioAnalytics(empresas: Empresa[], esfera?: Esfera | n
       ? empresa.debitos.filter((d) => (d.esfera ?? inferEsferaDebito(d)) === esfera)
       : empresa.debitos,
   );
-  const porTitulo = aggregatePorTitulo(allDebitos);
+  const porTitulo = aggregatePorTitulo(
+    allDebitos.filter((d) => Boolean((d.titulo || "").trim())),
+  );
 
   return { porEsfera, composicao, statusDonut, topEmpresas, porTitulo };
 }
@@ -255,9 +257,10 @@ function colorForTitulo(titulo: string, index: number) {
   return TITULO_FALLBACK_COLORS[index % TITULO_FALLBACK_COLORS.length];
 }
 
-/** Soma Sdo. consol. por título do diagnóstico (labels amigáveis). */
+/** Soma Sdo. consol. só pelos títulos do diagnóstico (SIEF, suspenso, omissão…). */
 export function aggregatePorTitulo(debitos: DebitoLinha[]): TituloSlice[] {
   return groupDebitosByTitulo(debitos)
+    .filter((grupo) => Boolean(grupo.titulo.trim()))
     .map((grupo, index) => ({
       titulo: grupo.titulo,
       label: grupo.label,
@@ -266,8 +269,7 @@ export function aggregatePorTitulo(debitos: DebitoLinha[]): TituloSlice[] {
       qtd: grupo.debitos.length,
       fill: colorForTitulo(grupo.titulo, index),
     }))
-    .filter((item) => item.consolidado > 0)
-    .sort((a, b) => b.consolidado - a.consolidado);
+    .sort((a, b) => b.consolidado - a.consolidado || b.qtd - a.qtd);
 }
 
 /** Agrupa lançamentos pela seção do Diagnóstico Fiscal, na ordem de aparição. */
@@ -317,7 +319,9 @@ export function buildEmpresaAnalytics(empresa: Empresa) {
   });
 
   const topReceitas = aggregateReceitas(empresa.debitos).slice(0, 8);
-  const porTitulo = aggregatePorTitulo(empresa.debitos);
+  const porTitulo = aggregatePorTitulo(
+    empresa.debitos.filter((d) => Boolean((d.titulo || "").trim())),
+  );
 
   return { composicao, porEsfera, topReceitas, porTitulo };
 }

@@ -294,7 +294,7 @@ export function DashboardOverview({
           <CardContent>
             {analytics.porTitulo.length === 0 ? (
               <div className="flex h-[280px] items-center justify-center">
-                <EmptyChart message="Sem títulos com saldo consolidado nesta competência." />
+                <EmptyChart message="Sem títulos do diagnóstico nesta competência." />
               </div>
             ) : (
               <TituloConsolChart items={analytics.porTitulo} />

@@ -55,33 +55,37 @@ export function TituloConsolChart({
   items: TituloSlice[];
   pieHeight?: number;
 }) {
+  const pieItems = items.filter((item) => item.consolidado > 0);
+
   return (
     <div className="flex flex-col gap-3">
-      <div style={{ height: pieHeight }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={items}
-              dataKey="consolidado"
-              nameKey="label"
-              innerRadius={48}
-              outerRadius={74}
-              paddingAngle={3}
-            >
-              {items.map((entry) => (
-                <Cell key={entry.titulo || entry.label} fill={entry.fill} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value, _name, item) => {
-                const qtd = Number((item?.payload as { qtd?: number })?.qtd ?? 0);
-                return [formatItensETotal(qtd, Number(value ?? 0)), "Sdo. consol."];
-              }}
-              contentStyle={tooltipStyle}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+      {pieItems.length > 0 ? (
+        <div style={{ height: pieHeight }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieItems}
+                dataKey="consolidado"
+                nameKey="label"
+                innerRadius={48}
+                outerRadius={74}
+                paddingAngle={3}
+              >
+                {pieItems.map((entry) => (
+                  <Cell key={entry.titulo || entry.label} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value, _name, item) => {
+                  const qtd = Number((item?.payload as { qtd?: number })?.qtd ?? 0);
+                  return [formatItensETotal(qtd, Number(value ?? 0)), "Sdo. consol."];
+                }}
+                contentStyle={tooltipStyle}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      ) : null}
       <TituloConsolList items={items} />
     </div>
   );
