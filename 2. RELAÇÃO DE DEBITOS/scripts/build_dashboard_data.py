@@ -76,6 +76,24 @@ NOTIF_LANC_RE = re.compile(
     re.I,
 )
 
+MES_ABREV = ("JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ")
+MES_TOKEN_RE = re.compile(r"\b(" + "|".join(MES_ABREV) + r")\b", re.I)
+YEAR_MONTHS_RE = re.compile(
+    r"^(20\d{2})\s*[-–]?\s*((?:(?:" + "|".join(MES_ABREV) + r")\s*)+)$",
+    re.I,
+)
+YEAR_ONLY_RE = re.compile(r"^(20\d{2})\s*[-–]?\s*$")
+ECAC_TITULO_RE = re.compile(
+    r"(pendencia\s*-+\s*[a-z0-9 *()/.-]{3,80}?"
+    r"(?=\s+(?:\(\s*periodo de apuracao\s*\)|20\d{2}\s*-|receita\b|pa/exerc|"
+    r"\d{4}-\d{2}|pendencia\s*-|debito com exigibilidade|inscricao com exigibilidade|"
+    r"parcelamento com exigibilidade|nao foram|diagnostico|$))"
+    r"|debito com exigibilidade suspensa"
+    r"|inscricao com exigibilidade suspensa"
+    r"|parcelamento com exigibilidade suspensa)",
+    re.I,
+)
+
 OCR_TEXT_MIN_SCORE = 6
 OCR_TEXT_MIN_ALNUM = 40
 
@@ -320,6 +338,229 @@ def status_doc_from_classe(pasta_status: str, classe: str, has_rows: bool) -> st
     return "indeterminado"
 
 
+def normalize_ecac_titulo(raw: str) -> str:
+    """Normaliza título de seção do Diagnóstico Fiscal (sem strip de SIEF/SIDA)."""
+    f = fold(raw)
+    f = re.sub(r"[*]+", "", f)
+    f = re.sub(r"\s+", " ", f).strip(" -")
+    f = re.sub(r"^pendencia\s*-+\s*", "", f).strip(" -")
+    if "omissao de dctfweb" in f:
+        return "OMISSAO DE DCTFWEB"
+    if "omissao de dctf" in f:
+        return "OMISSAO DE DCTF"
+    if "debito" in f and "sief" in f:
+        return "DEBITO (SIEF)"
+    if "debito" in f and "sida" in f:
+        return "DEBITO (SIDA)"
+    if "debito com exigibilidade suspensa" in f:
+        return "DEBITO SUSPENSO"
+    if "inscricao com exigibilidade suspensa" in f:
+        return "INSCRICAO SUSPENSA"
+    if "parcelamento com exigibilidade suspensa" in f:
+        return "PARCELAMENTO SUSPENSO"
+    if "divergencia gfip" in f:
+        return "DIVERGENCIA GFIP X GPS"
+    if "inscricao" in f and "divida" in f:
+        return "INSCRICAO (SISTEMA DIVIDA)"
+    return f.upper().strip()
+
+
+def is_omissao_titulo(titulo: str | None) -> bool:
+    return bool(titulo and titulo.startswith("OMISSAO"))
+
+
+def receita_for_omissao(titulo: str) -> str:
+    if "DCTFWEB" in titulo:
+        return "Omissão de DCTFWeb"
+    if "DCTF" in titulo:
+        return "Omissão de DCTF"
+    return "Omissão"
+
+
+def _titulo_is_complete(folded: str) -> bool:
+    if "exigibilidade suspensa" in folded:
+        return True
+    match = re.search(r"pendencia\s*-+\s*(.+)", folded)
+    if not match:
+        return False
+    rest = match.group(1).strip(" -*")
+    return len(rest) >= 3
+
+
+def match_ecac_titulo_at(literals: list[str], i: int) -> tuple[str | None, int]:
+    """Detecta título de seção nos literais; retorna (titulo, tokens consumidos)."""
+    n = len(literals)
+    if i >= n:
+        return None, 0
+    first = fold(literals[i])
+    if not (first.startswith("pendencia") or "exigibilidade suspensa" in first):
+        return None, 0
+    max_join = min(5, n - i)
+    best: tuple[str, int] | None = None
+    for ntok in range(1, max_join + 1):
+        last = literals[i + ntok - 1]
+        if RECEITA_LIT_RE.match(last) or SIMPLES_LIT_RE.match(last) or PA_LIT_RE.match(last):
+            break
+        combined = " ".join(literals[i : i + ntok])
+        folded = fold(combined)
+        if not _titulo_is_complete(folded):
+            continue
+        titulo = normalize_ecac_titulo(combined)
+        if titulo and titulo not in {"PENDENCIA", "PENDENCIA -"}:
+            best = (titulo, ntok)
+    return best if best else (None, 0)
+
+
+def _parse_year_months_at(literals: list[str], i: int) -> tuple[str, list[str], int] | None:
+    n = len(literals)
+    if i >= n:
+        return None
+    token = literals[i].strip()
+    match = YEAR_MONTHS_RE.match(token)
+    if match:
+        year = match.group(1)
+        months = [item.upper() for item in MES_TOKEN_RE.findall(token)]
+        if months:
+            return year, months, 1
+    if not YEAR_ONLY_RE.match(token):
+        return None
+    year = YEAR_ONLY_RE.match(token).group(1)
+    j = i + 1
+    if j < n and re.match(r"^[-–]$", literals[j].strip()):
+        j += 1
+    months: list[str] = []
+    while j < n:
+        nxt = literals[j].strip()
+        if match_ecac_titulo_at(literals, j)[0]:
+            break
+        if YEAR_MONTHS_RE.match(nxt) or YEAR_ONLY_RE.match(nxt):
+            break
+        found = [item.upper() for item in MES_TOKEN_RE.findall(nxt)]
+        if not found:
+            folded = fold(nxt)
+            if folded in {"", "-", "e", "/", "de"}:
+                j += 1
+                continue
+            break
+        months.extend(found)
+        j += 1
+    if not months:
+        return None
+    return year, months, j - i
+
+
+def _make_omissao_rows(
+    *,
+    titulo: str,
+    year: str,
+    months: list[str],
+    origem: str,
+    arquivo: str,
+    codigo: str,
+    esfera: str,
+) -> list[dict]:
+    receita = receita_for_omissao(titulo)
+    rows: list[dict] = []
+    for mes in months:
+        rows.append(
+            _make_debito_row(
+                receita=receita,
+                pa=f"{mes}/{year}",
+                vencimento="",
+                original=0.0,
+                saldo=0.0,
+                multa=0.0,
+                juros=0.0,
+                consolidado=0.0,
+                situacao="OMISSAO",
+                origem=origem,
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera=esfera,
+                titulo=titulo,
+            )
+        )
+    return rows
+
+
+def parse_omissao_periodos(
+    body: str,
+    titulo: str,
+    origem: str,
+    arquivo: str,
+    esfera: str,
+) -> list[dict]:
+    codigo = codigo_from_filename(arquivo)
+    rows: list[dict] = []
+    seen: set[str] = set()
+    for match in re.finditer(
+        r"(20\d{2})\s*[-–]?\s*((?:(?:" + "|".join(MES_ABREV) + r")\s*)+)",
+        body,
+        re.I,
+    ):
+        year = match.group(1)
+        months = [item.upper() for item in MES_TOKEN_RE.findall(match.group(2))]
+        for row in _make_omissao_rows(
+            titulo=titulo,
+            year=year,
+            months=months,
+            origem=origem,
+            arquivo=arquivo,
+            codigo=codigo,
+            esfera=esfera,
+        ):
+            key = row["pa"]
+            if key not in seen:
+                seen.add(key)
+                rows.append(row)
+    return rows
+
+
+def iter_ecac_sections(folded: str) -> list[tuple[str | None, str]]:
+    matches = list(ECAC_TITULO_RE.finditer(folded))
+    if not matches:
+        return [(None, folded)]
+    sections: list[tuple[str | None, str]] = []
+    if matches[0].start() > 0:
+        pre = folded[: matches[0].start()].strip()
+        if pre:
+            sections.append((None, pre))
+    for idx, match in enumerate(matches):
+        titulo = normalize_ecac_titulo(match.group(0))
+        end = matches[idx + 1].start() if idx + 1 < len(matches) else len(folded)
+        body = folded[match.end() : end]
+        sections.append((titulo or None, body))
+    return sections
+
+
+def _debito_row_key(row: dict) -> tuple:
+    return (
+        row.get("titulo") or "",
+        row.get("receita") or "",
+        row.get("pa") or "",
+        row.get("vencimento") or "",
+        round(float(row.get("consolidado") or 0), 2),
+        row.get("situacao") or "",
+    )
+
+
+def merge_ecac_rows(primary: list[dict], secondary: list[dict]) -> list[dict]:
+    """Une literais + regex: omissões extras entram antes; o resto depois."""
+    seen = {_debito_row_key(row) for row in primary}
+    omissao_extra: list[dict] = []
+    other_extra: list[dict] = []
+    for row in secondary:
+        key = _debito_row_key(row)
+        if key in seen:
+            continue
+        seen.add(key)
+        if is_omissao_titulo(row.get("titulo")) or row.get("situacao") == "OMISSAO":
+            omissao_extra.append(row)
+        else:
+            other_extra.append(row)
+    return omissao_extra + primary + other_extra
+
+
 def _make_debito_row(
     *,
     receita: str,
@@ -337,6 +578,7 @@ def _make_debito_row(
     esfera: str,
     numero_lancamento: str | None = None,
     inscricao: str | None = None,
+    titulo: str | None = None,
 ) -> dict:
     row = {
         "receita": receita,
@@ -357,6 +599,8 @@ def _make_debito_row(
         row["numero_lancamento"] = numero_lancamento
     if inscricao:
         row["inscricao"] = inscricao
+    if titulo:
+        row["titulo"] = titulo
     return row
 
 
@@ -366,14 +610,41 @@ def parse_ecac_from_literals(
     arquivo: str,
     esfera: str,
 ) -> list[dict]:
-    """Varre literais PDF em sequência e monta linhas de débito ECAC."""
+    """Varre literais PDF em sequência e monta linhas de débito ECAC por seção."""
     codigo = codigo_from_filename(arquivo)
     rows: list[dict] = []
     seen: set[tuple] = set()
+    current_titulo: str | None = None
     i = 0
     n = len(literals)
 
     while i < n:
+        titulo, consumed = match_ecac_titulo_at(literals, i)
+        if titulo:
+            current_titulo = titulo
+            i += consumed
+            continue
+
+        if is_omissao_titulo(current_titulo):
+            parsed = _parse_year_months_at(literals, i)
+            if parsed:
+                year, months, consumed = parsed
+                for row in _make_omissao_rows(
+                    titulo=current_titulo or "OMISSAO DE DCTFWEB",
+                    year=year,
+                    months=months,
+                    origem=origem,
+                    arquivo=arquivo,
+                    codigo=codigo,
+                    esfera=esfera,
+                ):
+                    key = _debito_row_key(row)
+                    if key not in seen:
+                        seen.add(key)
+                        rows.append(row)
+                i += consumed
+                continue
+
         token = literals[i]
         receita: str | None = None
         m_rec = RECEITA_LIT_RE.match(token)
@@ -425,37 +696,42 @@ def parse_ecac_from_literals(
                 numero_lancamento = m_notif.group(1).strip()
                 j += 1
 
-        key = (receita, pa, vencimento, original, saldo, multa, juros, consolidado, situacao)
+        row = _make_debito_row(
+            receita=receita,
+            pa=pa,
+            vencimento=vencimento,
+            original=original,
+            saldo=saldo,
+            multa=multa,
+            juros=juros,
+            consolidado=consolidado,
+            situacao=situacao,
+            origem=origem,
+            arquivo=arquivo,
+            codigo=codigo,
+            esfera=esfera,
+            numero_lancamento=numero_lancamento,
+            titulo=current_titulo,
+        )
+        key = _debito_row_key(row)
         if key not in seen:
             seen.add(key)
-            rows.append(
-                _make_debito_row(
-                    receita=receita,
-                    pa=pa,
-                    vencimento=vencimento,
-                    original=original,
-                    saldo=saldo,
-                    multa=multa,
-                    juros=juros,
-                    consolidado=consolidado,
-                    situacao=situacao,
-                    origem=origem,
-                    arquivo=arquivo,
-                    codigo=codigo,
-                    esfera=esfera,
-                    numero_lancamento=numero_lancamento,
-                )
-            )
+            rows.append(row)
         i = j if j > i + 1 else i + 1
 
     return rows
 
 
-def parse_ecac_debitos_regex(text: str, origem: str, arquivo: str, esfera: str) -> list[dict]:
-    f = fold(text)
+def _parse_financial_rows_in_body(
+    body: str,
+    origem: str,
+    arquivo: str,
+    esfera: str,
+    titulo: str | None,
+) -> list[dict]:
     codigo = codigo_from_filename(arquivo)
     rows: list[dict] = []
-    for match in DEBITO_ROW_RE.finditer(f):
+    for match in DEBITO_ROW_RE.finditer(body):
         nome = re.sub(r"\s+", " ", match.group("nome")).strip().upper()
         receita = f"{match.group('code')} - {nome}"
         rows.append(
@@ -473,8 +749,28 @@ def parse_ecac_debitos_regex(text: str, origem: str, arquivo: str, esfera: str) 
                 arquivo=arquivo,
                 codigo=codigo,
                 esfera=esfera,
+                titulo=titulo,
             )
         )
+    return rows
+
+
+def parse_ecac_debitos_regex(text: str, origem: str, arquivo: str, esfera: str) -> list[dict]:
+    f = fold(text)
+    rows: list[dict] = []
+    seen: set[tuple] = set()
+    for titulo, body in iter_ecac_sections(f):
+        section_rows: list[dict] = []
+        if is_omissao_titulo(titulo):
+            section_rows.extend(
+                parse_omissao_periodos(body, titulo or "OMISSAO DE DCTFWEB", origem, arquivo, esfera)
+            )
+        section_rows.extend(_parse_financial_rows_in_body(body, origem, arquivo, esfera, titulo))
+        for row in section_rows:
+            key = _debito_row_key(row)
+            if key not in seen:
+                seen.add(key)
+                rows.append(row)
     return rows
 
 
@@ -485,14 +781,16 @@ def parse_ecac_debitos(
     esfera: str,
     path: Path | None = None,
 ) -> list[dict]:
+    lit_rows: list[dict] = []
     if path is not None and path.exists():
         try:
             lit_rows = parse_ecac_from_literals(pdf_string_literals(path), origem, arquivo, esfera)
-            if lit_rows:
-                return lit_rows
         except Exception:
-            pass
-    return parse_ecac_debitos_regex(text, origem, arquivo, esfera)
+            lit_rows = []
+    regex_rows = parse_ecac_debitos_regex(text, origem, arquivo, esfera)
+    if lit_rows:
+        return merge_ecac_rows(lit_rows, regex_rows)
+    return regex_rows
 
 
 BRL_TOKEN_RE = r"\d{1,3}(?:\.\d{3})*,\d{2}"
