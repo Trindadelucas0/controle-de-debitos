@@ -35,7 +35,7 @@ from extrair_debitos import (  # noqa: E402
 ESFERAS = ("federal", "estadual", "municipal")
 
 DEBITO_ROW_RE = re.compile(
-    r"(?P<code>\d{4}-\d{2})\s*-\s*(?P<nome>[a-z0-9Á-ú /.*]+?)\s+"
+    r"(?P<code>\d{4}-\d{2})\s*-\s*(?P<nome>[a-z0-9Á-ú /.*-]+?)\s+"
     r"(?P<pa>(?:\d{2}/\d{2}/\d{4}|\d{2}/\d{4}|[123]o?\s*trim/\d{4}|[a-zç]{3}/\d{4}))\s+"
     r"(?P<vcto>\d{2}/\d{2}/\d{4})\s+"
     r"(?P<original>[\d.]+,\d{2})\s+"
@@ -43,7 +43,7 @@ DEBITO_ROW_RE = re.compile(
     r"(?P<multa>[\d.]+,\d{2})\s+"
     r"(?P<juros>[\d.]+,\d{2})\s+"
     r"(?P<consolidado>[\d.]+,\d{2})\s+"
-    r"(?P<situacao>devedor|suspenso|ativo|quitado|parcelado)",
+    r"(?P<situacao>devedor|suspenso|ativo|quitado|parcelado|a vencer|a analisar(?:[- ]a vencer)?)",
     re.I,
 )
 
@@ -68,7 +68,7 @@ PA_LIT_RE = re.compile(
 VCTO_LIT_RE = re.compile(r"^\d{2}/\d{2}/\d{4}$")
 BRL_LIT_RE = re.compile(r"^\d{1,3}(?:\.\d{3})*,\d{2}$")
 SITUACAO_LIT_RE = re.compile(
-    r"^(DEVEDOR|SUSPENSO|ATIVO|QUITADO|PARCELADO|A ANALISAR(?:[- ]A VENCER)?)$",
+    r"^(DEVEDOR|SUSPENSO|ATIVO|QUITADO|PARCELADO|A VENCER|A ANALISAR(?:[- ]A VENCER)?)$",
     re.I,
 )
 NOTIF_LANC_RE = re.compile(
@@ -348,16 +348,17 @@ def normalize_ecac_titulo(raw: str) -> str:
         return "OMISSAO DE DCTFWEB"
     if "omissao de dctf" in f:
         return "OMISSAO DE DCTF"
+    # Exigibilidade suspensa antes de Débito (SIEF): o título traz "(SIEF)" no fim.
+    if "parcelamento" in f and "exigibilidade suspensa" in f:
+        return "PARCELAMENTO SUSPENSO"
+    if "inscricao" in f and "exigibilidade suspensa" in f:
+        return "INSCRICAO SUSPENSA"
+    if "debito" in f and "exigibilidade suspensa" in f:
+        return "DEBITO SUSPENSO"
     if "debito" in f and "sief" in f:
         return "DEBITO (SIEF)"
     if "debito" in f and "sida" in f:
         return "DEBITO (SIDA)"
-    if "debito com exigibilidade suspensa" in f:
-        return "DEBITO SUSPENSO"
-    if "inscricao com exigibilidade suspensa" in f:
-        return "INSCRICAO SUSPENSA"
-    if "parcelamento com exigibilidade suspensa" in f:
-        return "PARCELAMENTO SUSPENSO"
     if "divergencia gfip" in f:
         return "DIVERGENCIA GFIP X GPS"
     if "inscricao" in f and "divida" in f:
@@ -387,6 +388,20 @@ def _titulo_is_complete(folded: str) -> bool:
     return len(rest) >= 3
 
 
+def _token_breaks_titulo(token: str) -> bool:
+    stripped = token.strip()
+    if RECEITA_LIT_RE.match(stripped) or SIMPLES_LIT_RE.match(stripped) or PA_LIT_RE.match(stripped):
+        return True
+    if YEAR_MONTHS_RE.match(stripped) or YEAR_ONLY_RE.match(stripped):
+        return True
+    folded = fold(stripped)
+    if "periodo de apuracao" in folded:
+        return True
+    if folded in {"receita", "pa/exerc.", "pa/exerc", "dt. vcto", "situacao", "vl. original"}:
+        return True
+    return False
+
+
 def match_ecac_titulo_at(literals: list[str], i: int) -> tuple[str | None, int]:
     """Detecta título de seção nos literais; retorna (titulo, tokens consumidos)."""
     n = len(literals)
@@ -395,20 +410,23 @@ def match_ecac_titulo_at(literals: list[str], i: int) -> tuple[str | None, int]:
     first = fold(literals[i])
     if not (first.startswith("pendencia") or "exigibilidade suspensa" in first):
         return None, 0
-    max_join = min(5, n - i)
-    best: tuple[str, int] | None = None
+    max_join = min(4, n - i)
     for ntok in range(1, max_join + 1):
         last = literals[i + ntok - 1]
-        if RECEITA_LIT_RE.match(last) or SIMPLES_LIT_RE.match(last) or PA_LIT_RE.match(last):
-            break
+        if ntok > 1:
+            last_fold = fold(last)
+            if _token_breaks_titulo(last):
+                break
+            if last_fold.startswith("pendencia") or "exigibilidade suspensa" in last_fold:
+                break
         combined = " ".join(literals[i : i + ntok])
         folded = fold(combined)
         if not _titulo_is_complete(folded):
             continue
         titulo = normalize_ecac_titulo(combined)
         if titulo and titulo not in {"PENDENCIA", "PENDENCIA -"}:
-            best = (titulo, ntok)
-    return best if best else (None, 0)
+            return titulo, ntok
+    return None, 0
 
 
 def _parse_year_months_at(literals: list[str], i: int) -> tuple[str, list[str], int] | None:
@@ -534,18 +552,24 @@ def iter_ecac_sections(folded: str) -> list[tuple[str | None, str]]:
 
 
 def _debito_row_key(row: dict) -> tuple:
+    if is_omissao_titulo(row.get("titulo")) or row.get("situacao") == "OMISSAO":
+        return ("omissao", row.get("titulo") or "", row.get("pa") or "")
     return (
-        row.get("titulo") or "",
+        "fin",
         row.get("receita") or "",
         row.get("pa") or "",
         row.get("vencimento") or "",
         round(float(row.get("consolidado") or 0), 2),
-        row.get("situacao") or "",
+        (row.get("situacao") or "").upper(),
     )
 
 
 def merge_ecac_rows(primary: list[dict], secondary: list[dict]) -> list[dict]:
-    """Une literais + regex: omissões extras entram antes; o resto depois."""
+    """Une literais + regex: omissões extras entram antes; o resto depois.
+
+    Identidade financeira ignora `titulo` para não duplicar a mesma linha
+    quando o regex (texto CID) atribui a seção errada.
+    """
     seen = {_debito_row_key(row) for row in primary}
     omissao_extra: list[dict] = []
     other_extra: list[dict] = []

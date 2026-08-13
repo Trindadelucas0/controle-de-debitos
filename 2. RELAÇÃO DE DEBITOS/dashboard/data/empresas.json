@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-08-12T14:13:20",
+  "gerado_em": "2026-08-13T13:50:33",
   "competencias": [
     "06-2026"
   ],
@@ -7,280 +7,32 @@
   "snapshots": {
     "06-2026": {
       "competencia": "06-2026",
-      "gerado_em": "2026-08-12T14:13:20",
+      "gerado_em": "2026-08-13T13:50:33",
       "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\06-2026",
       "totais_gerais": {
-        "empresas": 1,
-        "com_pendencia": 1,
+        "empresas": 0,
+        "com_pendencia": 0,
         "regulares": 0,
-        "saldo": 3324.0,
-        "consolidado": 3324.0,
-        "docs_federal": 1,
+        "saldo": 0,
+        "consolidado": 0,
+        "docs_federal": 0,
         "docs_estadual": 0,
         "docs_municipal": 0
       },
-      "empresas": [
-        {
-          "id": "ecac-bem-mais-servicos-de-telecomunicacao-ltda",
-          "nome": "BEM MAIS SERVICOS DE TELECOMUNICACAO LTDA",
-          "cnpj": "26.752.955/0001-99",
-          "codigo": "ECAC",
-          "codigos": [
-            "ECAC"
-          ],
-          "status": "pendencia",
-          "tipos": [
-            "DEBITO_SUSPENSO"
-          ],
-          "totais": {
-            "original": 5970.6,
-            "saldo": 3324.0,
-            "multa": 0.0,
-            "juros": 0.0,
-            "consolidado": 3324.0
-          },
-          "debitos": [
-            {
-              "receita": "1082-01 - CP-SEGUR.",
-              "pa": "05/2026",
-              "vencimento": "19/06/2026",
-              "original": 5970.6,
-              "saldo": 3324.0,
-              "multa": 0.0,
-              "juros": 0.0,
-              "consolidado": 3324.0,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "ECAC-ECAC.pdf",
-              "codigo": "ECAC",
-              "esfera": "federal"
-            }
-          ],
-          "documentos": [
-            {
-              "arquivo": "ECAC-ECAC.pdf",
-              "codigo": "ECAC",
-              "esfera": "federal",
-              "origemLabel": "ECAC",
-              "statusDoc": "pendencia",
-              "debitos": [
-                {
-                  "receita": "1082-01 - CP-SEGUR.",
-                  "pa": "05/2026",
-                  "vencimento": "19/06/2026",
-                  "original": 5970.6,
-                  "saldo": 3324.0,
-                  "multa": 0.0,
-                  "juros": 0.0,
-                  "consolidado": 3324.0,
-                  "situacao": "A ANALISAR-A VENCER",
-                  "origem": "ECAC",
-                  "arquivo": "ECAC-ECAC.pdf",
-                  "codigo": "ECAC",
-                  "esfera": "federal"
-                }
-              ],
-              "totais": {
-                "original": 5970.6,
-                "saldo": 3324.0,
-                "multa": 0.0,
-                "juros": 0.0,
-                "consolidado": 3324.0
-              }
-            }
-          ],
-          "esferas": {
-            "federal": {
-              "qtdDocs": 1,
-              "status": "pendencia",
-              "totais": {
-                "original": 5970.6,
-                "saldo": 3324.0,
-                "multa": 0.0,
-                "juros": 0.0,
-                "consolidado": 3324.0
-              },
-              "arquivos": [
-                "ECAC-ECAC.pdf"
-              ],
-              "qtd_debitos": 1
-            },
-            "estadual": {
-              "qtdDocs": 0,
-              "status": "sem_documento",
-              "totais": {
-                "original": 0.0,
-                "saldo": 0.0,
-                "multa": 0.0,
-                "juros": 0.0,
-                "consolidado": 0.0
-              },
-              "arquivos": [],
-              "qtd_debitos": 0
-            },
-            "municipal": {
-              "qtdDocs": 0,
-              "status": "sem_documento",
-              "totais": {
-                "original": 0.0,
-                "saldo": 0.0,
-                "multa": 0.0,
-                "juros": 0.0,
-                "consolidado": 0.0
-              },
-              "arquivos": [],
-              "qtd_debitos": 0
-            }
-          },
-          "temFederal": true,
-          "temEstadual": false,
-          "temMunicipal": false,
-          "arquivos": [
-            "ECAC-ECAC.pdf"
-          ],
-          "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\06-2026\\pendencias\\BEM MAIS SERVICOS DE TELECOMUNICACAO LTDA",
-          "avisos": [],
-          "qtd_debitos": 1,
-          "competencia": "06-2026"
-        }
-      ]
+      "empresas": []
     }
   },
   "competencia": "06-2026",
   "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\06-2026",
   "totais_gerais": {
-    "empresas": 1,
-    "com_pendencia": 1,
+    "empresas": 0,
+    "com_pendencia": 0,
     "regulares": 0,
-    "saldo": 3324.0,
-    "consolidado": 3324.0,
-    "docs_federal": 1,
+    "saldo": 0,
+    "consolidado": 0,
+    "docs_federal": 0,
     "docs_estadual": 0,
     "docs_municipal": 0
   },
-  "empresas": [
-    {
-      "id": "ecac-bem-mais-servicos-de-telecomunicacao-ltda",
-      "nome": "BEM MAIS SERVICOS DE TELECOMUNICACAO LTDA",
-      "cnpj": "26.752.955/0001-99",
-      "codigo": "ECAC",
-      "codigos": [
-        "ECAC"
-      ],
-      "status": "pendencia",
-      "tipos": [
-        "DEBITO_SUSPENSO"
-      ],
-      "totais": {
-        "original": 5970.6,
-        "saldo": 3324.0,
-        "multa": 0.0,
-        "juros": 0.0,
-        "consolidado": 3324.0
-      },
-      "debitos": [
-        {
-          "receita": "1082-01 - CP-SEGUR.",
-          "pa": "05/2026",
-          "vencimento": "19/06/2026",
-          "original": 5970.6,
-          "saldo": 3324.0,
-          "multa": 0.0,
-          "juros": 0.0,
-          "consolidado": 3324.0,
-          "situacao": "A ANALISAR-A VENCER",
-          "origem": "ECAC",
-          "arquivo": "ECAC-ECAC.pdf",
-          "codigo": "ECAC",
-          "esfera": "federal"
-        }
-      ],
-      "documentos": [
-        {
-          "arquivo": "ECAC-ECAC.pdf",
-          "codigo": "ECAC",
-          "esfera": "federal",
-          "origemLabel": "ECAC",
-          "statusDoc": "pendencia",
-          "debitos": [
-            {
-              "receita": "1082-01 - CP-SEGUR.",
-              "pa": "05/2026",
-              "vencimento": "19/06/2026",
-              "original": 5970.6,
-              "saldo": 3324.0,
-              "multa": 0.0,
-              "juros": 0.0,
-              "consolidado": 3324.0,
-              "situacao": "A ANALISAR-A VENCER",
-              "origem": "ECAC",
-              "arquivo": "ECAC-ECAC.pdf",
-              "codigo": "ECAC",
-              "esfera": "federal"
-            }
-          ],
-          "totais": {
-            "original": 5970.6,
-            "saldo": 3324.0,
-            "multa": 0.0,
-            "juros": 0.0,
-            "consolidado": 3324.0
-          }
-        }
-      ],
-      "esferas": {
-        "federal": {
-          "qtdDocs": 1,
-          "status": "pendencia",
-          "totais": {
-            "original": 5970.6,
-            "saldo": 3324.0,
-            "multa": 0.0,
-            "juros": 0.0,
-            "consolidado": 3324.0
-          },
-          "arquivos": [
-            "ECAC-ECAC.pdf"
-          ],
-          "qtd_debitos": 1
-        },
-        "estadual": {
-          "qtdDocs": 0,
-          "status": "sem_documento",
-          "totais": {
-            "original": 0.0,
-            "saldo": 0.0,
-            "multa": 0.0,
-            "juros": 0.0,
-            "consolidado": 0.0
-          },
-          "arquivos": [],
-          "qtd_debitos": 0
-        },
-        "municipal": {
-          "qtdDocs": 0,
-          "status": "sem_documento",
-          "totais": {
-            "original": 0.0,
-            "saldo": 0.0,
-            "multa": 0.0,
-            "juros": 0.0,
-            "consolidado": 0.0
-          },
-          "arquivos": [],
-          "qtd_debitos": 0
-        }
-      },
-      "temFederal": true,
-      "temEstadual": false,
-      "temMunicipal": false,
-      "arquivos": [
-        "ECAC-ECAC.pdf"
-      ],
-      "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\06-2026\\pendencias\\BEM MAIS SERVICOS DE TELECOMUNICACAO LTDA",
-      "avisos": [],
-      "qtd_debitos": 1,
-      "competencia": "06-2026"
-    }
-  ]
+  "empresas": []
 }

@@ -613,17 +613,19 @@ function DebitosTableBlock({
           </tbody>
         </table>
       </div>
-      <PaginationBar
-        pageIndex={table.getState().pagination.pageIndex}
-        pageCount={table.getPageCount()}
-        pageSize={table.getState().pagination.pageSize}
-        totalRows={debitos.length}
-        canPreviousPage={table.getCanPreviousPage()}
-        canNextPage={table.getCanNextPage()}
-        onPrevious={() => table.previousPage()}
-        onNext={() => table.nextPage()}
-        onPageSizeChange={(size) => table.setPageSize(size)}
-      />
+      {debitos.length > pagination.pageSize || table.getPageCount() > 1 ? (
+        <PaginationBar
+          pageIndex={table.getState().pagination.pageIndex}
+          pageCount={table.getPageCount()}
+          pageSize={table.getState().pagination.pageSize}
+          totalRows={debitos.length}
+          canPreviousPage={table.getCanPreviousPage()}
+          canNextPage={table.getCanNextPage()}
+          onPrevious={() => table.previousPage()}
+          onNext={() => table.nextPage()}
+          onPageSizeChange={(size) => table.setPageSize(size)}
+        />
+      ) : null}
     </div>
   );
 }
