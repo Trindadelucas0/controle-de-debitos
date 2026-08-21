@@ -367,7 +367,7 @@ export function gerarCompetencia(de: string, para: string): ParcelamentosData {
   const origemMap = data.porCompetencia[from] ?? {};
   const novoMap: Record<string, CompetenciaRegistro> = {};
   for (const emp of data.empresas) {
-    novoMap[emp.id] = cloneRegistroParaNovaCompetencia(origemMap[emp.id]);
+    novoMap[emp.id] = cloneRegistroParaNovaCompetencia(origemMap[emp.id], to);
   }
 
   const competencias = sortCompetencias([...data.competencias, to]);

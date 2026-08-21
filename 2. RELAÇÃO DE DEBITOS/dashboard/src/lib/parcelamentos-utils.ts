@@ -145,6 +145,132 @@ export function formatVencimentoBr(iso: string | null | undefined): string {
   return `${d}/${m}/${y}`;
 }
 
+/** Tipos cujo vencimento é o último dia útil do mês da competência. */
+export const TIPOS_VENCIMENTO_AUTOMATICO: ReadonlySet<ParcelamentoTipo> = new Set([
+  "pgfn",
+  "sn",
+  "sn_pert",
+]);
+
+/** Checkboxes do formulário Nova empresa (sem "outro"). */
+export const PARCELAMENTO_TIPO_CHECKBOX_OPTIONS: ParcelamentoTipo[] = [
+  "pgfn",
+  "sn",
+  "sn_pert",
+  "municipal",
+  "estadual",
+];
+
+export function isTipoVencimentoAutomatico(
+  tipo: string | null | undefined,
+): tipo is "pgfn" | "sn" | "sn_pert" {
+  return tipo === "pgfn" || tipo === "sn" || tipo === "sn_pert";
+}
+
+function toIsoDateLocal(year: number, month1to12: number, day: number): string {
+  const y = String(year);
+  const m = String(month1to12).padStart(2, "0");
+  const d = String(day).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** Algoritmo de Meeus/Jones/Butcher — Páscoa no calendário gregoriano. */
+function pascoaGregoriana(year: number): { month: number; day: number } {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return { month, day };
+}
+
+function addDaysIso(iso: string, deltaDays: number): string {
+  const d = new Date(`${iso}T12:00:00`);
+  d.setDate(d.getDate() + deltaDays);
+  return toIsoDateLocal(d.getFullYear(), d.getMonth() + 1, d.getDate());
+}
+
+/** Feriados nacionais (fixos + móveis do calendário bancário). */
+export function feriadosNacionaisDoAno(year: number): Set<string> {
+  const set = new Set<string>();
+  const fixos: Array<[number, number]> = [
+    [1, 1], // Confraternização Universal
+    [4, 21], // Tiradentes
+    [5, 1], // Dia do Trabalho
+    [9, 7], // Independência
+    [10, 12], // Nossa Senhora Aparecida
+    [11, 2], // Finados
+    [11, 15], // Proclamação da República
+    [11, 20], // Consciência Negra
+    [12, 25], // Natal
+  ];
+  for (const [month, day] of fixos) {
+    set.add(toIsoDateLocal(year, month, day));
+  }
+
+  const pascoa = pascoaGregoriana(year);
+  const pascoaIso = toIsoDateLocal(year, pascoa.month, pascoa.day);
+  set.add(addDaysIso(pascoaIso, -48)); // Carnaval (segunda)
+  set.add(addDaysIso(pascoaIso, -47)); // Carnaval (terça)
+  set.add(addDaysIso(pascoaIso, -2)); // Sexta-feira Santa
+  set.add(addDaysIso(pascoaIso, 60)); // Corpus Christi
+
+  return set;
+}
+
+export function isDiaUtil(iso: string, feriados?: Set<string>): boolean {
+  if (!isValidIsoDate(iso)) return false;
+  const d = new Date(`${iso}T12:00:00`);
+  const dow = d.getDay();
+  if (dow === 0 || dow === 6) return false;
+  const year = d.getFullYear();
+  const set = feriados ?? feriadosNacionaisDoAno(year);
+  return !set.has(iso);
+}
+
+/**
+ * Último dia útil do mês da competência (MM-YYYY).
+ * Pula sábado, domingo e feriados nacionais.
+ */
+export function ultimoDiaUtilDoMes(competencia: string): string {
+  const match = /^(\d{2})-(\d{4})$/.exec((competencia || "").trim());
+  if (!match) return "";
+  const month = Number(match[1]);
+  const year = Number(match[2]);
+  if (!Number.isFinite(month) || !Number.isFinite(year) || month < 1 || month > 12) {
+    return "";
+  }
+
+  const lastDay = new Date(year, month, 0).getDate();
+  const feriados = feriadosNacionaisDoAno(year);
+  for (let day = lastDay; day >= 1; day -= 1) {
+    const iso = toIsoDateLocal(year, month, day);
+    if (isDiaUtil(iso, feriados)) return iso;
+  }
+  return "";
+}
+
+/**
+ * Vencimento sugerido pelo tipo: ISO para PGFN/SN/SN PERT;
+ * string vazia para municipal/estadual/outro/vazio.
+ */
+export function vencimentoAutomaticoPorTipo(
+  tipo: string | null | undefined,
+  competencia: string,
+): string {
+  if (!isTipoVencimentoAutomatico(tipo)) return "";
+  return ultimoDiaUtilDoMes(competencia);
+}
+
 export function sortEmpresasParcelamento(
   items: EmpresaParcelamento[],
 ): EmpresaParcelamento[] {
@@ -258,15 +384,24 @@ export function normalizeRegistro(
   };
 }
 
-/** Copia status/tipo para nova competência; zera acordo. */
+/**
+ * Copia status/tipo para nova competência; zera total.
+ * Se o tipo tiver vencimento automático, preenche o último dia útil do mês novo.
+ */
 export function cloneRegistroParaNovaCompetencia(
   from: CompetenciaRegistro | undefined,
+  competenciaNova?: string,
 ): CompetenciaRegistro {
+  const tipo = from?.tipo;
+  const vencAuto =
+    tipo && competenciaNova
+      ? vencimentoAutomaticoPorTipo(tipo, competenciaNova)
+      : "";
   return {
     status: from?.status ?? "ok",
-    ...(from?.tipo ? { tipo: from.tipo } : {}),
+    ...(tipo ? { tipo } : {}),
     totalParcelas: null,
-    vencimento: null,
+    vencimento: vencAuto || null,
     atualizadoEm: new Date().toISOString(),
   };
 }

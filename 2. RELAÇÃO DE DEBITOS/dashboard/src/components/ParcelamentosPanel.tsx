@@ -19,11 +19,14 @@ import { formatCnpj } from "@/lib/format";
 import {
   PARCELAMENTO_STATUS_LABELS,
   PARCELAMENTO_STATUS_OPTIONS,
+  PARCELAMENTO_TIPO_CHECKBOX_OPTIONS,
   PARCELAMENTO_TIPO_LABELS,
   PARCELAMENTO_TIPO_OPTIONS,
   buildCardView,
   digitsCnpj,
+  isTipoVencimentoAutomatico,
   isValidCompetencia,
+  vencimentoAutomaticoPorTipo,
 } from "@/lib/parcelamentos-utils";
 import type {
   CompetenciaRegistro,
@@ -56,6 +59,8 @@ type NovaEmpresaForm = {
   cnpj: string;
   numeroParcelamento: string;
   status: ParcelamentoStatus;
+  tipo: ParcelamentoTipo | "";
+  vencimento: string;
 };
 
 type EditEmpresaForm = {
@@ -88,6 +93,8 @@ function emptyNova(): NovaEmpresaForm {
     cnpj: "",
     numeroParcelamento: "",
     status: "ok",
+    tipo: "",
+    vencimento: "",
   };
 }
 
@@ -272,7 +279,11 @@ export function ParcelamentosPanel({
             cnpj: nova.cnpj,
             numeroParcelamento: nova.numeroParcelamento,
           },
-          registro: { status: nova.status },
+          registro: {
+            status: nova.status,
+            tipo: nova.tipo || undefined,
+            vencimento: nova.vencimento || null,
+          },
         }),
       });
       const data = (await res.json()) as {
@@ -493,7 +504,8 @@ export function ParcelamentosPanel({
               {" "}
               Use <strong>Gerar competência</strong> a partir de{" "}
               {formatCompetencia(comps[comps.length - 1])} para trazer as mesmas
-              empresas (Nº fixo da empresa; total/vencimento em branco).
+              empresas (Nº fixo da empresa; total em branco; vencimento automático
+              conforme o tipo).
             </>
           ) : null}
         </div>
@@ -511,8 +523,9 @@ export function ParcelamentosPanel({
             Gerar nova competência
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Copia status/tipo. Nº parcelamento permanece o da empresa. Total e
-            vencimento ficam em branco.
+            Copia status/tipo. Nº parcelamento permanece o da empresa. Total fica
+            em branco. PGFN / SN / SN PERT já recebem o último dia útil do mês
+            novo; municipal e estadual ficam sem vencimento.
           </p>
           <div className="mt-3 flex flex-wrap items-end gap-2">
             <label className="space-y-1">
@@ -593,6 +606,59 @@ export function ParcelamentosPanel({
                   </option>
                 ))}
               </select>
+            </label>
+            <fieldset className="space-y-2 sm:col-span-2 lg:col-span-3">
+              <legend className="text-sm font-medium">Tipo de parcelamento</legend>
+              <p className="text-xs text-muted-foreground">
+                PGFN, SN e SN PERT preenchem o vencimento com o último dia útil
+                do mês. Municipal e estadual pedem data manual.
+              </p>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {PARCELAMENTO_TIPO_CHECKBOX_OPTIONS.map((t) => (
+                  <label
+                    key={t}
+                    className="flex cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      className="size-4 rounded border-black/20"
+                      checked={nova.tipo === t}
+                      onChange={() => {
+                        const nextTipo = nova.tipo === t ? "" : t;
+                        setNova((f) => ({
+                          ...f,
+                          tipo: nextTipo,
+                          vencimento: vencimentoAutomaticoPorTipo(
+                            nextTipo,
+                            competencia,
+                          ),
+                        }));
+                      }}
+                    />
+                    <span>{PARCELAMENTO_TIPO_LABELS[t]}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <label className="space-y-1">
+              <span className="text-sm font-medium">Vencimento</span>
+              <Input
+                type="date"
+                value={nova.vencimento}
+                onChange={(e) =>
+                  setNova((f) => ({ ...f, vencimento: e.target.value }))
+                }
+              />
+              {isTipoVencimentoAutomatico(nova.tipo) ? (
+                <span className="block text-xs text-muted-foreground">
+                  Preenchido automaticamente (último dia útil). Você pode
+                  ajustar.
+                </span>
+              ) : nova.tipo === "municipal" || nova.tipo === "estadual" ? (
+                <span className="block text-xs text-muted-foreground">
+                  Preenchimento manual.
+                </span>
+              ) : null}
             </label>
           </div>
           <div className="mt-3 flex gap-2">
@@ -796,7 +862,16 @@ export function ParcelamentosPanel({
                     <select
                       className={selectClass}
                       value={draft.tipo}
-                      onChange={(e) => updateDraft(id, { tipo: e.target.value })}
+                      onChange={(e) => {
+                        const nextTipo = e.target.value;
+                        updateDraft(id, {
+                          tipo: nextTipo,
+                          vencimento: vencimentoAutomaticoPorTipo(
+                            nextTipo,
+                            competencia,
+                          ),
+                        });
+                      }}
                     >
                       <option value="">—</option>
                       {PARCELAMENTO_TIPO_OPTIONS.map((t) => (
