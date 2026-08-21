@@ -1,0 +1,492 @@
+{
+  "gerado_em": "2026-08-21",
+  "origem": "Seed da planilha de parcelamentos (empresas únicas por CNPJ)",
+  "empresas": [
+    {
+      "id": "emp-027",
+      "cod": "27",
+      "empresa": "BELEZA MARKET COMERCIO DE COSMETICOS EIRELI",
+      "cnpj": "31605928000123"
+    },
+    {
+      "id": "emp-177",
+      "cod": "177",
+      "empresa": "BRITTO E DINIZ CLINICA DE ESTETICA LTDA",
+      "grupo": "DR LASER",
+      "cnpj": "32752692000110"
+    },
+    {
+      "id": "emp-039",
+      "cod": "39",
+      "empresa": "BRUNNA LETTIERI ATELIER LTDA",
+      "cnpj": "34599448000195"
+    },
+    {
+      "id": "emp-172",
+      "cod": "172",
+      "empresa": "CIDADE DEPILACAO A LASER LTDA",
+      "grupo": "DR LASER",
+      "cnpj": "11727080000106"
+    },
+    {
+      "id": "emp-176",
+      "cod": "176",
+      "empresa": "CLINICA BRITTO ESTETICA E DEPILACAO LTDA",
+      "grupo": "DR LASER",
+      "cnpj": "32752762000130"
+    },
+    {
+      "id": "emp-175",
+      "cod": "175",
+      "empresa": "CLINICA DE ESTETICA DR LASER MACEIO LTDA",
+      "grupo": "DR LASER",
+      "cnpj": "41621253000160"
+    },
+    {
+      "id": "emp-088",
+      "cod": "88",
+      "empresa": "COELHO E MENDES COMERCIO VAREJISTA DE DOCES LTDA",
+      "cnpj": "42127003000130"
+    },
+    {
+      "id": "emp-080",
+      "cod": "80",
+      "empresa": "COMERCIAL AVICOLA PROGRESSO LTDA",
+      "cnpj": "00598375000103"
+    },
+    {
+      "id": "emp-071",
+      "cod": "71",
+      "empresa": "DALMAR EMPREENDIMENTOS IMOBILIARIOS LTDA",
+      "cnpj": "00472761000146"
+    },
+    {
+      "id": "emp-216",
+      "cod": "216",
+      "empresa": "DR LASER TAGUATINGA LTDA",
+      "grupo": "DR LASER",
+      "cnpj": "50824393000126"
+    },
+    {
+      "id": "emp-031",
+      "cod": "31",
+      "empresa": "E-COMMERCE.ONLINE COSMETICOS LTDA",
+      "cnpj": "35273346000148"
+    },
+    {
+      "id": "emp-092",
+      "cod": "92",
+      "empresa": "ETICA COMERCIO VAREJISTA DE TINTAS LTDA",
+      "grupo": "DAUTO",
+      "cnpj": "47444446000262",
+      "numeroParcelamento": "62.055935000.96"
+    },
+    {
+      "id": "emp-035",
+      "cod": "35",
+      "empresa": "GALLUS FRANGO AMERICANO E HAMBURGUERIA LTDA",
+      "cnpj": "46921180000145"
+    },
+    {
+      "id": "emp-170",
+      "cod": "170",
+      "empresa": "GIOVANNA CONCEICAO DE BRITTO SOUZA DINIZ",
+      "grupo": "DR LASER",
+      "cnpj": "16706283000121"
+    },
+    {
+      "id": "emp-105",
+      "cod": "105",
+      "empresa": "IARA LIANDRO DO NASCIMENTO COUTINHO",
+      "cnpj": "29735943000144"
+    },
+    {
+      "id": "emp-190",
+      "cod": "190",
+      "empresa": "J C DOS SANTOS RIBEIRO BARBEARIA",
+      "cnpj": "32805487000176"
+    },
+    {
+      "id": "emp-711",
+      "cod": "711",
+      "empresa": "JPG PRODUTOS FUNCIONAIS E NUTRICIONAIS LTDA",
+      "cnpj": "21051983000165"
+    },
+    {
+      "id": "emp-166",
+      "cod": "166",
+      "empresa": "KANNEL PORTAS AUTOMATICAS COMERCIO E SERVICOS LTDA",
+      "cnpj": "46261153000193"
+    },
+    {
+      "id": "emp-040",
+      "cod": "40",
+      "empresa": "LH PORTAS AUTOMATICAS LTDA",
+      "cnpj": "44601860000156"
+    },
+    {
+      "id": "emp-096",
+      "cod": "96",
+      "empresa": "LOJA DAS MAQUINAS E FERRAMENTAS LTDA",
+      "cnpj": "13983066000190"
+    },
+    {
+      "id": "emp-067",
+      "cod": "67",
+      "empresa": "MERCADO DAS TINTAS EIRELI",
+      "grupo": "DAUTO",
+      "cnpj": "72628407000179"
+    },
+    {
+      "id": "emp-048",
+      "cod": "48",
+      "empresa": "MESOCLINIC ESTETICA AVANCADA DE COSMETICOS EIRELI",
+      "cnpj": "37116516000106"
+    },
+    {
+      "id": "emp-020",
+      "cod": "20",
+      "empresa": "SO TEMPERO AGROINDUSTRIA LTDA",
+      "cnpj": "09452078000111"
+    },
+    {
+      "id": "emp-128",
+      "cod": "128",
+      "empresa": "STEEL PORTAS DE ACO AUTOMATICAS DE ENROLAR LTDA",
+      "cnpj": "44229463000103"
+    },
+    {
+      "id": "emp-073",
+      "cod": "73",
+      "empresa": "TAVARES SOBRADINHO COMERCIO DE MATERIAIS DE CONSTRUCAO EIRELI",
+      "cnpj": "40601329000122"
+    },
+    {
+      "id": "emp-021",
+      "cod": "21",
+      "empresa": "THE MINAS GASTRO BAR LTDA",
+      "cnpj": "53870461000181"
+    },
+    {
+      "id": "emp-004",
+      "cod": "4",
+      "empresa": "VALDECIR SILVA SOARES REPRESENTACOES",
+      "cnpj": "08314103000138"
+    }
+  ],
+  "competencias": [
+    "08-2026",
+    "09-2026"
+  ],
+  "atual": "09-2026",
+  "porCompetencia": {
+    "08-2026": {
+      "emp-004": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "inicioCompetencia": "08-2026",
+        "atualizadoEm": "2026-08-20T18:00:16.635Z"
+      },
+      "emp-020": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-021": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-027": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "inicioCompetencia": "08-2026",
+        "atualizadoEm": "2026-08-21T12:26:53.899Z"
+      },
+      "emp-031": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-035": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-039": {
+        "status": "cancelado",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-040": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-048": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-067": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-071": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-073": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-080": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-088": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-092": {
+        "status": "ok",
+        "totalParcelas": 24,
+        "vencimento": "2026-08-20",
+        "inicioCompetencia": "08-2026",
+        "atualizadoEm": "2026-08-20T19:24:13.798Z"
+      },
+      "emp-096": {
+        "status": "atencao",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-105": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-128": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-166": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-170": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-172": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-175": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-176": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-177": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-190": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-216": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null
+      },
+      "emp-711": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null
+      }
+    },
+    "09-2026": {
+      "emp-027": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-177": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-039": {
+        "status": "cancelado",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-172": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-176": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-175": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-088": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-080": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-071": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-216": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-031": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-092": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-035": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-170": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-105": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-190": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-711": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-166": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-040": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-096": {
+        "status": "atencao",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-067": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-048": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-020": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-128": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-073": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-021": {
+        "status": "ok",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      },
+      "emp-004": {
+        "status": "ok",
+        "tipo": "municipal",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      }
+    }
+  }
+}

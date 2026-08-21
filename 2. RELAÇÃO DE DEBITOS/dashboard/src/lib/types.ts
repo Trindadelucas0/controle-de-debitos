@@ -123,3 +123,63 @@ export type DashboardData = {
   totais_gerais: TotaisGerais;
   empresas: Empresa[];
 };
+
+/** Controle operacional de parcelamentos (módulo dedicado). */
+export type ParcelamentoStatus = "ok" | "saiu" | "cancelado" | "atencao";
+
+export type ParcelamentoTipo =
+  | "municipal"
+  | "estadual"
+  | "pgfn"
+  | "sn"
+  | "sn_pert"
+  | "outro";
+
+/** Empresa no catálogo de parcelamentos (identidade fixa). */
+export type EmpresaParcelamento = {
+  id: string;
+  cod?: string;
+  empresa: string;
+  grupo?: string;
+  cnpj: string;
+  /** Nº do acordo — fixo no cadastro da empresa. */
+  numeroParcelamento?: string;
+};
+
+/** Preenchimento mensal por empresa. */
+export type CompetenciaRegistro = {
+  status: ParcelamentoStatus;
+  tipo?: ParcelamentoTipo;
+  totalParcelas?: number | null;
+  vencimento?: string | null;
+  /** Base MM-YYYY para calcular parcela atual (default = competência do preenchimento). */
+  inicioCompetencia?: string;
+  observacao?: string;
+  atualizadoEm?: string;
+};
+
+export type ParcelamentosData = {
+  gerado_em?: string;
+  origem?: string;
+  empresas: EmpresaParcelamento[];
+  competencias: string[];
+  atual: string;
+  porCompetencia: Record<string, Record<string, CompetenciaRegistro>>;
+};
+
+/** @deprecated Modelo antigo (lista plana) — mantido só para tipagem de migração. */
+export type Parcelamento = {
+  id: string;
+  cod?: string;
+  empresa: string;
+  grupo?: string;
+  cnpj: string;
+  tipo: ParcelamentoTipo;
+  status: ParcelamentoStatus;
+  numeroParcelamento: string;
+  totalParcelas: number;
+  vencimento: string;
+  inicioCompetencia: string;
+  observacao?: string;
+  atualizadoEm: string;
+};

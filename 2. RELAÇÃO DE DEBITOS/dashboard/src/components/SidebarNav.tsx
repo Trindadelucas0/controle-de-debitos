@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   Building2,
+  CalendarClock,
   ClipboardList,
   FileUp,
   Landmark,
@@ -47,6 +48,7 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
   const isHome = pathname === "/";
   const isUpload = pathname.startsWith("/upload");
   const isConsultas = pathname.startsWith("/consultas");
+  const isParcelamentos = pathname.startsWith("/parcelamentos");
   const esferaAtiva = searchParams.get("esfera");
   const fromQs = searchParams.get("competencia");
   const list = sortCompetencias(competencias);
@@ -89,6 +91,14 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
         icon: ClipboardList,
         group: "main",
       },
+      {
+        id: "parcelamentos",
+        label: "Parcelamentos",
+        href: withCompetencia("/parcelamentos"),
+        active: isParcelamentos,
+        icon: CalendarClock,
+        group: "main",
+      },
       ...ESFERAS.map((esfera) => ({
         id: esfera,
         label: ESFERA_LABELS[esfera],
@@ -98,7 +108,7 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
         group: "esferas" as const,
       })),
     ],
-    [withCompetencia, isHome, isUpload, isConsultas, esferaAtiva],
+    [withCompetencia, isHome, isUpload, isConsultas, isParcelamentos, esferaAtiva],
   );
 
   const filtered = useMemo(() => {
