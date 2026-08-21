@@ -5,11 +5,14 @@ import type {
   ParcelamentoTipo,
 } from "@/lib/types";
 
+export const PARCELAMENTO_STATUS_DEFAULT: ParcelamentoStatus = "ativo";
+
 export const PARCELAMENTO_STATUS_LABELS: Record<ParcelamentoStatus, string> = {
-  ok: "OK",
-  saiu: "Saiu",
-  cancelado: "Cancelado",
-  atencao: "Atenção",
+  ativo: "Ativo",
+  encerrado: "Encerrado",
+  saiu: "Saiu da contabilidade",
+  erro_emissao: "Erro na emissão",
+  cancelado: "Cancelado por falta de pagamento",
 };
 
 export const PARCELAMENTO_TIPO_LABELS: Record<ParcelamentoTipo, string> = {
@@ -22,9 +25,10 @@ export const PARCELAMENTO_TIPO_LABELS: Record<ParcelamentoTipo, string> = {
 };
 
 export const PARCELAMENTO_STATUS_OPTIONS: ParcelamentoStatus[] = [
-  "ok",
-  "atencao",
+  "ativo",
+  "encerrado",
   "saiu",
+  "erro_emissao",
   "cancelado",
 ];
 
@@ -42,10 +46,11 @@ export const STATUS_EXCEL_COLORS: Record<
   ParcelamentoStatus,
   { argb: string; fontArgb: string }
 > = {
-  ok: { argb: "FFC6EFCE", fontArgb: "FF006100" },
+  ativo: { argb: "FFC6EFCE", fontArgb: "FF006100" },
+  encerrado: { argb: "FFBDD7EE", fontArgb: "FF1F4E79" },
   saiu: { argb: "FFD9D9D9", fontArgb: "FF595959" },
+  erro_emissao: { argb: "FFFFEB9C", fontArgb: "FF9C5700" },
   cancelado: { argb: "FFFFC7CE", fontArgb: "FF9C0006" },
-  atencao: { argb: "FFFFEB9C", fontArgb: "FF9C5700" },
 };
 
 export function digitsCnpj(value: string | null | undefined): string {
@@ -70,8 +75,65 @@ export function competenciaToIndex(competencia: string): number | null {
   return year * 12 + (month - 1);
 }
 
+export function indexToCompetencia(index: number): string {
+  const year = Math.floor(index / 12);
+  const month = (index % 12) + 1;
+  return `${String(month).padStart(2, "0")}-${year}`;
+}
+
 export function isValidCompetencia(value: string): boolean {
   return competenciaToIndex(value) != null;
+}
+
+/** Limite de segurança para total de parcelas / geração de meses. */
+export const MAX_TOTAL_PARCELAS = 120;
+
+/**
+ * Soma (ou subtrai) meses a uma competência MM-YYYY.
+ * Retorna "" se a competência for inválida.
+ */
+export function addMesesCompetencia(competencia: string, delta: number): string {
+  const idx = competenciaToIndex(competencia);
+  if (idx == null || !Number.isFinite(delta)) return "";
+  return indexToCompetencia(idx + Math.trunc(delta));
+}
+
+/**
+ * Início do acordo: competência atual menos (parcelaAtual - 1) meses.
+ */
+export function calcInicioCompetencia(
+  competenciaAtual: string,
+  parcelaAtual: number,
+): string {
+  const p = Math.floor(Number(parcelaAtual));
+  if (!Number.isFinite(p) || p < 1) return "";
+  return addMesesCompetencia(competenciaAtual, -(p - 1));
+}
+
+/**
+ * Último mês de pagamento: competência atual mais (total - parcelaAtual) meses.
+ */
+export function calcUltimaCompetencia(
+  competenciaAtual: string,
+  parcelaAtual: number,
+  totalParcelas: number,
+): string {
+  const p = Math.floor(Number(parcelaAtual));
+  const t = Math.floor(Number(totalParcelas));
+  if (!Number.isFinite(p) || !Number.isFinite(t) || p < 1 || t < 1 || p > t) {
+    return "";
+  }
+  return addMesesCompetencia(competenciaAtual, t - p);
+}
+
+export function parseParcelaPositiva(value: unknown): number | null {
+  if (value === "" || value == null) return null;
+  const n =
+    typeof value === "string"
+      ? Number(String(value).replace(/\D/g, ""))
+      : Number(value);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return Math.floor(n);
 }
 
 export function isValidIsoDate(value: string): boolean {
@@ -101,12 +163,42 @@ export function calcParcelaAtual(
   return clamp(1 + diff, 1, total);
 }
 
+export function isParcelamentoSemAberto(status: ParcelamentoStatus): boolean {
+  return status === "cancelado" || status === "saiu" || status === "encerrado";
+}
+
+/**
+ * Empresa aparece na grade do mês se tem acordo válido cobrindo a competência
+ * (total preenchido, não encerrada/saiu/cancelada, e o mês está no intervalo do cronograma).
+ */
+export function empresaTemParcelamentoNoMes(
+  registro: CompetenciaRegistro | undefined | null,
+  competencia: string,
+): boolean {
+  if (!registro) return false;
+  const status =
+    parseParcelamentoStatus(registro.status) ?? PARCELAMENTO_STATUS_DEFAULT;
+  if (isParcelamentoSemAberto(status)) return false;
+
+  const total = registro.totalParcelas;
+  if (total == null || !Number.isFinite(total) || total < 1) return false;
+  if (!isValidCompetencia(competencia)) return false;
+
+  const inicio = registro.inicioCompetencia || competencia;
+  if (!isValidCompetencia(inicio)) return false;
+
+  const diff = mesesEntre(inicio, competencia);
+  // Mês antes do início ou depois da última parcela → fora do cronograma.
+  if (diff < 0 || diff >= Math.floor(total)) return false;
+  return true;
+}
+
 export function calcParcelasEmAberto(
   status: ParcelamentoStatus,
   totalParcelas: number | null | undefined,
   parcelaAtual: number,
 ): number | null {
-  if (status === "cancelado" || status === "saiu") return 0;
+  if (isParcelamentoSemAberto(status)) return 0;
   if (totalParcelas == null || !Number.isFinite(totalParcelas) || totalParcelas < 1) {
     return null;
   }
@@ -121,11 +213,24 @@ export function currentCompetenciaId(date = new Date()): string {
 
 export function isParcelamentoStatus(value: unknown): value is ParcelamentoStatus {
   return (
-    value === "ok" ||
+    value === "ativo" ||
+    value === "encerrado" ||
     value === "saiu" ||
-    value === "cancelado" ||
-    value === "atencao"
+    value === "erro_emissao" ||
+    value === "cancelado"
   );
+}
+
+const LEGACY_PARCELAMENTO_STATUS: Record<string, ParcelamentoStatus> = {
+  ok: "ativo",
+  atencao: "erro_emissao",
+};
+
+/** Aceita situação atual e valores antigos (ok/atenção). */
+export function parseParcelamentoStatus(value: unknown): ParcelamentoStatus | null {
+  if (typeof value !== "string") return null;
+  if (isParcelamentoStatus(value)) return value;
+  return LEGACY_PARCELAMENTO_STATUS[value] ?? null;
 }
 
 export function isParcelamentoTipo(value: unknown): value is ParcelamentoTipo {
@@ -325,13 +430,15 @@ export type RegistroInput = Partial<
 > & {
   tipo?: ParcelamentoTipo | "" | null;
   totalParcelas?: number | string | null;
+  /** Informada na UI; o servidor deriva inicioCompetencia. */
+  parcelaAtual?: number | string | null;
 };
 
 export function normalizeRegistro(
   input: RegistroInput,
-  fallbackStatus: ParcelamentoStatus = "ok",
+  fallbackStatus: ParcelamentoStatus = PARCELAMENTO_STATUS_DEFAULT,
 ): CompetenciaRegistro {
-  const status = isParcelamentoStatus(input.status) ? input.status : fallbackStatus;
+  const status = parseParcelamentoStatus(input.status) ?? fallbackStatus;
 
   let tipo: ParcelamentoTipo | undefined;
   if (input.tipo === "" || input.tipo == null) tipo = undefined;
@@ -385,7 +492,7 @@ export function normalizeRegistro(
 }
 
 /**
- * Copia status/tipo para nova competência; zera total.
+ * Copia situação/tipo para nova competência; zera total.
  * Se o tipo tiver vencimento automático, preenche o último dia útil do mês novo.
  */
 export function cloneRegistroParaNovaCompetencia(
@@ -398,7 +505,7 @@ export function cloneRegistroParaNovaCompetencia(
       ? vencimentoAutomaticoPorTipo(tipo, competenciaNova)
       : "";
   return {
-    status: from?.status ?? "ok",
+    status: parseParcelamentoStatus(from?.status) ?? PARCELAMENTO_STATUS_DEFAULT,
     ...(tipo ? { tipo } : {}),
     totalParcelas: null,
     vencimento: vencAuto || null,
@@ -411,30 +518,58 @@ export type CardView = {
   registro: CompetenciaRegistro;
   parcelaAtual: number | null;
   parcelasEmAberto: number | null;
+  /** Último mês de pagamento (MM-YYYY), se total e parcela forem conhecidos. */
+  ultimaCompetencia: string | null;
 };
 
 export function buildCardView(
   empresa: EmpresaParcelamento,
   registro: CompetenciaRegistro | undefined,
   competencia: string,
+  opts?: { parcelaAtualOverride?: number | null },
 ): CardView {
-  const reg: CompetenciaRegistro = registro ?? {
-    status: "ok",
-    totalParcelas: null,
-    vencimento: null,
-  };
+  const parsedStatus =
+    parseParcelamentoStatus(registro?.status) ?? PARCELAMENTO_STATUS_DEFAULT;
+  const reg: CompetenciaRegistro = registro
+    ? { ...registro, status: parsedStatus }
+    : {
+        status: parsedStatus,
+        totalParcelas: null,
+        vencimento: null,
+      };
   const total = reg.totalParcelas;
   const inicio = reg.inicioCompetencia || competencia;
-  const parcelaAtual =
-    total != null && total >= 1
-      ? calcParcelaAtual(inicio, competencia, total)
-      : null;
+  let parcelaAtual: number | null = null;
+  if (
+    opts?.parcelaAtualOverride != null &&
+    Number.isFinite(opts.parcelaAtualOverride) &&
+    opts.parcelaAtualOverride >= 1
+  ) {
+    parcelaAtual =
+      total != null && total >= 1
+        ? clamp(Math.floor(opts.parcelaAtualOverride), 1, total)
+        : Math.floor(opts.parcelaAtualOverride);
+  } else if (total != null && total >= 1) {
+    parcelaAtual = calcParcelaAtual(inicio, competencia, total);
+  }
+
   const parcelasEmAberto =
     parcelaAtual != null
       ? calcParcelasEmAberto(reg.status, total, parcelaAtual)
-      : reg.status === "cancelado" || reg.status === "saiu"
+      : isParcelamentoSemAberto(reg.status)
         ? 0
         : null;
 
-  return { empresa, registro: reg, parcelaAtual, parcelasEmAberto };
+  const ultimaCompetencia =
+    total != null && total >= 1 && parcelaAtual != null
+      ? calcUltimaCompetencia(competencia, parcelaAtual, total) || null
+      : null;
+
+  return {
+    empresa,
+    registro: reg,
+    parcelaAtual,
+    parcelasEmAberto,
+    ultimaCompetencia,
+  };
 }

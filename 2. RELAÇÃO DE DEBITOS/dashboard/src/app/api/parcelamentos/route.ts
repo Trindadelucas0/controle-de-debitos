@@ -4,6 +4,7 @@ import {
   deleteEmpresa,
   gerarCompetencia,
   loadParcelamentos,
+  removeRegistroDaGrade,
   updateEmpresa,
   updateRegistro,
 } from "@/lib/parcelamentos";
@@ -106,7 +107,6 @@ export async function PATCH(request: Request) {
 
   try {
     let empresa = undefined as ReturnType<typeof updateEmpresa> | undefined;
-    let registro = undefined as ReturnType<typeof updateRegistro> | undefined;
 
     if (body.empresa) {
       empresa = updateEmpresa(empresaId, body.empresa);
@@ -119,17 +119,25 @@ export async function PATCH(request: Request) {
           { status: 400 },
         );
       }
-      registro = updateRegistro(competencia, empresaId, body.registro);
+      const result = updateRegistro(competencia, empresaId, body.registro);
+      return NextResponse.json({
+        ok: true,
+        empresa,
+        registro: result.registro,
+        competencias: result.competencias,
+        ultimaCompetencia: result.ultimaCompetencia,
+        mesesCronograma: result.mesesCronograma,
+      });
     }
 
-    if (!empresa && !registro) {
+    if (!empresa) {
       return NextResponse.json(
         { error: "Informe empresa e/ou registro para atualizar." },
         { status: 400 },
       );
     }
 
-    return NextResponse.json({ ok: true, empresa, registro });
+    return NextResponse.json({ ok: true, empresa });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha ao atualizar.";
     const status = message.includes("não encontrad") ? 404 : 400;
@@ -139,6 +147,8 @@ export async function PATCH(request: Request) {
 
 type DeleteBody = {
   empresaId?: string;
+  /** Se informado, remove só da grade deste mês (não apaga a empresa). */
+  competencia?: string;
 };
 
 export async function DELETE(request: Request) {
@@ -154,9 +164,16 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Campo empresaId é obrigatório." }, { status: 400 });
   }
 
+  const competencia =
+    typeof body.competencia === "string" ? body.competencia.trim() : "";
+
   try {
+    if (competencia) {
+      const result = removeRegistroDaGrade(competencia, empresaId);
+      return NextResponse.json({ ok: true, ...result, modo: "grade" });
+    }
     const result = deleteEmpresa(empresaId);
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json({ ok: true, ...result, modo: "empresa" });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha ao excluir.";
     const status = message.includes("não encontrad") ? 404 : 400;

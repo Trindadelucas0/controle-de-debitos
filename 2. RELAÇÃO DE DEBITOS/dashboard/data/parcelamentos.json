@@ -176,118 +176,102 @@
   ],
   "competencias": [
     "08-2026",
-    "09-2026"
+    "09-2026",
+    "10-2026",
+    "11-2026",
+    "12-2026",
+    "01-2027",
+    "02-2027",
+    "03-2027",
+    "04-2027",
+    "05-2027"
   ],
   "atual": "09-2026",
   "porCompetencia": {
     "08-2026": {
       "emp-004": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "inicioCompetencia": "08-2026",
         "atualizadoEm": "2026-08-20T18:00:16.635Z"
       },
       "emp-020": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-021": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
-      "emp-027": {
-        "status": "ok",
-        "totalParcelas": null,
-        "vencimento": null,
-        "inicioCompetencia": "08-2026",
-        "atualizadoEm": "2026-08-21T12:26:53.899Z"
-      },
       "emp-031": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-035": {
-        "status": "ok",
-        "totalParcelas": null,
-        "vencimento": null
-      },
-      "emp-039": {
-        "status": "cancelado",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-040": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-048": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-067": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-071": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-073": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-080": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-088": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
-      "emp-092": {
-        "status": "ok",
-        "totalParcelas": 24,
-        "vencimento": "2026-08-20",
-        "inicioCompetencia": "08-2026",
-        "atualizadoEm": "2026-08-20T19:24:13.798Z"
-      },
       "emp-096": {
-        "status": "atencao",
+        "status": "erro_emissao",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-105": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-128": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-166": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
       "emp-170": {
-        "status": "saiu",
-        "totalParcelas": null,
-        "vencimento": null
-      },
-      "emp-172": {
         "status": "saiu",
         "totalParcelas": null,
         "vencimento": null
@@ -308,7 +292,7 @@
         "vencimento": null
       },
       "emp-190": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       },
@@ -318,31 +302,13 @@
         "vencimento": null
       },
       "emp-711": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null
       }
     },
     "09-2026": {
-      "emp-027": {
-        "status": "ok",
-        "totalParcelas": null,
-        "vencimento": null,
-        "atualizadoEm": "2026-08-20T17:59:01.042Z"
-      },
       "emp-177": {
-        "status": "saiu",
-        "totalParcelas": null,
-        "vencimento": null,
-        "atualizadoEm": "2026-08-20T17:59:01.042Z"
-      },
-      "emp-039": {
-        "status": "cancelado",
-        "totalParcelas": null,
-        "vencimento": null,
-        "atualizadoEm": "2026-08-20T17:59:01.042Z"
-      },
-      "emp-172": {
         "status": "saiu",
         "totalParcelas": null,
         "vencimento": null,
@@ -361,19 +327,19 @@
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-088": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-080": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-071": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
@@ -385,19 +351,19 @@
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-031": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-092": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-035": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
@@ -409,83 +375,464 @@
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-105": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-190": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-711": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-166": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-040": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-096": {
-        "status": "atencao",
+        "status": "erro_emissao",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-067": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-048": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-020": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-128": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-073": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-021": {
-        "status": "ok",
+        "status": "ativo",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
       },
       "emp-004": {
-        "status": "ok",
+        "status": "ativo",
         "tipo": "municipal",
         "totalParcelas": null,
         "vencimento": null,
         "atualizadoEm": "2026-08-20T17:59:01.042Z"
+      }
+    },
+    "10-2026": {
+      "emp-177": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-039": {
+        "status": "cancelado",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-176": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-175": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-088": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-080": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-071": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-216": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-031": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-092": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-035": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-170": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-105": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-190": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-711": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-166": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-040": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-096": {
+        "status": "erro_emissao",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-067": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-048": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-020": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-128": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-073": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-021": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      },
+      "emp-004": {
+        "status": "ativo",
+        "tipo": "municipal",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:28:54.045Z"
+      }
+    },
+    "11-2026": {
+      "emp-027": {
+        "status": "ativo",
+        "totalParcelas": 4,
+        "vencimento": null,
+        "inicioCompetencia": "08-2026",
+        "atualizadoEm": "2026-08-21T21:51:55.585Z"
+      },
+      "emp-177": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-039": {
+        "status": "cancelado",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-172": {
+        "status": "ativo",
+        "totalParcelas": 8,
+        "vencimento": null,
+        "inicioCompetencia": "07-2026",
+        "atualizadoEm": "2026-08-21T21:34:28.441Z"
+      },
+      "emp-176": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-175": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-088": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-080": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-071": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-216": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-031": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-092": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-035": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-170": {
+        "status": "saiu",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-105": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-190": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-711": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-166": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-040": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-096": {
+        "status": "erro_emissao",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-067": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-048": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-020": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-128": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-073": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-021": {
+        "status": "ativo",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      },
+      "emp-004": {
+        "status": "ativo",
+        "tipo": "municipal",
+        "totalParcelas": null,
+        "vencimento": null,
+        "atualizadoEm": "2026-08-21T20:43:20.763Z"
+      }
+    },
+    "12-2026": {
+      "emp-172": {
+        "status": "ativo",
+        "totalParcelas": 8,
+        "vencimento": null,
+        "inicioCompetencia": "07-2026",
+        "atualizadoEm": "2026-08-21T21:34:28.441Z"
+      }
+    },
+    "01-2027": {
+      "emp-172": {
+        "status": "ativo",
+        "totalParcelas": 8,
+        "vencimento": null,
+        "inicioCompetencia": "07-2026",
+        "atualizadoEm": "2026-08-21T21:34:28.441Z"
+      }
+    },
+    "02-2027": {
+      "emp-172": {
+        "status": "ativo",
+        "totalParcelas": 8,
+        "vencimento": null,
+        "inicioCompetencia": "07-2026",
+        "atualizadoEm": "2026-08-21T21:34:28.441Z"
+      },
+      "emp-071": {
+        "status": "ativo",
+        "totalParcelas": 4,
+        "vencimento": null,
+        "inicioCompetencia": "02-2027",
+        "atualizadoEm": "2026-08-21T21:35:32.554Z"
+      }
+    },
+    "03-2027": {
+      "emp-071": {
+        "status": "ativo",
+        "totalParcelas": 4,
+        "vencimento": null,
+        "inicioCompetencia": "02-2027",
+        "atualizadoEm": "2026-08-21T21:35:32.554Z"
+      }
+    },
+    "04-2027": {
+      "emp-071": {
+        "status": "ativo",
+        "totalParcelas": 4,
+        "vencimento": null,
+        "inicioCompetencia": "02-2027",
+        "atualizadoEm": "2026-08-21T21:35:32.554Z"
+      }
+    },
+    "05-2027": {
+      "emp-071": {
+        "status": "ativo",
+        "totalParcelas": 4,
+        "vencimento": null,
+        "inicioCompetencia": "02-2027",
+        "atualizadoEm": "2026-08-21T21:35:32.554Z"
       }
     }
   }

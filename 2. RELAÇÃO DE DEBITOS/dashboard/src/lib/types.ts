@@ -125,7 +125,12 @@ export type DashboardData = {
 };
 
 /** Controle operacional de parcelamentos (módulo dedicado). */
-export type ParcelamentoStatus = "ok" | "saiu" | "cancelado" | "atencao";
+export type ParcelamentoStatus =
+  | "ativo"
+  | "encerrado"
+  | "saiu"
+  | "erro_emissao"
+  | "cancelado";
 
 export type ParcelamentoTipo =
   | "municipal"
@@ -148,6 +153,7 @@ export type EmpresaParcelamento = {
 
 /** Preenchimento mensal por empresa. */
 export type CompetenciaRegistro = {
+  /** Situação operacional do parcelamento no mês. */
   status: ParcelamentoStatus;
   tipo?: ParcelamentoTipo;
   totalParcelas?: number | null;

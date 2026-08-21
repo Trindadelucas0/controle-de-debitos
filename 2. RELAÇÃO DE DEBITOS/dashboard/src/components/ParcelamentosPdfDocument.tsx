@@ -47,27 +47,30 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: "#e2e8f0",
   },
-  rowOk: { backgroundColor: "#ecfdf5" },
+  rowAtivo: { backgroundColor: "#ecfdf5" },
+  rowEncerrado: { backgroundColor: "#e0f2fe" },
   rowSaiu: { backgroundColor: "#f1f5f9" },
   rowCancelado: { backgroundColor: "#fef2f2" },
-  rowAtencao: { backgroundColor: "#fffbeb" },
+  rowErro: { backgroundColor: "#fffbeb" },
   cell: { paddingRight: 3 },
   th: { fontFamily: "Helvetica-Bold", fontSize: 7 },
-  colStatus: { width: "8%" },
-  colCod: { width: "6%" },
-  colEmpresa: { width: "28%" },
-  colCnpj: { width: "16%" },
-  colNumero: { width: "14%" },
-  colTotal: { width: "8%" },
-  colAtual: { width: "8%" },
-  colVenc: { width: "12%" },
+  colStatus: { width: "16%" },
+  colCod: { width: "5%" },
+  colEmpresa: { width: "18%" },
+  colCnpj: { width: "13%" },
+  colNumero: { width: "11%" },
+  colTotal: { width: "6%" },
+  colAtual: { width: "6%" },
+  colUltimo: { width: "10%" },
+  colVenc: { width: "15%" },
 });
 
 function rowStyle(status: CardView["registro"]["status"]) {
-  if (status === "ok") return styles.rowOk;
+  if (status === "ativo") return styles.rowAtivo;
+  if (status === "encerrado") return styles.rowEncerrado;
   if (status === "saiu") return styles.rowSaiu;
   if (status === "cancelado") return styles.rowCancelado;
-  return styles.rowAtencao;
+  return styles.rowErro;
 }
 
 export function ParcelamentosPdfDocument({ competencia, cards }: Props) {
@@ -80,13 +83,14 @@ export function ParcelamentosPdfDocument({ competencia, cards }: Props) {
         </Text>
 
         <View style={styles.tableHeader}>
-          <Text style={[styles.cell, styles.th, styles.colStatus]}>Status</Text>
+          <Text style={[styles.cell, styles.th, styles.colStatus]}>Situação</Text>
           <Text style={[styles.cell, styles.th, styles.colCod]}>Cód</Text>
           <Text style={[styles.cell, styles.th, styles.colEmpresa]}>Empresa</Text>
           <Text style={[styles.cell, styles.th, styles.colCnpj]}>CNPJ</Text>
           <Text style={[styles.cell, styles.th, styles.colNumero]}>Nº parc.</Text>
           <Text style={[styles.cell, styles.th, styles.colAtual]}>Atual</Text>
           <Text style={[styles.cell, styles.th, styles.colTotal]}>Total</Text>
+          <Text style={[styles.cell, styles.th, styles.colUltimo]}>Último mês</Text>
           <Text style={[styles.cell, styles.th, styles.colVenc]}>Vencimento</Text>
         </View>
 
@@ -97,7 +101,8 @@ export function ParcelamentosPdfDocument({ competencia, cards }: Props) {
             wrap={false}
           >
             <Text style={[styles.cell, styles.colStatus]}>
-              {PARCELAMENTO_STATUS_LABELS[card.registro.status]}
+              {PARCELAMENTO_STATUS_LABELS[card.registro.status] ??
+                card.registro.status}
             </Text>
             <Text style={[styles.cell, styles.colCod]}>{card.empresa.cod ?? "—"}</Text>
             <Text style={[styles.cell, styles.colEmpresa]}>
@@ -117,6 +122,11 @@ export function ParcelamentosPdfDocument({ competencia, cards }: Props) {
             </Text>
             <Text style={[styles.cell, styles.colTotal]}>
               {card.registro.totalParcelas ?? "—"}
+            </Text>
+            <Text style={[styles.cell, styles.colUltimo]}>
+              {card.ultimaCompetencia
+                ? formatCompetencia(card.ultimaCompetencia)
+                : "—"}
             </Text>
             <Text style={[styles.cell, styles.colVenc]}>
               {formatVencimentoBr(card.registro.vencimento)}

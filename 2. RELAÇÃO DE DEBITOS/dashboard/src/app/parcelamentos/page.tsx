@@ -35,6 +35,7 @@ export default async function ParcelamentosPage({ searchParams }: Props) {
       }
     >
       <ParcelamentosPanel
+        key={competencia}
         initialEmpresas={data.empresas}
         initialRegistros={data.porCompetencia[competencia] ?? {}}
         competenciasParcelamento={data.competencias}

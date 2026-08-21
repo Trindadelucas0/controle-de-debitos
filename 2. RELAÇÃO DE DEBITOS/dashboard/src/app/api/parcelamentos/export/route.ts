@@ -8,6 +8,7 @@ import {
   PARCELAMENTO_TIPO_LABELS,
   STATUS_EXCEL_COLORS,
   buildCardView,
+  empresaTemParcelamentoNoMes,
   formatVencimentoBr,
   isValidCompetencia,
 } from "@/lib/parcelamentos-utils";
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     });
 
     sheet.columns = [
-      { header: "STATUS", key: "status", width: 12 },
+      { header: "SITUAÇÃO", key: "status", width: 36 },
       { header: "COD", key: "cod", width: 8 },
       { header: "EMPRESA", key: "empresa", width: 48 },
       { header: "GRUPO", key: "grupo", width: 14 },
@@ -65,6 +66,7 @@ export async function GET(request: Request) {
       },
       { header: "TOTAL PARCELAS", key: "total", width: 14 },
       { header: "PARCELAS EM ABERTO", key: "aberto", width: 18 },
+      { header: "ÚLTIMO MÊS", key: "ultimoMes", width: 12 },
       { header: "VENCIMENTO", key: "vencimento", width: 14 },
       { header: "OBSERVAÇÃO", key: "obs", width: 28 },
     ];
@@ -76,8 +78,9 @@ export async function GET(request: Request) {
 
     for (const empresa of data.empresas) {
       const view = buildCardView(empresa, registros[empresa.id], competencia);
+      if (!empresaTemParcelamentoNoMes(view.registro, competencia)) continue;
       const row = sheet.addRow({
-        status: PARCELAMENTO_STATUS_LABELS[view.registro.status],
+        status: PARCELAMENTO_STATUS_LABELS[view.registro.status] ?? "Ativo",
         cod: empresa.cod ?? "",
         empresa: empresa.empresa,
         grupo: empresa.grupo ?? "",
@@ -89,11 +92,15 @@ export async function GET(request: Request) {
         parcelaAtual: view.parcelaAtual ?? "",
         total: view.registro.totalParcelas ?? "",
         aberto: view.parcelasEmAberto ?? "",
+        ultimoMes: view.ultimaCompetencia
+          ? formatCompetencia(view.ultimaCompetencia)
+          : "",
         vencimento: formatVencimentoBr(view.registro.vencimento),
         obs: view.registro.observacao ?? "",
       });
 
-      const colors = STATUS_EXCEL_COLORS[view.registro.status];
+      const colors =
+        STATUS_EXCEL_COLORS[view.registro.status] ?? STATUS_EXCEL_COLORS.ativo;
       row.eachCell((cell) => {
         cell.fill = {
           type: "pattern",
