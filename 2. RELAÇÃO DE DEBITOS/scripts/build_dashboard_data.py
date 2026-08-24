@@ -37,7 +37,7 @@ ESFERAS = ("federal", "estadual", "municipal")
 
 DEBITO_ROW_RE = re.compile(
     r"(?P<code>\d{4}-\d{2})\s*-\s*(?P<nome>[a-z0-9Á-ú /.*-]+?)\s+"
-    r"(?P<pa>(?:\d{2}/\d{2}/\d{4}|\d{2}/\d{4}|[123]o?\s*trim/\d{4}|[a-zç]{3}/\d{4}|20\d{2}))\s+"
+    r"(?P<pa>(?:\d{2}/\d{2}/\d{4}|\d{2}/\d{4}|[1-4]o?\s*trim/\d{4}|[a-zç]{3}/\d{4}|20\d{2}))\s+"
     r"(?P<vcto>\d{2}/\d{2}/\d{4})\s+"
     r"(?P<original>[\d.]+,\d{2})\s+"
     r"(?P<saldo>[\d.]+,\d{2})\s+"
@@ -64,15 +64,32 @@ RECEITA_LIT_RE = re.compile(r"^(\d{4}-\d{2})\s*-\s*(.+)$", re.I)
 SIMPLES_LIT_RE = re.compile(r"^SIMPLES\s+NAC\.?$", re.I)
 SIMPLES_CODE_LIT_RE = re.compile(r"^(\d{4})(?:-\d{2})?-SIMPLES(?:\s+NAC\.?)?$", re.I)
 PA_LIT_RE = re.compile(
-    r"^(?:\d{2}/\d{4}|\d{2}/\d{2}/\d{4}|[123][oº]?\s*TRIM/\d{4}|[A-ZÇÁ-Ú]{3}/\d{4}|20\d{2})$",
+    r"^(?:\d{2}/\d{4}|\d{2}/\d{2}/\d{4}|[1-4][oº°]?\s*TRIM/\d{4}|[A-ZÇÁ-Ú]{3}/\d{4}|20\d{2})$",
     re.I,
 )
+TRIM_ORD_LIT_RE = re.compile(r"^([1-4])[oº°]?$", re.I)
+TRIM_TAIL_LIT_RE = re.compile(r"^TRIM\s*/\s*(20\d{2})$", re.I)
 VCTO_LIT_RE = re.compile(r"^\d{2}/\d{2}/\d{4}$")
 BRL_LIT_RE = re.compile(r"^\d{1,3}(?:\.\d{3})*,\d{2}$")
 SITUACAO_LIT_RE = re.compile(
     r"^(DEVEDOR|SUSPENSO|ATIVO|QUITADO|PARCELADO|A VENCER|A ANALISAR(?:[- ]A VENCER)?)$",
     re.I,
 )
+
+
+def match_pa_at(literals: list[str], j: int) -> tuple[str, int] | None:
+    """PA em um token (08/2024, 2º TRIM/2026) ou partido (4º + TRIM/2023)."""
+    if j >= len(literals):
+        return None
+    tok = literals[j].strip()
+    if PA_LIT_RE.match(tok):
+        return re.sub(r"\s+", " ", tok.upper()), 1
+    ord_m = TRIM_ORD_LIT_RE.match(tok)
+    if ord_m and j + 1 < len(literals):
+        tail_m = TRIM_TAIL_LIT_RE.match(literals[j + 1].strip())
+        if tail_m:
+            return f"{ord_m.group(1)}º TRIM/{tail_m.group(1)}", 2
+    return None
 NOTIF_LANC_RE = re.compile(
     r"Notifica[cç][aã]o\s+de\s+lan[cç]amento\s*:\s*([0-9./-]+)",
     re.I,
@@ -110,7 +127,11 @@ ECAC_TITULO_RE = re.compile(
 CADASTRAL_FACT_RE = re.compile(
     r"(inscricao inapta(?:\s*-\s*omissao de declaracoes)?|"
     r"inapta(?:\s+omissao de declaracoes(?:\s+em\s+\d{2}/\d{2}/\d{4})?)?|"
-    r"integrante do qsa.{0,80}?irregular)",
+    r"integrante do qsa.{0,80}?irregular|"
+    r"inscricao baixada|"
+    r"inscricao nula|"
+    r"situacao cadastral (?:irregular|baixada|nula|inapta)|"
+    r"omissao de declaracoes)",
     re.I,
 )
 
@@ -473,6 +494,8 @@ def _token_breaks_titulo(token: str) -> bool:
         or SIMPLES_LIT_RE.match(stripped)
         or SIMPLES_CODE_LIT_RE.match(stripped)
         or PA_LIT_RE.match(stripped)
+        or TRIM_ORD_LIT_RE.match(stripped)
+        or TRIM_TAIL_LIT_RE.match(stripped)
     ):
         return True
     if YEAR_MONTHS_RE.match(stripped) or YEAR_ONLY_RE.match(stripped):
@@ -555,7 +578,7 @@ def _parse_year_months_at(literals: list[str], i: int) -> tuple[str, list[str], 
         months.extend(found)
         j += 1
     if not months:
-        return None
+        return year, [], j - i
     return year, months, j - i
 
 
@@ -571,6 +594,26 @@ def _make_omissao_rows(
 ) -> list[dict]:
     receita = receita_for_omissao(titulo)
     rows: list[dict] = []
+    if not months:
+        rows.append(
+            _make_debito_row(
+                receita=receita,
+                pa=year,
+                vencimento="",
+                original=0.0,
+                saldo=0.0,
+                multa=0.0,
+                juros=0.0,
+                consolidado=0.0,
+                situacao="OMISSAO",
+                origem=origem,
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera=esfera,
+                titulo=titulo,
+            )
+        )
+        return rows
     for mes in months:
         rows.append(
             _make_debito_row(
@@ -591,6 +634,46 @@ def _make_omissao_rows(
             )
         )
     return rows
+
+
+def _placeholder_rows_for_titulo(
+    titulo: str,
+    origem: str,
+    arquivo: str,
+    esfera: str,
+) -> list[dict]:
+    """Seção reconhecida sem tabela/período: ainda assim sobe no Federal."""
+    codigo = codigo_from_filename(arquivo)
+    if is_cadastral_titulo(titulo):
+        return [
+            _make_cadastral_row(
+                receita="Irregularidade cadastral",
+                origem=origem,
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera=esfera,
+            )
+        ]
+    if is_omissao_titulo(titulo):
+        return [
+            _make_debito_row(
+                receita=receita_for_omissao(titulo),
+                pa="",
+                vencimento="",
+                original=0.0,
+                saldo=0.0,
+                multa=0.0,
+                juros=0.0,
+                consolidado=0.0,
+                situacao="OMISSAO",
+                origem=origem,
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera=esfera,
+                titulo=titulo,
+            )
+        ]
+    return []
 
 
 def parse_omissao_periodos(
@@ -623,6 +706,39 @@ def parse_omissao_periodos(
             if key not in seen:
                 seen.add(key)
                 rows.append(row)
+    if not rows:
+        for match in re.finditer(r"\b(0[1-9]|1[0-2])/(20\d{2})\b", body):
+            mes = MES_ABREV[int(match.group(1)) - 1]
+            year = match.group(2)
+            for row in _make_omissao_rows(
+                titulo=titulo,
+                year=year,
+                months=[mes],
+                origem=origem,
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera=esfera,
+            ):
+                key = row["pa"]
+                if key not in seen:
+                    seen.add(key)
+                    rows.append(row)
+    if not rows:
+        years = re.findall(r"\b(20\d{2})\b", body)
+        if years:
+            for row in _make_omissao_rows(
+                titulo=titulo,
+                year=years[0],
+                months=[],
+                origem=origem,
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera=esfera,
+            ):
+                key = row["pa"]
+                if key not in seen:
+                    seen.add(key)
+                    rows.append(row)
     return rows
 
 
@@ -757,7 +873,9 @@ def _cadastral_fact_from_token(token: str) -> str | None:
         "inapta" in folded
         or "omissao de declar" in folded
         or ("qsa" in folded and "irregular" in folded)
-        or "situacao cadastral irregular" in folded
+        or "situacao cadastral" in folded
+        or "inscricao baixada" in folded
+        or "inscricao nula" in folded
     ):
         return stripped
     return None
@@ -826,6 +944,7 @@ def parse_ecac_from_literals(
     rows: list[dict] = []
     seen: set[tuple] = set()
     current_titulo: str | None = None
+    titulos_vistos: set[str] = set()
     i = 0
     n = len(literals)
 
@@ -833,6 +952,7 @@ def parse_ecac_from_literals(
         titulo, consumed = match_ecac_titulo_at(literals, i)
         if titulo:
             current_titulo = titulo
+            titulos_vistos.add(titulo)
             i += consumed
             continue
 
@@ -854,6 +974,25 @@ def parse_ecac_from_literals(
                         seen.add(key)
                         rows.append(row)
                 i += consumed
+                continue
+            m_pa = re.match(r"^(0[1-9]|1[0-2])/(20\d{2})$", literals[i].strip())
+            if m_pa:
+                mes = MES_ABREV[int(m_pa.group(1)) - 1]
+                year = m_pa.group(2)
+                for row in _make_omissao_rows(
+                    titulo=current_titulo or "OMISSAO DE DCTF",
+                    year=year,
+                    months=[mes],
+                    origem=origem,
+                    arquivo=arquivo,
+                    codigo=codigo,
+                    esfera=esfera,
+                ):
+                    key = _debito_row_key(row)
+                    if key not in seen:
+                        seen.add(key)
+                        rows.append(row)
+                i += 1
                 continue
 
         if is_cadastral_titulo(current_titulo):
@@ -888,11 +1027,12 @@ def parse_ecac_from_literals(
             continue
 
         j = i + 1
-        if j >= n or not PA_LIT_RE.match(literals[j]):
+        pa_hit = match_pa_at(literals, j)
+        if not pa_hit:
             i += 1
             continue
-        pa = literals[j].strip().upper()
-        j += 1
+        pa, pa_consumed = pa_hit
+        j += pa_consumed
         if j >= n or not VCTO_LIT_RE.match(literals[j]):
             i += 1
             continue
@@ -950,6 +1090,15 @@ def parse_ecac_from_literals(
             rows.append(row)
         i = j if j > i + 1 else i + 1
 
+    titulos_com_row = {r.get("titulo") for r in rows if r.get("titulo")}
+    for titulo in titulos_vistos:
+        if titulo in titulos_com_row:
+            continue
+        for row in _placeholder_rows_for_titulo(titulo, origem, arquivo, esfera):
+            key = _debito_row_key(row)
+            if key not in seen:
+                seen.add(key)
+                rows.append(row)
     return rows
 
 
@@ -993,11 +1142,19 @@ def parse_ecac_debitos_regex(text: str, origem: str, arquivo: str, esfera: str) 
     for titulo, body in iter_ecac_sections(f):
         section_rows: list[dict] = []
         if is_omissao_titulo(titulo):
-            section_rows.extend(
-                parse_omissao_periodos(body, titulo or "OMISSAO DE DCTFWEB", origem, arquivo, esfera)
+            omiss = parse_omissao_periodos(
+                body, titulo or "OMISSAO DE DCTFWEB", origem, arquivo, esfera
             )
+            if not omiss:
+                omiss = _placeholder_rows_for_titulo(
+                    titulo or "OMISSAO DE DCTFWEB", origem, arquivo, esfera
+                )
+            section_rows.extend(omiss)
         if is_cadastral_titulo(titulo):
-            section_rows.extend(parse_irregularidade_body(body, origem, arquivo, esfera))
+            cad = parse_irregularidade_body(body, origem, arquivo, esfera)
+            if not cad:
+                cad = _placeholder_rows_for_titulo(titulo, origem, arquivo, esfera)
+            section_rows.extend(cad)
         section_rows.extend(_parse_financial_rows_in_body(body, origem, arquivo, esfera, titulo))
         for row in section_rows:
             key = _debito_row_key(row)

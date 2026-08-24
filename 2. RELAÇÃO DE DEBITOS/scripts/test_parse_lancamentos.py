@@ -434,6 +434,134 @@ def test_fixture_jd76_efd_e_cadastral(failures: list[str]) -> None:
         assert_true(cadastral[0].get("situacao") == "INAPTA", "76: situacao cadastral != INAPTA", failures)
 
 
+FIXTURE_TJJ_138_SEM_VALOR_LITERALS = [
+    "Diagnóstico Fiscal na Receita Federal",
+    "CENTRO MEDICO ESPECIALIZADO TJJ LTDA",
+    "CNPJ: 55.061.632/0001-57",
+    "Pendência - Irregularidade Cadastral",
+    "Pendência - Omissão de DCTF",
+]
+
+FIXTURE_OMISSAO_DCTF_MMYYYY_LITERALS = [
+    "Pendência - Omissão de DCTF",
+    "(Período de Apuração)",
+    "08/2024",
+]
+
+
+def test_fixture_tjj_138_pendencia_sem_valor(failures: list[str]) -> None:
+    """PDF 2024 só com cadastral + omissão DCTF (sem R$) não pode zerar extração."""
+    rows = parse_ecac_from_literals(
+        FIXTURE_TJJ_138_SEM_VALOR_LITERALS, "ECAC", "138-ECAC.pdf", "federal"
+    )
+    titulos = {r.get("titulo") for r in rows}
+    assert_true(len(rows) >= 2, f"138: esperado >=2 linhas, obtido {len(rows)} {rows}", failures)
+    assert_true("IRREGULARIDADE CADASTRAL" in titulos, f"138: falta cadastral {titulos}", failures)
+    assert_true("OMISSAO DE DCTF" in titulos, f"138: falta DCTF {titulos}", failures)
+    regex_rows = parse_ecac_debitos_regex(
+        "\n".join(FIXTURE_TJJ_138_SEM_VALOR_LITERALS),
+        "ECAC",
+        "138-ECAC.pdf",
+        "federal",
+    )
+    regex_titulos = {r.get("titulo") for r in regex_rows}
+    assert_true(
+        "IRREGULARIDADE CADASTRAL" in regex_titulos,
+        f"138 regex: falta cadastral {regex_titulos}",
+        failures,
+    )
+    assert_true(
+        "OMISSAO DE DCTF" in regex_titulos,
+        f"138 regex: falta DCTF {regex_titulos}",
+        failures,
+    )
+
+
+def test_fixture_omissao_dctf_mm_yyyy(failures: list[str]) -> None:
+    rows = parse_ecac_from_literals(
+        FIXTURE_OMISSAO_DCTF_MMYYYY_LITERALS, "ECAC", "138-ECAC.pdf", "federal"
+    )
+    dctf = [r for r in rows if r.get("titulo") == "OMISSAO DE DCTF"]
+    assert_true(len(dctf) == 1, f"DCTF MM/YYYY n={len(dctf)} {dctf}", failures)
+    if dctf:
+        assert_true(dctf[0].get("pa") == "AGO/2024", f"DCTF PA={dctf[0].get('pa')}", failures)
+        assert_true(dctf[0].get("situacao") == "OMISSAO", "DCTF situacao", failures)
+
+
+FIXTURE_SIEF_4_TRIM_LITERALS = [
+    "Pendência - Débito (SIEF)",
+    "0561-07 - IRRF-APLIC.FINANC",
+    "08/2024",
+    "20/09/2024",
+    "100,00",
+    "100,00",
+    "0,00",
+    "0,00",
+    "100,00",
+    "DEVEDOR",
+    "2089-01 - IRPJ",
+    "4º",
+    "TRIM/2023",
+    "31/10/2024",
+    "16.181,96",
+    "16.181,96",
+    "0,00",
+    "0,00",
+    "16.181,96",
+    "DEVEDOR",
+]
+
+FIXTURE_SIEF_4_TRIM_TEXT = """
+Pendência - Débito (SIEF)
+2089-01 - IRPJ 4º TRIM/2023 31/10/2024 16.181,96 16.181,96 0,00 0,00 16.181,96 DEVEDOR
+2372-01 - CSLL 4º TRIM/2023 31/10/2024 5.000,00 5.000,00 0,00 0,00 5.000,00 DEVEDOR
+"""
+
+
+def test_fixture_sief_4_trim(failures: list[str]) -> None:
+    """4º TRIM parte em dois tokens no PDF (4º + TRIM/AAAA); regex também aceita 4º."""
+    rows = parse_ecac_from_literals(
+        FIXTURE_SIEF_4_TRIM_LITERALS, "ECAC", "20-ECAC.pdf", "federal"
+    )
+    irpj = next(
+        (r for r in rows if "2089-01" in (r.get("receita") or "") and "TRIM/2023" in (r.get("pa") or "")),
+        None,
+    )
+    assert_true(irpj is not None, f"4º TRIM literais: falta 2089-01 {rows}", failures)
+    if irpj:
+        assert_true("4" in irpj["pa"] and "2023" in irpj["pa"], f"PA={irpj['pa']}", failures)
+        assert_true(abs(irpj["original"] - 16181.96) < 0.02, f"IRPJ orig={irpj['original']}", failures)
+        assert_true(irpj.get("titulo") == "DEBITO (SIEF)", f"titulo={irpj.get('titulo')}", failures)
+    one_token = parse_ecac_from_literals(
+        [
+            "Pendência - Débito (SIEF)",
+            "2089-01 - IRPJ",
+            "4º TRIM/2023",
+            "31/10/2024",
+            "16.181,96",
+            "16.181,96",
+            "0,00",
+            "0,00",
+            "16.181,96",
+            "DEVEDOR",
+        ],
+        "ECAC",
+        "20-ECAC.pdf",
+        "federal",
+    )
+    hit = next((r for r in one_token if "2089-01" in (r.get("receita") or "")), None)
+    assert_true(hit is not None, f"4º TRIM token único falhou {one_token}", failures)
+    regex_rows = parse_ecac_debitos_regex(
+        FIXTURE_SIEF_4_TRIM_TEXT, "ECAC", "20-ECAC.pdf", "federal"
+    )
+    regex_irpj = next((r for r in regex_rows if "2089-01" in (r.get("receita") or "")), None)
+    regex_csll = next((r for r in regex_rows if "2372-01" in (r.get("receita") or "")), None)
+    assert_true(regex_irpj is not None, f"4º TRIM regex: falta IRPJ {regex_rows}", failures)
+    assert_true(regex_csll is not None, f"4º TRIM regex: falta CSLL {regex_rows}", failures)
+    if regex_irpj:
+        assert_true(abs(regex_irpj["original"] - 16181.96) < 0.02, f"regex orig={regex_irpj['original']}", failures)
+
+
 def test_sample_86(month: Path, failures: list[str]) -> None:
     path = find_pdf_by_name(month, "86-ECAC.pdf")
     if path is None:
@@ -509,6 +637,9 @@ def main() -> int:
     test_fixture_merge_nao_descarta_omissao(failures)
     test_fixture_sief_pa_exercicio_ano(failures)
     test_fixture_jd76_efd_e_cadastral(failures)
+    test_fixture_tjj_138_pendencia_sem_valor(failures)
+    test_fixture_omissao_dctf_mm_yyyy(failures)
+    test_fixture_sief_4_trim(failures)
     test_fixture_outras_secoes_ecac(failures)
     test_cid_literal_caesar(failures)
     test_pdf_138_conect_calibracao(failures)
