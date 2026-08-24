@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { BlockingOverlay } from "@/components/BlockingOverlay";
 import { PageHeader } from "@/components/PageHeader";
+import { SiteEmissaoButton } from "@/components/SiteEmissaoButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCompetencia, sortCompetencias } from "@/lib/competencia";
@@ -68,6 +69,7 @@ type NovaEmpresaForm = {
   grupo: string;
   cnpj: string;
   numeroParcelamento: string;
+  siteEmissao: string;
   status: ParcelamentoStatus;
   tipo: ParcelamentoTipo | "";
   vencimento: string;
@@ -82,6 +84,7 @@ type EditEmpresaForm = {
   grupo: string;
   cnpj: string;
   numeroParcelamento: string;
+  siteEmissao: string;
 };
 
 function toDraft(
@@ -118,6 +121,7 @@ function emptyNova(): NovaEmpresaForm {
     grupo: "",
     cnpj: "",
     numeroParcelamento: "",
+    siteEmissao: "",
     status: PARCELAMENTO_STATUS_DEFAULT,
     tipo: "",
     vencimento: "",
@@ -397,6 +401,7 @@ export function ParcelamentosPanel({
             grupo: nova.grupo,
             cnpj: nova.cnpj,
             numeroParcelamento: nova.numeroParcelamento,
+            siteEmissao: nova.siteEmissao,
           },
           registro: {
             status: nova.status,
@@ -554,6 +559,7 @@ export function ParcelamentosPanel({
             grupo: editEmpresa.grupo,
             cnpj: editEmpresa.cnpj,
             numeroParcelamento: editEmpresa.numeroParcelamento,
+            siteEmissao: editEmpresa.siteEmissao,
           },
         }),
       });
@@ -900,6 +906,17 @@ export function ParcelamentosPanel({
                 }
               />
             </label>
+            <label className="space-y-1 sm:col-span-2">
+              <span className="text-sm font-medium">Site emissão (URL)</span>
+              <Input
+                type="url"
+                value={nova.siteEmissao}
+                placeholder="https://…"
+                onChange={(e) =>
+                  setNova((f) => ({ ...f, siteEmissao: e.target.value }))
+                }
+              />
+            </label>
             <label className="space-y-1">
               <span className="text-sm font-medium">Código</span>
               <Input
@@ -1062,6 +1079,19 @@ export function ParcelamentosPanel({
                 }
               />
             </label>
+            <label className="space-y-1 sm:col-span-2">
+              <span className="text-sm font-medium">Site emissão (URL)</span>
+              <Input
+                type="url"
+                value={editEmpresa.siteEmissao}
+                placeholder="https://…"
+                onChange={(e) =>
+                  setEditEmpresa((f) =>
+                    f ? { ...f, siteEmissao: e.target.value } : f,
+                  )
+                }
+              />
+            </label>
             <label className="space-y-1">
               <span className="text-sm font-medium">Código</span>
               <Input
@@ -1203,6 +1233,7 @@ export function ParcelamentosPanel({
               <th className="border border-emerald-300/80 px-2 py-2">Situação</th>
               <th className="border border-emerald-300/80 px-2 py-2">COD</th>
               <th className="border border-emerald-300/80 px-2 py-2">Empresa</th>
+              <th className="border border-emerald-300/80 px-2 py-2">Site</th>
               <th className="border border-emerald-300/80 px-2 py-2">Grupo</th>
               <th className="border border-emerald-300/80 px-2 py-2">CNPJ</th>
               <th className="border border-emerald-300/80 px-2 py-2">Tipo</th>
@@ -1281,6 +1312,13 @@ export function ParcelamentosPanel({
                   </td>
                   <td className="border border-black/10 px-2 py-1 align-middle font-medium">
                     {card.empresa.empresa}
+                  </td>
+                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                    <SiteEmissaoButton
+                      siteEmissao={card.empresa.siteEmissao}
+                      tipo={draft.tipo as ParcelamentoTipo | ""}
+                      showPlaceholder
+                    />
                   </td>
                   <td className="border border-black/10 px-2 py-1 align-middle">
                     {card.empresa.grupo ?? ""}
@@ -1393,6 +1431,7 @@ export function ParcelamentosPanel({
                             cnpj: formatCnpj(card.empresa.cnpj),
                             numeroParcelamento:
                               card.empresa.numeroParcelamento ?? "",
+                            siteEmissao: card.empresa.siteEmissao ?? "",
                           })
                         }
                       >

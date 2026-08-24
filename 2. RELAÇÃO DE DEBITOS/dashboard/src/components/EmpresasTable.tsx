@@ -16,12 +16,17 @@ import {
 import { DashboardOverview } from "@/components/DashboardOverview";
 import { PageHeader } from "@/components/PageHeader";
 import { PaginationBar } from "@/components/PaginationBar";
+import { SiteEmissaoButton } from "@/components/SiteEmissaoButton";
 import { StatusBadge } from "@/components/StatusBadges";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ESFERA_FONTES, ESFERA_LABELS } from "@/lib/analytics";
 import { formatBRL, formatCnpj } from "@/lib/format";
+import {
+  padCnpj14,
+  type SiteEmissaoRef,
+} from "@/lib/parcelamentos-utils";
 import type { Empresa, Esfera, StatusEsfera } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
@@ -49,6 +54,8 @@ type Props = {
   };
   geradoEm: string;
   competencia: string;
+  /** Cruzamento com parcelamentos por CNPJ (14 dígitos). */
+  siteEmissaoByCnpj?: Record<string, SiteEmissaoRef>;
 };
 
 type StatusFiltro = "todas" | "pendencia" | "regular";
@@ -67,7 +74,13 @@ function parseStatus(value: string | null): StatusFiltro {
   return "todas";
 }
 
-export function EmpresasTable({ empresas, totais, geradoEm, competencia }: Props) {
+export function EmpresasTable({
+  empresas,
+  totais,
+  geradoEm,
+  competencia,
+  siteEmissaoByCnpj = {},
+}: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const esferaFiltro = parseEsfera(searchParams.get("esfera"));
@@ -147,14 +160,29 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencia }: Props
       }),
       columnHelper.accessor("nome", {
         header: "Empresa",
-        cell: (info) => (
-          <div>
-            <div className="font-semibold tracking-tight text-slate-900">{info.getValue()}</div>
-            <div className="tabular text-[11px] text-muted-foreground">
-              {formatCnpj(info.row.original.cnpj)}
+        cell: (info) => {
+          const row = info.row.original;
+          const dig = padCnpj14(row.cnpj);
+          const ref = dig ? siteEmissaoByCnpj[dig] : undefined;
+          const href = `/empresas/${row.id}?${competenciaQS}`;
+          return (
+            <div className="flex flex-wrap items-start gap-2">
+              <Link href={href} className="min-w-0 flex-1 hover:underline">
+                <div className="font-semibold tracking-tight text-slate-900">
+                  {info.getValue()}
+                </div>
+                <div className="tabular text-[11px] text-muted-foreground">
+                  {formatCnpj(row.cnpj)}
+                </div>
+              </Link>
+              <SiteEmissaoButton
+                siteEmissao={ref?.siteEmissao}
+                tipo={ref?.tipo}
+                stopPropagation
+              />
             </div>
-          </div>
-        ),
+          );
+        },
       }),
       columnHelper.accessor("status", {
         header: "Status",
@@ -200,7 +228,7 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencia }: Props
         ),
       }),
     ],
-    [esferaFiltro],
+    [esferaFiltro, competenciaQS, siteEmissaoByCnpj],
   );
 
   const table = useReactTable({
@@ -320,16 +348,23 @@ export function EmpresasTable({ empresas, totais, geradoEm, competencia }: Props
                     key={row.id}
                     className="border-b border-border/70 transition-colors duration-200 hover:bg-slate-50"
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-3 py-3 align-top">
-                        <Link
-                          href={`/empresas/${row.original.id}?${competenciaQS}`}
-                          className="block"
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </Link>
-                      </td>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const isEmpresa = cell.column.id === "nome";
+                      return (
+                        <td key={cell.id} className="px-3 py-3 align-top">
+                          {isEmpresa ? (
+                            flexRender(cell.column.columnDef.cell, cell.getContext())
+                          ) : (
+                            <Link
+                              href={`/empresas/${row.original.id}?${competenciaQS}`}
+                              className="block"
+                            >
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </Link>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
                 {filtered.length === 0 && (

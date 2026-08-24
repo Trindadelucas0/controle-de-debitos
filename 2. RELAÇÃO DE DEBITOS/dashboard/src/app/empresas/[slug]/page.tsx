@@ -7,6 +7,11 @@ import {
   listCompetencias,
   resolveCompetencia,
 } from "@/lib/data";
+import { loadParcelamentos } from "@/lib/parcelamentos";
+import {
+  buildSiteEmissaoByCnpj,
+  padCnpj14,
+} from "@/lib/parcelamentos-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +54,19 @@ export default async function EmpresaPage({ params, searchParams }: Props) {
     ? findEmpresaNaCompetencia(empresa, comparar) ?? null
     : null;
 
+  const parcelamentos = loadParcelamentos();
+  const parcComp =
+    (parcelamentos.competencias.includes(competencia) && competencia) ||
+    parcelamentos.atual ||
+    parcelamentos.competencias[parcelamentos.competencias.length - 1] ||
+    "";
+  const byCnpj = buildSiteEmissaoByCnpj(
+    parcelamentos.empresas,
+    parcComp ? (parcelamentos.porCompetencia[parcComp] ?? {}) : {},
+  );
+  const dig = padCnpj14(empresa.cnpj);
+  const siteEmissao = dig ? byCnpj[dig] ?? null : null;
+
   return (
     <EmpresaDetail
       empresa={empresa}
@@ -56,6 +74,7 @@ export default async function EmpresaPage({ params, searchParams }: Props) {
       competencia={competencia}
       compararCompetencia={comparar}
       empresaComparacao={empresaComparacao}
+      siteEmissao={siteEmissao}
     />
   );
 }

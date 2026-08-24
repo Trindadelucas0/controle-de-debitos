@@ -284,6 +284,13 @@ export function updateEmpresa(
     { ...data.empresas[idx], ...input, id: key },
     { id: key },
   );
+  // siteEmissao vazio no input = limpar o campo (normalizeEmpresa omite).
+  if (
+    Object.prototype.hasOwnProperty.call(input, "siteEmissao") &&
+    !String(input.siteEmissao ?? "").trim()
+  ) {
+    delete (empresa as { siteEmissao?: string }).siteEmissao;
+  }
   const dig = empresa.cnpj;
   if (data.empresas.some((e) => e.id !== key && e.cnpj === dig)) {
     throw new Error("Já existe empresa com este CNPJ.");

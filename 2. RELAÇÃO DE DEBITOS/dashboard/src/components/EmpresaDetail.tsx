@@ -29,6 +29,7 @@ import { CompetenciaComparacao } from "@/components/CompetenciaComparacao";
 import { CompetenciaControls } from "@/components/CompetenciaControls";
 import { PageHeader } from "@/components/PageHeader";
 import { BaixarRelatorioButton } from "@/components/relatorio/BaixarRelatorioButton";
+import { SiteEmissaoButton } from "@/components/SiteEmissaoButton";
 import { EsferaBadge, StatusBadge } from "@/components/StatusBadges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ import {
 import { formatCompetencia } from "@/lib/competencia";
 import { formatBRL, formatCnpj, formatItensETotal, isOmissaoDebito } from "@/lib/format";
 import { TituloConsolChart } from "@/components/TituloConsolList";
+import type { SiteEmissaoRef } from "@/lib/parcelamentos-utils";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
 
 const columnHelper = createColumnHelper<DebitoLinha>();
@@ -61,6 +63,7 @@ type Props = {
   competencia: string;
   compararCompetencia?: string | null;
   empresaComparacao?: Empresa | null;
+  siteEmissao?: SiteEmissaoRef | null;
 };
 
 export function EmpresaDetail({
@@ -69,6 +72,7 @@ export function EmpresaDetail({
   competencia,
   compararCompetencia = null,
   empresaComparacao = null,
+  siteEmissao = null,
 }: Props) {
   const analytics = useMemo(() => buildEmpresaAnalytics(empresa), [empresa]);
   const defaultTab =
@@ -106,6 +110,11 @@ export function EmpresaDetail({
             .join(" · ")}
           actions={
             <>
+              <SiteEmissaoButton
+                siteEmissao={siteEmissao?.siteEmissao}
+                tipo={siteEmissao?.tipo}
+                className="h-8 px-3 text-xs"
+              />
               {empresa.arquivos.slice(0, 3).map((arquivo) => (
                 <Button key={arquivo} asChild size="sm" variant="outline">
                   <a

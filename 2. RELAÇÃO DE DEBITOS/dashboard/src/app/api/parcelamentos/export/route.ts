@@ -11,6 +11,7 @@ import {
   empresaTemParcelamentoNoMes,
   formatVencimentoBr,
   isValidCompetencia,
+  resolveSiteEmissao,
 } from "@/lib/parcelamentos-utils";
 
 export const runtime = "nodejs";
@@ -68,6 +69,7 @@ export async function GET(request: Request) {
       { header: "PARCELAS EM ABERTO", key: "aberto", width: 18 },
       { header: "ÚLTIMO MÊS", key: "ultimoMes", width: 12 },
       { header: "VENCIMENTO", key: "vencimento", width: 14 },
+      { header: "SITE EMISSÃO", key: "site", width: 48 },
       { header: "OBSERVAÇÃO", key: "obs", width: 28 },
     ];
 
@@ -79,6 +81,8 @@ export async function GET(request: Request) {
     for (const empresa of data.empresas) {
       const view = buildCardView(empresa, registros[empresa.id], competencia);
       if (!empresaTemParcelamentoNoMes(view.registro, competencia)) continue;
+      const siteUrl =
+        resolveSiteEmissao(empresa.siteEmissao, view.registro.tipo) ?? "";
       const row = sheet.addRow({
         status: PARCELAMENTO_STATUS_LABELS[view.registro.status] ?? "Ativo",
         cod: empresa.cod ?? "",
@@ -96,8 +100,21 @@ export async function GET(request: Request) {
           ? formatCompetencia(view.ultimaCompetencia)
           : "",
         vencimento: formatVencimentoBr(view.registro.vencimento),
+        site: siteUrl,
         obs: view.registro.observacao ?? "",
       });
+
+      if (siteUrl) {
+        const siteCell = row.getCell("site");
+        siteCell.value = {
+          text: siteUrl,
+          hyperlink: siteUrl,
+        };
+        siteCell.font = {
+          color: { argb: "FF0563C1" },
+          underline: true,
+        };
+      }
 
       const colors =
         STATUS_EXCEL_COLORS[view.registro.status] ?? STATUS_EXCEL_COLORS.ativo;
@@ -107,7 +124,15 @@ export async function GET(request: Request) {
           pattern: "solid",
           fgColor: { argb: colors.argb },
         };
-        cell.font = { color: { argb: colors.fontArgb } };
+        // Preserva hiperlink azul na coluna SITE EMISSÃO.
+        if (cell !== row.getCell("site") || !siteUrl) {
+          cell.font = { color: { argb: colors.fontArgb } };
+        } else {
+          cell.font = {
+            color: { argb: "FF0563C1" },
+            underline: true,
+          };
+        }
         cell.border = {
           top: { style: "thin", color: { argb: "FFB0B0B0" } },
           left: { style: "thin", color: { argb: "FFB0B0B0" } },

@@ -386,6 +386,80 @@ export function sortEmpresasParcelamento(
   });
 }
 
+/** Portais padrão por tipo (quando a empresa não tem URL própria). */
+export const SITE_EMISSAO_PADRAO: Partial<Record<ParcelamentoTipo, string>> = {
+  pgfn: "https://sisparnet.pgfn.fazenda.gov.br/sisparInternet/internet/darf/consultaParcelamentoDarfInternet.xhtml",
+  sn: "https://cav.receita.fazenda.gov.br/autenticacao/login",
+  sn_pert: "https://cav.receita.fazenda.gov.br/autenticacao/login",
+};
+
+export function isValidHttpUrl(value: string | null | undefined): boolean {
+  const raw = String(value ?? "").trim();
+  if (!raw) return false;
+  try {
+    const url = new URL(raw);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * URL efetiva do portal de emissão: prioriza a URL salva na empresa;
+ * senão usa o portal padrão do tipo (PGFN / SN / SN PERT).
+ * Estadual e municipal só abrem se houver URL salva.
+ */
+export function resolveSiteEmissao(
+  urlSalva: string | null | undefined,
+  tipo?: ParcelamentoTipo | "" | null,
+): string | null {
+  const saved = String(urlSalva ?? "").trim();
+  if (saved && isValidHttpUrl(saved)) return saved;
+  if (tipo && tipo in SITE_EMISSAO_PADRAO) {
+    return SITE_EMISSAO_PADRAO[tipo as ParcelamentoTipo] ?? null;
+  }
+  return null;
+}
+
+/** Rótulo curto do mini botão de emissão. */
+export function labelSiteEmissao(
+  tipo?: ParcelamentoTipo | "" | null,
+): string {
+  if (tipo === "pgfn") return "PGFN";
+  if (tipo === "sn") return "e-CAC";
+  if (tipo === "sn_pert") return "PERT";
+  if (tipo === "estadual") return "Estadual";
+  if (tipo === "municipal") return "Municipal";
+  return "Site";
+}
+
+/** Ref de emissão para cruzar débitos ↔ parcelamentos por CNPJ. */
+export type SiteEmissaoRef = {
+  siteEmissao?: string;
+  tipo?: ParcelamentoTipo;
+};
+
+/**
+ * Índice CNPJ (14 dígitos) → site/tipo do parcelamento.
+ * Usado na lista e no detalhe de empresas de débitos.
+ */
+export function buildSiteEmissaoByCnpj(
+  empresas: EmpresaParcelamento[],
+  registros: Record<string, CompetenciaRegistro>,
+): Record<string, SiteEmissaoRef> {
+  const map: Record<string, SiteEmissaoRef> = {};
+  for (const emp of empresas) {
+    const dig = padCnpj14(emp.cnpj);
+    if (!dig) continue;
+    const reg = registros[emp.id];
+    map[dig] = {
+      ...(emp.siteEmissao ? { siteEmissao: emp.siteEmissao } : {}),
+      ...(reg?.tipo ? { tipo: reg.tipo } : {}),
+    };
+  }
+  return map;
+}
+
 export type EmpresaInput = {
   id?: string;
   cod?: string;
@@ -393,6 +467,7 @@ export type EmpresaInput = {
   grupo?: string;
   cnpj?: string;
   numeroParcelamento?: string;
+  siteEmissao?: string;
 };
 
 export function normalizeEmpresa(
@@ -409,6 +484,16 @@ export function normalizeEmpresa(
   const grupo = String(input.grupo ?? "").trim() || undefined;
   const numeroParcelamento =
     String(input.numeroParcelamento ?? "").trim() || undefined;
+
+  const siteRaw = String(input.siteEmissao ?? "").trim();
+  let siteEmissao: string | undefined;
+  if (siteRaw) {
+    if (!isValidHttpUrl(siteRaw)) {
+      throw new Error("Site de emissão deve ser uma URL http:// ou https://.");
+    }
+    siteEmissao = siteRaw;
+  }
+
   const id =
     opts?.id ||
     (typeof input.id === "string" && input.id.trim()
@@ -422,6 +507,7 @@ export function normalizeEmpresa(
     ...(grupo ? { grupo } : {}),
     cnpj,
     ...(numeroParcelamento ? { numeroParcelamento } : {}),
+    ...(siteEmissao ? { siteEmissao } : {}),
   };
 }
 

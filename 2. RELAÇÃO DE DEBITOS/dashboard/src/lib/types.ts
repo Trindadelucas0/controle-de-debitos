@@ -149,6 +149,8 @@ export type EmpresaParcelamento = {
   cnpj: string;
   /** Nº do acordo — fixo no cadastro da empresa. */
   numeroParcelamento?: string;
+  /** URL http(s) do portal de emissão (SITE EMISSÃO). */
+  siteEmissao?: string;
 };
 
 /** Preenchimento mensal por empresa. */
