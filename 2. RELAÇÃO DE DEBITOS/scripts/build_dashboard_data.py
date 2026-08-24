@@ -83,13 +83,23 @@ def match_pa_at(literals: list[str], j: int) -> tuple[str, int] | None:
         return None
     tok = literals[j].strip()
     if PA_LIT_RE.match(tok):
-        return re.sub(r"\s+", " ", tok.upper()), 1
+        return normalize_pa(tok), 1
     ord_m = TRIM_ORD_LIT_RE.match(tok)
     if ord_m and j + 1 < len(literals):
         tail_m = TRIM_TAIL_LIT_RE.match(literals[j + 1].strip())
         if tail_m:
-            return f"{ord_m.group(1)}º TRIM/{tail_m.group(1)}", 2
+            return normalize_pa(f"{ord_m.group(1)}º TRIM/{tail_m.group(1)}"), 2
     return None
+
+
+def normalize_pa(pa: str) -> str:
+    """Unifica 4º / 4O / 4 TRIM/AAAA para o merge literais+regex não duplicar."""
+    raw = re.sub(r"\s+", " ", (pa or "").strip().upper())
+    folded = raw.replace("º", "O").replace("°", "O")
+    match = re.match(r"^([1-4])O?\s*TRIM/(20\d{2})$", folded)
+    if match:
+        return f"{match.group(1)}º TRIM/{match.group(2)}"
+    return raw
 NOTIF_LANC_RE = re.compile(
     r"Notifica[cç][aã]o\s+de\s+lan[cç]amento\s*:\s*([0-9./-]+)",
     re.I,
@@ -824,7 +834,7 @@ def _make_debito_row(
 ) -> dict:
     row = {
         "receita": receita,
-        "pa": pa,
+        "pa": normalize_pa(pa),
         "vencimento": vencimento,
         "original": original,
         "saldo": saldo,

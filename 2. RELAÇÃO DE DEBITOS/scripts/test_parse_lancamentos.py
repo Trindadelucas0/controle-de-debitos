@@ -529,7 +529,7 @@ def test_fixture_sief_4_trim(failures: list[str]) -> None:
     )
     assert_true(irpj is not None, f"4º TRIM literais: falta 2089-01 {rows}", failures)
     if irpj:
-        assert_true("4" in irpj["pa"] and "2023" in irpj["pa"], f"PA={irpj['pa']}", failures)
+        assert_true(irpj["pa"] == "4º TRIM/2023", f"PA={irpj['pa']}", failures)
         assert_true(abs(irpj["original"] - 16181.96) < 0.02, f"IRPJ orig={irpj['original']}", failures)
         assert_true(irpj.get("titulo") == "DEBITO (SIEF)", f"titulo={irpj.get('titulo')}", failures)
     one_token = parse_ecac_from_literals(
@@ -560,6 +560,10 @@ def test_fixture_sief_4_trim(failures: list[str]) -> None:
     assert_true(regex_csll is not None, f"4º TRIM regex: falta CSLL {regex_rows}", failures)
     if regex_irpj:
         assert_true(abs(regex_irpj["original"] - 16181.96) < 0.02, f"regex orig={regex_irpj['original']}", failures)
+        assert_true(regex_irpj["pa"] == "4º TRIM/2023", f"regex PA={regex_irpj['pa']}", failures)
+    merged = parse_ecac_debitos(FIXTURE_SIEF_4_TRIM_TEXT, "ECAC", "20-ECAC.pdf", "federal")
+    merged_irpj = [r for r in merged if "2089-01" in (r.get("receita") or "")]
+    assert_true(len(merged_irpj) == 1, f"4º TRIM duplicado no merge n={len(merged_irpj)} {merged_irpj}", failures)
 
 
 def test_sample_86(month: Path, failures: list[str]) -> None:
