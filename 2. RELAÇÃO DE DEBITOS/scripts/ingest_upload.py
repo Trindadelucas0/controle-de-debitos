@@ -181,7 +181,7 @@ def lookup_nome_historico(
     codigo: str | None,
     exclude_competencia: str | None = None,
 ) -> str | None:
-    """Reusa razão social de outra competência (mesmo CNPJ ou código). Não inventa."""
+    """Reusa razão social de outra competência. Com CNPJ: só mesmo CNPJ. Sem CNPJ: código."""
     dig = digits_cnpj(cnpj)
     code = (codigo or "").strip()
     if not dig and not code:
@@ -210,8 +210,11 @@ def lookup_nome_historico(
             if _nome_generico(nome):
                 continue
             emp_dig = digits_cnpj(emp.get("cnpj"))
-            if dig and emp_dig and dig == emp_dig:
-                return str(nome).strip()
+            # CNPJ no PDF: identidade = CNPJ. Não reusa nome por código de outra empresa.
+            if dig:
+                if emp_dig and dig == emp_dig:
+                    return str(nome).strip()
+                continue
             codes = [str(c) for c in (emp.get("codigos") or []) if c]
             if emp.get("codigo"):
                 codes.append(str(emp["codigo"]))
@@ -298,22 +301,20 @@ def match_empresa(
     nome: str | None,
     codigo: str | None = None,
 ) -> dict[str, Any] | None:
-    """Ordem: CNPJ → código → nome. Só dentro do índice da competência."""
+    """Identidade = CNPJ. Com CNPJ: só mesmo CNPJ. Sem CNPJ: código ou nome exato/prefixo."""
     dig = digits_cnpj(cnpj)
+    # PDF com CNPJ: anexa só na pasta do mesmo CNPJ. Não usa código/nome para cruzar empresas.
     if dig:
         for item in index:
             if item.get("cnpj") == dig:
                 return item
+        return None
 
     if codigo:
         code = str(codigo).strip()
         # ignora códigos genéricos de nome forçado (smoke, doc, etc.)
         if code and code.upper() not in {"DOC", "PDF", "SMOKE", "ARQUIVO"}:
             for item in index:
-                # Não anexar PDF de outro CNPJ só porque o código do arquivo coincide
-                item_cnpj = item.get("cnpj")
-                if dig and item_cnpj and dig != item_cnpj:
-                    continue
                 item_codes = {
                     str(item.get("codigo") or "").strip(),
                     *[str(c).strip() for c in (item.get("codigos") or [])],
@@ -346,12 +347,7 @@ def match_empresa(
                     alvo_item.startswith(alvo[:16]) or alvo.startswith(alvo_item[:16])
                 ):
                     return item
-            # tokens principais (primeira palavra longa)
-            token = next((t for t in alvo.split() if len(t) >= 5), "")
-            if token:
-                for item in index:
-                    if token in fold(item["nome"]) and len(token) >= 6:
-                        return item
+            # Sem match por token de palavra (COMERCIO, INDUSTRIA, etc. cruzam empresas).
     return None
 
 
