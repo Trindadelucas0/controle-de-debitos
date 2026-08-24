@@ -32,6 +32,7 @@ from build_dashboard_data import (  # noqa: E402
 )
 from extrair_debitos import (  # noqa: E402
     COMPETENCIA_DIR_RE,
+    _is_inbox_upload_path,
     classify_text,
     codigo_from_filename,
     detect_competencia_from_text,
@@ -363,8 +364,19 @@ def safe_empresa_dirname(nome: str | None, codigo: str, cnpj: str | None) -> str
 
 
 def unique_dest_path(folder: Path, filename: str, source: Path) -> tuple[Path, str | None]:
-    """Evita sobrescrever: hash igual = skip; diferente = nome__N.pdf."""
+    """Evita sobrescrever: hash igual = skip; diferente = nome__N.pdf.
+
+    Inbox e o próprio arquivo-fonte nunca contam como 'já importado' — senão
+    `0_09-ECAC.pdf` no lote marca DUPLICADO e a empresa não sobe no Federal.
+    """
     dest = folder / filename
+    if _is_inbox_upload_path(folder) or _is_inbox_upload_path(dest):
+        return dest, None
+    try:
+        if dest.exists() and dest.resolve() == source.resolve():
+            return dest, None
+    except OSError:
+        pass
     if not dest.exists():
         return dest, None
     try:
@@ -406,11 +418,55 @@ def paste_status_from_classe(classe: str) -> str:
 def resolve_month_for_ingest(competencia: str, *, dry_run: bool) -> Path:
     """Pasta MM-YYYY: cria subdirs no commit; no preview só resolve o caminho."""
     if not dry_run:
-        return ensure_competencia_dir(competencia)
-    for existing in list_competencia_dirs():
-        if existing.name == competencia:
-            return existing
-    return competencias_parent_dir() / competencia
+        month = ensure_competencia_dir(competencia)
+    else:
+        month = None
+        for existing in list_competencia_dirs():
+            if existing.name == competencia:
+                month = existing
+                break
+        if month is None:
+            month = competencias_parent_dir() / competencia
+    if _is_inbox_upload_path(month):
+        month = competencias_parent_dir() / competencia
+        if not dry_run:
+            month = ensure_competencia_dir(competencia)
+    return month
+
+
+def painel_tem_empresa(
+    competencia: str,
+    *,
+    cnpj: str | None,
+    dest_folder: Path,
+) -> bool:
+    """True se a empresa já está no snapshot do painel (não só o PDF no disco)."""
+    json_path = resolve_workspace_root() / "dashboard" / "data" / "empresas.json"
+    if not json_path.exists():
+        return False
+    try:
+        payload = json.loads(json_path.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    snap = (payload.get("snapshots") or {}).get(competencia) or {}
+    dig = digits_cnpj(cnpj)
+    dest_res: Path | None = None
+    try:
+        if dest_folder.exists():
+            dest_res = dest_folder.resolve()
+    except OSError:
+        dest_res = None
+    for emp in snap.get("empresas") or []:
+        if dig and digits_cnpj(emp.get("cnpj")) == dig:
+            return True
+        pasta = emp.get("pasta")
+        if dest_res and pasta:
+            try:
+                if Path(pasta).resolve() == dest_res:
+                    return True
+            except OSError:
+                continue
+    return False
 
 
 def ingest_one(
@@ -680,6 +736,14 @@ def ingest_one(
     # libera texto grande antes do próximo arquivo
     del text
 
+    if _is_inbox_upload_path(dest_folder):
+        codigo_fix = codigo_from_filename(forced_name)
+        dirname = safe_empresa_dirname(result.get("empresa") or nome, codigo_fix, cnpj)
+        dest_folder = month / status_folder / dirname
+        result["avisos"].append("destino corrigido: inbox não é pasta da competência")
+        if not dry_run:
+            dest_folder.mkdir(parents=True, exist_ok=True)
+
     dest_path, skip_reason = unique_dest_path(dest_folder, forced_name, path)
     result["destino"] = str(dest_folder.relative_to(month)) if month in dest_folder.parents or dest_folder.parent == month else str(dest_folder)
     try:
@@ -688,10 +752,26 @@ def ingest_one(
         result["destino"] = str(dest_path)
 
     if skip_reason:
-        result["ok"] = True
         result["arquivo_final"] = dest_path.name
+        same_hash = "já importado (mesmo hash)" in skip_reason
+        ja_no_painel = painel_tem_empresa(
+            str(result.get("competencia") or selected),
+            cnpj=cnpj,
+            dest_folder=dest_folder,
+        )
+        if same_hash and not ja_no_painel:
+            result["avisos"].append(
+                "PDF já está na pasta, mas a empresa não está no painel — confirmar reindexa o Federal"
+            )
+            result["ok"] = True
+            result["duplicado"] = False
+            if dry_run:
+                return result
+            result["avisos"].append(f"tipos: {', '.join(tipos) if tipos else '—'}")
+            return result
+        result["ok"] = True
         result["avisos"].append(skip_reason)
-        if "já importado (mesmo hash)" in skip_reason:
+        if same_hash:
             result["duplicado"] = True
         return result
 

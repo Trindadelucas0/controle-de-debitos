@@ -1054,7 +1054,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                           <div className="space-y-1">
                             <Badge variant="outline">Duplicado</Badge>
                             <div className="text-[11px] text-amber-900">
-                              Já existe nesta competência — não será reimportado.
+                              Este PDF já está na pasta da competência e a empresa já
+                              consta no painel. Abra o Federal desta competência; para
+                              substituir, exclua o PDF antigo e envie de novo.
                             </div>
                           </div>
                         ) : f.status === "ok" ? (

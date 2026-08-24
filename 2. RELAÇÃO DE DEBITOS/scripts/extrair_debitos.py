@@ -95,8 +95,13 @@ def resolve_output_dir() -> Path:
 
 
 COMPETENCIA_DIR_RE = re.compile(r"^\d{2}-\d{4}$")
-# Prefixo gerado pela API: {Date.now()}_{index}_{nomeOriginal}.pdf
+# Prefixo legado no NOME do arquivo: {Date.now()}_{index}_{nomeOriginal}.pdf
 INBOX_UPLOAD_PREFIX_RE = re.compile(r"^(\d{10,})_(\d+)_(.+)$")
+# API atual grava só {index}_{nomeOriginal}.pdf (timestamp fica na pasta do lote).
+INBOX_INDEX_PREFIX_RE = re.compile(r"^(\d+)_(.+)$")
+INBOX_TIPO_STEM_RE = re.compile(
+    r"(?i)^(?:\d+_)*\d+-(ECAC|AGENCIANET|MUNICIPAL)(?:__\d+)?$"
+)
 
 
 def _is_inbox_upload_path(path: Path) -> bool:
@@ -800,16 +805,25 @@ def extract_company(text: str) -> tuple[str | None, str | None]:
 
 
 def strip_inbox_upload_prefix(stem_or_name: str) -> str:
-    """Remove prefixo {timestamp}_{index}_ gerado pela API de upload."""
+    """Remove prefixo de inbox da API: {timestamp}_{index}_ e/ou {index}_.
+
+    A rota grava `0_09-ECAC.pdf` (índice + nome original). Sem este strip o
+    código vira `0_09` e o destino colide com o próprio arquivo do inbox.
+    """
     stem = Path(stem_or_name).stem if "." in stem_or_name else stem_or_name
     match = INBOX_UPLOAD_PREFIX_RE.match(stem)
     if match:
-        return match.group(3)
+        stem = match.group(3)
+    while True:
+        prefixed = INBOX_INDEX_PREFIX_RE.match(stem)
+        if not prefixed or not INBOX_TIPO_STEM_RE.match(stem):
+            break
+        stem = prefixed.group(2)
     return stem
 
 
 def codigo_from_filename(file_name: str) -> str:
-    """Prefixo numérico do PDF: 86-ECAC.pdf -> 86; inbox 1785…_0_711-ECAC -> 711."""
+    """Prefixo numérico do PDF: 86-ECAC.pdf -> 86; inbox 0_09-ECAC -> 09."""
     stem = strip_inbox_upload_prefix(Path(file_name).stem)
     return stem.split("-")[0]
 
