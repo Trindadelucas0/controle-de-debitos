@@ -9,6 +9,9 @@ const TITULO_PENDENCIA_LABELS: Record<string, string> = {
   "OMISSAO DE DCTFWEB": "Pendência · Omissão de DCTFWeb",
   "OMISSAO DE DCTF": "Pendência · Omissão de DCTF",
   "OMISSAO DE DIRF": "Pendência · Omissão de DIRF",
+  "OMISSAO DE EFD-CONTRIB": "Pendência · Omissão de EFD-Contrib",
+  "OMISSAO DE PGDAS-D": "Pendência · Omissão de PGDAS-D",
+  "IRREGULARIDADE CADASTRAL": "Pendência · Irregularidade cadastral",
   "DEBITO (SIEF)": "Pendência · Débito (SIEF)",
   "DEBITO (SIDA)": "Pendência · Débito (SIDA)",
   "DEBITO SUSPENSO": "Débito com exigibilidade suspensa",
@@ -25,7 +28,12 @@ const TITULO_PENDENCIA_LABELS: Record<string, string> = {
 export function formatTituloPendencia(titulo?: string | null): string {
   const key = (titulo || "").trim();
   if (!key) return "Lançamentos";
-  return TITULO_PENDENCIA_LABELS[key] ?? `Pendência · ${key}`;
+  const mapped = TITULO_PENDENCIA_LABELS[key];
+  if (mapped) return mapped;
+  if (key.startsWith("OMISSAO DE ")) {
+    return `Pendência · Omissão de ${key.slice("OMISSAO DE ".length)}`;
+  }
+  return `Pendência · ${key}`;
 }
 
 /** Espelha o subtotal do relatório: "5 itens · R$ 537,98". */
@@ -38,7 +46,12 @@ export function formatItensETotal(qtd: number, consolidado: number): string {
 export function isOmissaoDebito(row: { situacao?: string; titulo?: string }): boolean {
   const situacao = (row.situacao || "").toUpperCase();
   const titulo = (row.titulo || "").toUpperCase();
-  return situacao === "OMISSAO" || titulo.startsWith("OMISSAO");
+  return (
+    situacao === "OMISSAO" ||
+    situacao === "INAPTA" ||
+    titulo.startsWith("OMISSAO") ||
+    titulo === "IRREGULARIDADE CADASTRAL"
+  );
 }
 
 export function formatCnpj(cnpj: string | null | undefined): string {

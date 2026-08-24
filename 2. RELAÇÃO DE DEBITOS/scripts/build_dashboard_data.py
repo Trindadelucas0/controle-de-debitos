@@ -37,7 +37,7 @@ ESFERAS = ("federal", "estadual", "municipal")
 
 DEBITO_ROW_RE = re.compile(
     r"(?P<code>\d{4}-\d{2})\s*-\s*(?P<nome>[a-z0-9Á-ú /.*-]+?)\s+"
-    r"(?P<pa>(?:\d{2}/\d{2}/\d{4}|\d{2}/\d{4}|[123]o?\s*trim/\d{4}|[a-zç]{3}/\d{4}))\s+"
+    r"(?P<pa>(?:\d{2}/\d{2}/\d{4}|\d{2}/\d{4}|[123]o?\s*trim/\d{4}|[a-zç]{3}/\d{4}|20\d{2}))\s+"
     r"(?P<vcto>\d{2}/\d{2}/\d{4})\s+"
     r"(?P<original>[\d.]+,\d{2})\s+"
     r"(?P<saldo>[\d.]+,\d{2})\s+"
@@ -64,7 +64,7 @@ RECEITA_LIT_RE = re.compile(r"^(\d{4}-\d{2})\s*-\s*(.+)$", re.I)
 SIMPLES_LIT_RE = re.compile(r"^SIMPLES\s+NAC\.?$", re.I)
 SIMPLES_CODE_LIT_RE = re.compile(r"^(\d{4})(?:-\d{2})?-SIMPLES(?:\s+NAC\.?)?$", re.I)
 PA_LIT_RE = re.compile(
-    r"^(?:\d{2}/\d{4}|\d{2}/\d{2}/\d{4}|[123][oº]?\s*TRIM/\d{4}|[A-ZÇÁ-Ú]{3}/\d{4})$",
+    r"^(?:\d{2}/\d{4}|\d{2}/\d{2}/\d{4}|[123][oº]?\s*TRIM/\d{4}|[A-ZÇÁ-Ú]{3}/\d{4}|20\d{2})$",
     re.I,
 )
 VCTO_LIT_RE = re.compile(r"^\d{2}/\d{2}/\d{4}$")
@@ -90,6 +90,10 @@ ECAC_TITULO_RE = re.compile(
     r"omissao de dctfweb|"
     r"omissao de dctf\b|"
     r"omissao de dirf|"
+    r"omissao de efd[- ]?contrib|"
+    r"omissao de pgdas(?:-d)?|"
+    r"omissao de (?!declar)[a-z0-9][a-z0-9 ./-]{1,40}|"
+    r"irregularidade cadastral|"
     r"debito\s*\(\s*sief\s*\)|"
     r"debito\s*\(\s*sida\s*\)|"
     r"processo fiscal\s*\(\s*sief\s*\)|"
@@ -101,6 +105,12 @@ ECAC_TITULO_RE = re.compile(
     r"|debito com exigibilidade suspensa"
     r"|inscricao com exigibilidade suspensa"
     r"|parcelamento com exigibilidade suspensa",
+    re.I,
+)
+CADASTRAL_FACT_RE = re.compile(
+    r"(inscricao inapta(?:\s*-\s*omissao de declaracoes)?|"
+    r"inapta(?:\s+omissao de declaracoes(?:\s+em\s+\d{2}/\d{2}/\d{4})?)?|"
+    r"integrante do qsa.{0,80}?irregular)",
     re.I,
 )
 
@@ -357,18 +367,35 @@ def status_doc_from_classe(pasta_status: str, classe: str, has_rows: bool) -> st
     return "indeterminado"
 
 
+def _strip_ecac_decoration(text: str) -> str:
+    """Remove sublinhados/asteriscos que o PDF do diagnóstico cola no título."""
+    text = re.sub(r"[_*]{2,}", " ", text)
+    text = text.replace("_", " ")
+    return re.sub(r"\s+", " ", text).strip(" -")
+
+
 def normalize_ecac_titulo(raw: str) -> str:
     """Normaliza título de seção do Diagnóstico Fiscal (sem strip de SIEF/SIDA)."""
-    f = fold(raw)
+    f = fold(_strip_ecac_decoration(raw))
     f = re.sub(r"[*]+", "", f)
     f = re.sub(r"\s+", " ", f).strip(" -")
     f = re.sub(r"^pendencia\s*-+\s*", "", f).strip(" -")
-    if "omissao de dctfweb" in f:
-        return "OMISSAO DE DCTFWEB"
-    if "omissao de dctf" in f:
-        return "OMISSAO DE DCTF"
-    if "omissao de dirf" in f:
-        return "OMISSAO DE DIRF"
+    if "irregularidade cadastral" in f:
+        return "IRREGULARIDADE CADASTRAL"
+    omissao = re.match(r"^omissao de (.+)$", f)
+    if omissao:
+        rest = re.sub(r"\s+", " ", omissao.group(1)).strip(" -")
+        if rest.startswith("dctfweb"):
+            return "OMISSAO DE DCTFWEB"
+        if rest.startswith("dctf"):
+            return "OMISSAO DE DCTF"
+        if rest.startswith("dirf"):
+            return "OMISSAO DE DIRF"
+        if "efd" in rest and "contrib" in rest:
+            return "OMISSAO DE EFD-CONTRIB"
+        if rest.startswith("pgdas"):
+            return "OMISSAO DE PGDAS-D"
+        return f"OMISSAO DE {rest.upper()}"
     # Exigibilidade suspensa antes de Débito (SIEF): o título traz "(SIEF)" no fim.
     if "parcelamento" in f and "exigibilidade suspensa" in f:
         return "PARCELAMENTO SUSPENSO"
@@ -399,18 +426,30 @@ def is_omissao_titulo(titulo: str | None) -> bool:
     return bool(titulo and titulo.startswith("OMISSAO"))
 
 
+def is_cadastral_titulo(titulo: str | None) -> bool:
+    return titulo == "IRREGULARIDADE CADASTRAL"
+
+
 def receita_for_omissao(titulo: str) -> str:
     if "DCTFWEB" in titulo:
         return "Omissão de DCTFWeb"
+    if "EFD" in titulo:
+        return "Omissão de EFD-Contrib"
+    if "PGDAS" in titulo:
+        return "Omissão de PGDAS-D"
     if "DCTF" in titulo:
         return "Omissão de DCTF"
     if "DIRF" in titulo:
         return "Omissão de DIRF"
+    if titulo.startswith("OMISSAO DE "):
+        return f"Omissão de {titulo[len('OMISSAO DE '):].strip()}"
     return "Omissão"
 
 
 def _titulo_is_complete(folded: str) -> bool:
     if "exigibilidade suspensa" in folded:
+        return True
+    if "irregularidade cadastral" in folded:
         return True
     if folded.startswith("omissao de") and len(folded) >= 12:
         return True
@@ -458,6 +497,7 @@ def match_ecac_titulo_at(literals: list[str], i: int) -> tuple[str | None, int]:
         or first.startswith("parcelamento")
         or "exigibilidade suspensa" in first
         or "processo fiscal" in first
+        or "irregularidade cadastral" in first
         or ("inscricao" in first and "sida" in first)
     )
     if not starts_titulo:
@@ -606,6 +646,8 @@ def iter_ecac_sections(folded: str) -> list[tuple[str | None, str]]:
 def _debito_row_key(row: dict) -> tuple:
     if is_omissao_titulo(row.get("titulo")) or row.get("situacao") == "OMISSAO":
         return ("omissao", row.get("titulo") or "", row.get("pa") or "")
+    if is_cadastral_titulo(row.get("titulo")) or row.get("situacao") == "INAPTA":
+        return ("cadastral", fold(_clean_cadastral_fact(row.get("receita") or "")))
     return (
         "fin",
         row.get("receita") or "",
@@ -688,6 +730,91 @@ def _make_debito_row(
     return row
 
 
+def _clean_cadastral_fact(text: str) -> str:
+    text = _strip_ecac_decoration(text)
+    text = re.sub(r"\)\s*Tj\s*$", "", text, flags=re.I)
+    text = text.strip("() ")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _cadastral_fact_from_token(token: str) -> str | None:
+    """Fato cadastral (inapta/QSA) — não é receita nem novo título de seção."""
+    stripped = _clean_cadastral_fact(token)
+    if not stripped:
+        return None
+    if (
+        RECEITA_LIT_RE.match(stripped)
+        or PA_LIT_RE.match(stripped)
+        or YEAR_MONTHS_RE.match(stripped)
+        or YEAR_ONLY_RE.match(stripped)
+    ):
+        return None
+    titulo, _ = match_ecac_titulo_at([stripped], 0)
+    if titulo:
+        return None
+    folded = fold(stripped)
+    if (
+        "inapta" in folded
+        or "omissao de declar" in folded
+        or ("qsa" in folded and "irregular" in folded)
+        or "situacao cadastral irregular" in folded
+    ):
+        return stripped
+    return None
+
+
+def _make_cadastral_row(
+    *,
+    receita: str,
+    origem: str,
+    arquivo: str,
+    codigo: str,
+    esfera: str,
+) -> dict:
+    return _make_debito_row(
+        receita=receita,
+        pa="",
+        vencimento="",
+        original=0.0,
+        saldo=0.0,
+        multa=0.0,
+        juros=0.0,
+        consolidado=0.0,
+        situacao="INAPTA",
+        origem=origem,
+        arquivo=arquivo,
+        codigo=codigo,
+        esfera=esfera,
+        titulo="IRREGULARIDADE CADASTRAL",
+    )
+
+
+def parse_irregularidade_body(
+    body: str,
+    origem: str,
+    arquivo: str,
+    esfera: str,
+) -> list[dict]:
+    codigo = codigo_from_filename(arquivo)
+    rows: list[dict] = []
+    seen: set[str] = set()
+    for match in CADASTRAL_FACT_RE.finditer(body or ""):
+        fact = _clean_cadastral_fact(match.group(0))
+        if not fact or fact in seen:
+            continue
+        seen.add(fact)
+        rows.append(
+            _make_cadastral_row(
+                receita=fact,
+                origem=origem,
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera=esfera,
+            )
+        )
+    return rows
+
+
 def parse_ecac_from_literals(
     literals: list[str],
     origem: str,
@@ -727,6 +854,23 @@ def parse_ecac_from_literals(
                         seen.add(key)
                         rows.append(row)
                 i += consumed
+                continue
+
+        if is_cadastral_titulo(current_titulo):
+            fact = _cadastral_fact_from_token(literals[i])
+            if fact:
+                row = _make_cadastral_row(
+                    receita=fact,
+                    origem=origem,
+                    arquivo=arquivo,
+                    codigo=codigo,
+                    esfera=esfera,
+                )
+                key = _debito_row_key(row)
+                if key not in seen:
+                    seen.add(key)
+                    rows.append(row)
+                i += 1
                 continue
 
         token = literals[i]
@@ -852,6 +996,8 @@ def parse_ecac_debitos_regex(text: str, origem: str, arquivo: str, esfera: str) 
             section_rows.extend(
                 parse_omissao_periodos(body, titulo or "OMISSAO DE DCTFWEB", origem, arquivo, esfera)
             )
+        if is_cadastral_titulo(titulo):
+            section_rows.extend(parse_irregularidade_body(body, origem, arquivo, esfera))
         section_rows.extend(_parse_financial_rows_in_body(body, origem, arquivo, esfera, titulo))
         for row in section_rows:
             key = _debito_row_key(row)

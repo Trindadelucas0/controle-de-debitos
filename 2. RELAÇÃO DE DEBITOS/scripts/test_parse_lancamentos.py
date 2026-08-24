@@ -310,6 +310,130 @@ def test_fixture_merge_nao_descarta_omissao(failures: list[str]) -> None:
     assert_true("DEBITO (SIEF)" in titulos, f"merge: falta SIEF em {titulos}", failures)
 
 
+FIXTURE_TJJ_SIEF_EXERCICIO_LITERALS = [
+    "Pendência - Omissão de DCTFWeb*",
+    "(Período de Apuração)",
+    "2025 - DEZ",
+    "Pendência - Débito (SIEF)",
+    "1082-01 - CP-SEGUR.",
+    "01/2026",
+    "20/02/2026",
+    "544,33",
+    "544,33",
+    "108,86",
+    "36,52",
+    "689,71",
+    "DEVEDOR",
+    "1082-21 - CP-SEGUR.",
+    "2025",
+    "19/12/2025",
+    "471,12",
+    "471,12",
+    "94,22",
+    "41,78",
+    "607,12",
+    "DEVEDOR",
+]
+
+FIXTURE_TJJ_SIEF_EXERCICIO_TEXT = """
+Pendência - Omissão de DCTFWeb*
+(Período de Apuração)
+2025 - DEZ
+Pendência - Débito (SIEF)
+Receita PA/Exerc. Dt. Vcto Vl. Original Sdo. Devedor Multa Juros Sdo. Dev. Cons. Situação
+1082-01 - CP-SEGUR. 01/2026 20/02/2026 544,33 544,33 108,86 36,52 689,71 DEVEDOR
+1082-21 - CP-SEGUR. 2025 19/12/2025 471,12 471,12 94,22 41,78 607,12 DEVEDOR
+"""
+
+FIXTURE_JD76_CADASTRAL_LITERALS = [
+    "Pendência - Irregularidade Cadastral ____________________________________________________________________________",
+    "Inscrição inapta - Omissão de declarações",
+    "Omissão de DCTF _________________________________________________________________________________________________",
+    "(Período de Apuração)",
+    "2023 - JAN FEV MAR ABR MAI JUN JUL AGO SET OUT NOV DEZ",
+    "Omissão de EFD-CONTRIB __________________________________________________________________________________________",
+    "(Período de Apuração)",
+    "2023 - JAN FEV MAR ABR MAI JUN JUL AGO SET OUT NOV DEZ",
+    "Pendência - Débito (SIEF) _______________________________________________________________________________________",
+    "1345-01 - MAED - DCTF",
+    "23/03/2022",
+    "02/09/2022",
+    "200,00",
+    "200,00",
+    "0,00",
+    "96,38",
+    "296,38",
+    "DEVEDOR",
+    "Notificação de lançamento: 16971011576964",
+    "1345-01 - MAED - DCTF",
+    "22/03/2021",
+    "02/09/2022",
+    "200,00",
+    "200,00",
+    "0,00",
+    "96,38",
+    "296,38",
+    "DEVEDOR",
+]
+
+
+def test_fixture_sief_pa_exercicio_ano(failures: list[str]) -> None:
+    rows = parse_ecac_from_literals(
+        FIXTURE_TJJ_SIEF_EXERCICIO_LITERALS, "ECAC", "715-ECAC.pdf", "federal"
+    )
+    omissao = [r for r in rows if r.get("situacao") == "OMISSAO"]
+    sief = [r for r in rows if r.get("titulo") == "DEBITO (SIEF)"]
+    assert_true(len(omissao) == 1 and omissao[0]["pa"] == "DEZ/2025", f"TJJ: omissão={omissao}", failures)
+    assert_true(len(sief) == 2, f"TJJ: esperado 2 SIEF, obtido {len(sief)}", failures)
+    mensal = next((r for r in sief if r["pa"] == "01/2026"), None)
+    exerc = next((r for r in sief if r["pa"] == "2025"), None)
+    assert_true(mensal is not None and "1082-01" in mensal["receita"], "TJJ: falta 1082-01 01/2026", failures)
+    assert_true(exerc is not None and "1082-21" in exerc["receita"], "TJJ: falta 1082-21 exercício 2025", failures)
+    if exerc:
+        assert_true(abs(exerc["original"] - 471.12) < 0.02, f"TJJ: original={exerc['original']}", failures)
+        assert_true(abs(exerc["consolidado"] - 607.12) < 0.02, f"TJJ: consol={exerc['consolidado']}", failures)
+    regex_rows = parse_ecac_debitos_regex(
+        FIXTURE_TJJ_SIEF_EXERCICIO_TEXT, "ECAC", "715-ECAC.pdf", "federal"
+    )
+    regex_exerc = next(
+        (r for r in regex_rows if r.get("titulo") == "DEBITO (SIEF)" and r.get("pa") == "2025"),
+        None,
+    )
+    assert_true(regex_exerc is not None, "TJJ regex: falta SIEF PA 2025", failures)
+    if regex_exerc:
+        assert_true(abs(regex_exerc["original"] - 471.12) < 0.02, f"TJJ regex orig={regex_exerc['original']}", failures)
+
+
+def test_fixture_jd76_efd_e_cadastral(failures: list[str]) -> None:
+    rows = parse_ecac_from_literals(
+        FIXTURE_JD76_CADASTRAL_LITERALS, "ECAC", "76-ECAC.pdf", "federal"
+    )
+    titulos = {r.get("titulo") for r in rows}
+    assert_true("IRREGULARIDADE CADASTRAL" in titulos, f"76: falta cadastral {titulos}", failures)
+    assert_true("OMISSAO DE DCTF" in titulos, f"76: falta DCTF {titulos}", failures)
+    assert_true("OMISSAO DE EFD-CONTRIB" in titulos, f"76: falta EFD {titulos}", failures)
+    assert_true(
+        not any("_" in (r.get("titulo") or "") for r in rows),
+        "76: título ainda com underscore do PDF",
+        failures,
+    )
+    efd = [r for r in rows if r.get("titulo") == "OMISSAO DE EFD-CONTRIB"]
+    dctf = [r for r in rows if r.get("titulo") == "OMISSAO DE DCTF"]
+    cadastral = [r for r in rows if r.get("titulo") == "IRREGULARIDADE CADASTRAL"]
+    sief = [r for r in rows if r.get("titulo") == "DEBITO (SIEF)"]
+    assert_true(len(efd) == 12, f"76: EFD esperado 12, obtido {len(efd)}", failures)
+    assert_true(len(dctf) == 12, f"76: DCTF esperado 12, obtido {len(dctf)}", failures)
+    assert_true(len(sief) == 2, f"76: SIEF esperado 2, obtido {len(sief)}", failures)
+    assert_true(len(cadastral) == 1, f"76: cadastral duplicada n={len(cadastral)} {cadastral}", failures)
+    if cadastral:
+        assert_true(
+            "inapta" in (cadastral[0].get("receita") or "").lower(),
+            f"76: receita cadastral={cadastral[0].get('receita')}",
+            failures,
+        )
+        assert_true(cadastral[0].get("situacao") == "INAPTA", "76: situacao cadastral != INAPTA", failures)
+
+
 def test_sample_86(month: Path, failures: list[str]) -> None:
     path = find_pdf_by_name(month, "86-ECAC.pdf")
     if path is None:
@@ -362,7 +486,7 @@ def test_row_sanity(month: Path, failures: list[str]) -> None:
                 assert_true(row[key] >= 0, f"{name}: {key}<0 em {row.get('receita')}", failures)
             expected = round(row["saldo"] + row["multa"] + row["juros"], 2)
             # só valida quando tem os 3 componentes preenchidos (padrão 5 valores)
-            if row.get("situacao") != "OMISSAO" and (
+            if row.get("situacao") not in {"OMISSAO", "INAPTA"} and (
                 row["multa"] > 0 or row["juros"] > 0 or abs(row["consolidado"] - row["saldo"]) > 0.01
             ):
                 assert_true(
@@ -383,6 +507,8 @@ def main() -> int:
     test_fixture_titulo_quebrado_em_tokens(failures)
     test_fixture_titulo_suspenso_sief_antes_de_debito_sief(failures)
     test_fixture_merge_nao_descarta_omissao(failures)
+    test_fixture_sief_pa_exercicio_ano(failures)
+    test_fixture_jd76_efd_e_cadastral(failures)
     test_fixture_outras_secoes_ecac(failures)
     test_cid_literal_caesar(failures)
     test_pdf_138_conect_calibracao(failures)
