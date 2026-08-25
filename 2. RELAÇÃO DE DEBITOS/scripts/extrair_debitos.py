@@ -561,8 +561,9 @@ def score_text(text: str) -> int:
 # Lookbehind evita inscrição SIDA colada (ex. 12376.850.567/2021-83)
 CNPJ_STRICT_RE = re.compile(r"(?<!\d)(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})(?!\d)")
 CNPJ_DIGITS_RE = re.compile(r"\b(\d{14})\b")
+# ET/BT são operadores PDF; (?<![A-Za-zÁ-ú]) evita apagar BUFFET/MARKET/INTERNET.
 PDF_JUNK_RE = re.compile(
-    r"(?:\)Tj|Tj\b|Tf\b|Tm\b|ET\b|BT\b|cm\b|/F\d+|\\\\\(|\\\\\)|\bobj\b|\bendobj\b)",
+    r"(?:\)Tj|Tj\b|Tf\b|Tm\b|(?<![A-Za-zÁ-ú])ET\b|(?<![A-Za-zÁ-ú])BT\b|cm\b|/F\d+|\\\\\(|\\\\\)|\bobj\b|\bendobj\b)",
     re.I,
 )
 # Órgãos públicos / certificados que aparecem no cabeçalho do e-CAC
@@ -802,6 +803,24 @@ def extract_company(text: str) -> tuple[str | None, str | None]:
             cnpj = format_cnpj_digits(m.group(1))
 
     return cnpj, name
+
+
+def extract_company_from_pdf(
+    path: Path,
+    text: str = "",
+) -> tuple[str | None, str | None]:
+    """CNPJ/razão do texto extraído; se o nome falhar, tenta literais do PDF."""
+    cnpj, nome = extract_company(text)
+    if cnpj and nome:
+        return cnpj, nome
+    try:
+        joined = "\n".join(pdf_string_literals(path))
+    except Exception:
+        return cnpj, nome
+    if not joined.strip():
+        return cnpj, nome
+    lit_cnpj, lit_nome = extract_company(joined)
+    return (lit_cnpj or cnpj), (lit_nome or nome)
 
 
 def strip_inbox_upload_prefix(stem_or_name: str) -> str:

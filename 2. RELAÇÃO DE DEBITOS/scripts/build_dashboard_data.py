@@ -23,6 +23,7 @@ from extrair_debitos import (  # noqa: E402
     classify_text,
     codigo_from_filename,
     extract_company,
+    extract_company_from_pdf,
     fold,
     has_fiscal_markers,
     list_competencia_dirs,
@@ -112,6 +113,15 @@ YEAR_MONTHS_RE = re.compile(
     re.I,
 )
 YEAR_ONLY_RE = re.compile(r"^(20\d{2})\s*[-–]?\s*$")
+# Corta lixo de outra página/seção que o regex de omissão lia como PA.
+SECTION_BODY_STOP_RE = re.compile(
+    r"diagnostico fiscal na procuradoria|"
+    r"final do relatorio|"
+    r"\bpagina\s*:|"
+    r"ministerio da fazenda|"
+    r"nao foram detectadas pend",
+    re.I,
+)
 ECAC_TITULO_RE = re.compile(
     r"(?:pendencia\s*-+\s*)?(?:"
     r"omissao de dctfweb|"
@@ -457,6 +467,16 @@ def is_omissao_titulo(titulo: str | None) -> bool:
     return bool(titulo and titulo.startswith("OMISSAO"))
 
 
+def is_omissao_anual(titulo: str | None) -> bool:
+    """ECF/ECD/DIRF são ano-calendário; DCTFWeb/DCTF/EFD/PGDAS são mensais."""
+    if not is_omissao_titulo(titulo):
+        return False
+    up = (titulo or "").upper()
+    if "DCTFWEB" in up or "DCTF" in up or "EFD" in up or "PGDAS" in up:
+        return False
+    return any(mark in up for mark in ("ECF", "ECD", "DIRF"))
+
+
 def is_cadastral_titulo(titulo: str | None) -> bool:
     return titulo == "IRREGULARIDADE CADASTRAL"
 
@@ -554,7 +574,19 @@ def match_ecac_titulo_at(literals: list[str], i: int) -> tuple[str | None, int]:
     return None, 0
 
 
-def _parse_year_months_at(literals: list[str], i: int) -> tuple[str, list[str], int] | None:
+def _clip_section_body(body: str) -> str:
+    match = SECTION_BODY_STOP_RE.search(body)
+    if match and match.start() > 0:
+        return body[: match.start()]
+    return body
+
+
+def _parse_year_months_at(
+    literals: list[str],
+    i: int,
+    *,
+    anual: bool = False,
+) -> tuple[str, list[str], int] | None:
     n = len(literals)
     if i >= n:
         return None
@@ -562,12 +594,16 @@ def _parse_year_months_at(literals: list[str], i: int) -> tuple[str, list[str], 
     match = YEAR_MONTHS_RE.match(token)
     if match:
         year = match.group(1)
+        if anual:
+            return year, [], 1
         months = [item.upper() for item in MES_TOKEN_RE.findall(token)]
         if months:
             return year, months, 1
     if not YEAR_ONLY_RE.match(token):
         return None
     year = YEAR_ONLY_RE.match(token).group(1)
+    if anual:
+        return year, [], 1
     j = i + 1
     if j < n and re.match(r"^[-–]$", literals[j].strip()):
         j += 1
@@ -696,34 +732,21 @@ def parse_omissao_periodos(
     codigo = codigo_from_filename(arquivo)
     rows: list[dict] = []
     seen: set[str] = set()
-    for match in re.finditer(
-        r"(20\d{2})\s*[-–]?\s*((?:(?:" + "|".join(MES_ABREV) + r")\s*)+)",
-        body,
-        re.I,
-    ):
-        year = match.group(1)
-        months = [item.upper() for item in MES_TOKEN_RE.findall(match.group(2))]
-        for row in _make_omissao_rows(
-            titulo=titulo,
-            year=year,
-            months=months,
-            origem=origem,
-            arquivo=arquivo,
-            codigo=codigo,
-            esfera=esfera,
+    body = _clip_section_body(body)
+    anual = is_omissao_anual(titulo)
+
+    if not anual:
+        for match in re.finditer(
+            r"(20\d{2})\s*[-–]?\s*((?:(?:" + "|".join(MES_ABREV) + r")\s*)+)",
+            body,
+            re.I,
         ):
-            key = row["pa"]
-            if key not in seen:
-                seen.add(key)
-                rows.append(row)
-    if not rows:
-        for match in re.finditer(r"\b(0[1-9]|1[0-2])/(20\d{2})\b", body):
-            mes = MES_ABREV[int(match.group(1)) - 1]
-            year = match.group(2)
+            year = match.group(1)
+            months = [item.upper() for item in MES_TOKEN_RE.findall(match.group(2))]
             for row in _make_omissao_rows(
                 titulo=titulo,
                 year=year,
-                months=[mes],
+                months=months,
                 origem=origem,
                 arquivo=arquivo,
                 codigo=codigo,
@@ -733,12 +756,30 @@ def parse_omissao_periodos(
                 if key not in seen:
                     seen.add(key)
                     rows.append(row)
+        if not rows:
+            for match in re.finditer(r"(?<!\d/)(0[1-9]|1[0-2])/(20\d{2})\b", body):
+                mes = MES_ABREV[int(match.group(1)) - 1]
+                year = match.group(2)
+                for row in _make_omissao_rows(
+                    titulo=titulo,
+                    year=year,
+                    months=[mes],
+                    origem=origem,
+                    arquivo=arquivo,
+                    codigo=codigo,
+                    esfera=esfera,
+                ):
+                    key = row["pa"]
+                    if key not in seen:
+                        seen.add(key)
+                        rows.append(row)
+
     if not rows:
-        years = re.findall(r"\b(20\d{2})\b", body)
-        if years:
+        years = re.findall(r"(?<![/\d])(20\d{2})\b", body)
+        for year in dict.fromkeys(years):
             for row in _make_omissao_rows(
                 titulo=titulo,
-                year=years[0],
+                year=year,
                 months=[],
                 origem=origem,
                 arquivo=arquivo,
@@ -764,7 +805,7 @@ def iter_ecac_sections(folded: str) -> list[tuple[str | None, str]]:
     for idx, match in enumerate(matches):
         titulo = normalize_ecac_titulo(match.group(0))
         end = matches[idx + 1].start() if idx + 1 < len(matches) else len(folded)
-        body = folded[match.end() : end]
+        body = _clip_section_body(folded[match.end() : end])
         sections.append((titulo or None, body))
     return sections
 
@@ -967,7 +1008,9 @@ def parse_ecac_from_literals(
             continue
 
         if is_omissao_titulo(current_titulo):
-            parsed = _parse_year_months_at(literals, i)
+            parsed = _parse_year_months_at(
+                literals, i, anual=is_omissao_anual(current_titulo)
+            )
             if parsed:
                 year, months, consumed = parsed
                 for row in _make_omissao_rows(
@@ -987,6 +1030,9 @@ def parse_ecac_from_literals(
                 continue
             m_pa = re.match(r"^(0[1-9]|1[0-2])/(20\d{2})$", literals[i].strip())
             if m_pa:
+                if is_omissao_anual(current_titulo):
+                    i += 1
+                    continue
                 mes = MES_ABREV[int(m_pa.group(1)) - 1]
                 year = m_pa.group(2)
                 for row in _make_omissao_rows(
@@ -2092,7 +2138,7 @@ def build_snapshot_for_month(month: Path) -> dict:
                 codigos.add(codigo)
                 text, _mode, text_avisos = resolve_pdf_text(pdf, label)
                 avisos.extend(text_avisos)
-                found_cnpj, found_nome = extract_company(text) if text.strip() else (None, None)
+                found_cnpj, found_nome = extract_company_from_pdf(pdf, text)
                 parsed_pdfs.append(
                     {
                         "pdf": pdf,
@@ -2159,18 +2205,6 @@ def build_snapshot_for_month(month: Path) -> dict:
 
                 if not text.strip():
                     avisos.append(f"sem texto em {pdf.name}")
-                    esfera = esfera_por_nome(pdf.name) or "federal"
-                    arquivos.append(pdf.name)
-                    documentos.append(
-                        make_documento(
-                            arquivo=pdf.name,
-                            esfera=esfera,
-                            origem_label=label,
-                            status_doc="indeterminado",
-                            debitos=[],
-                        )
-                    )
-                    continue
 
                 arquivos.append(pdf.name)
                 docs, found_tipos = extract_documentos_from_pdf(
@@ -2226,6 +2260,21 @@ def build_snapshot_for_month(month: Path) -> dict:
                 or (codigos_sorted[0] if codigos_sorted else "")
             )
             cnpj = cnpj_matriz or cnpj
+
+            folder_dig = re.sub(r"\D", "", folder.name)
+            cnpj_dig = re.sub(r"\D", "", cnpj or "")
+            pasta_so_cnpj = folder.name.isdigit() or (
+                bool(cnpj_dig) and folder_dig == cnpj_dig and len(folder_dig) == 14
+            )
+            if nome and not nome.strip().isdigit() and pasta_so_cnpj:
+                safe = re.sub(r'[<>:"/\\|?*]', "_", nome).strip(" .")[:120]
+                target = folder.parent / safe
+                if safe and safe != folder.name and not target.exists():
+                    try:
+                        folder.rename(target)
+                        folder = target
+                    except OSError:
+                        pass
 
             base_id = slugify(f"{codigo_principal}-{nome}" if codigo_principal else nome)
             empresa_id = base_id

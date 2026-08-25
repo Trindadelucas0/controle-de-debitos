@@ -37,7 +37,7 @@ from extrair_debitos import (  # noqa: E402
     codigo_from_filename,
     detect_competencia_from_text,
     ensure_competencia_dir,
-    extract_company,
+    extract_company_from_pdf,
     fold,
     has_fiscal_markers,
     list_competencia_dirs,
@@ -548,7 +548,7 @@ def ingest_one(
     )
 
     classe, tipos = classify_text(text)
-    cnpj, nome = extract_company(text)
+    cnpj, nome = extract_company_from_pdf(path, text)
     nome = cleanup_municipal_nome(nome, text)
     # Unaí: Nome: no cabeçalho (fallback)
     if not nome:

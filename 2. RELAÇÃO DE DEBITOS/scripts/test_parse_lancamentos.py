@@ -277,7 +277,9 @@ def test_fixture_outras_secoes_ecac(failures: list[str]) -> None:
         failures,
     )
     dirf = [r for r in rows if r.get("titulo") == "OMISSAO DE DIRF"]
-    assert_true(len(dirf) == 2, f"outras: esperado 2 DIRF, obtido {len(dirf)}", failures)
+    assert_true(len(dirf) == 1, f"outras: esperado 1 DIRF anual, obtido {len(dirf)} {dirf}", failures)
+    if dirf:
+        assert_true(dirf[0].get("pa") == "2024", f"DIRF PA={dirf[0].get('pa')}", failures)
     sida = next((r for r in rows if r.get("titulo") == "INSCRICAO (SIDA)"), None)
     assert_true(sida is not None and "1082-01" in (sida.get("receita") or ""), "outras: linha SIDA", failures)
     proc = next((r for r in rows if r.get("titulo") == "PROCESSO FISCAL (SIEF)"), None)
@@ -448,6 +450,33 @@ FIXTURE_OMISSAO_DCTF_MMYYYY_LITERALS = [
     "08/2024",
 ]
 
+FIXTURE_ECF_148_LITERALS = [
+    "MINISTÉRIO DA FAZENDA",
+    "18/08/2026 11:27:56",
+    "CNPJ: 41.420.735 - LJ FERRAMENTAS LTDA",
+    "CNPJ: 41.420.735/0001-51",
+    "INAPTA Omissão de declarações em 11/06/2026",
+    "Data de Abertura:",
+    "31/03/2021",
+    "31/12/2021",
+    "01/01/2023",
+    "Emissão:",
+    "22/05/2026",
+    "Data de Validade:",
+    "18/11/2026",
+    "Pendência - Irregularidade Cadastral",
+    "Inscrição inapta - Omissão de declarações",
+    "Omissão de ECF",
+    "(Ano-Calendário)",
+    "2022",
+    "Diagnóstico Fiscal na Procuradoria-Geral da Fazenda Nacional",
+    "Não foram detectadas pendências/exigibilidades suspensas para esse contribuinte nos controles da Procuradoria-Geral da Fazenda Nacional.",
+    "Final do Relatório",
+    "Página: 1 /",
+    "MINISTÉRIO DA FAZENDA",
+    "18/08/2026 11:27:56",
+]
+
 
 def test_fixture_tjj_138_pendencia_sem_valor(failures: list[str]) -> None:
     """PDF 2024 só com cadastral + omissão DCTF (sem R$) não pode zerar extração."""
@@ -486,6 +515,30 @@ def test_fixture_omissao_dctf_mm_yyyy(failures: list[str]) -> None:
     if dctf:
         assert_true(dctf[0].get("pa") == "AGO/2024", f"DCTF PA={dctf[0].get('pa')}", failures)
         assert_true(dctf[0].get("situacao") == "OMISSAO", "DCTF situacao", failures)
+
+
+def test_fixture_omissao_ecf_ano_calendario(failures: list[str]) -> None:
+    """LJ Ferramentas 148: só ano 2022; datas de cabeçalho não viram PA mensal."""
+    rows = parse_ecac_from_literals(
+        FIXTURE_ECF_148_LITERALS, "ECAC", "148-ECAC.pdf", "federal"
+    )
+    ecf = [r for r in rows if r.get("titulo") == "OMISSAO DE ECF"]
+    pas = [r.get("pa") for r in ecf]
+    assert_true(pas == ["2022"], f"ECF literais PA={pas}", failures)
+    assert_true(all(r.get("situacao") == "OMISSAO" for r in ecf), "ECF situacao", failures)
+    merged = parse_ecac_debitos(
+        "\n".join(FIXTURE_ECF_148_LITERALS), "ECAC", "148-ECAC.pdf", "federal"
+    )
+    merged_ecf = [r for r in merged if r.get("titulo") == "OMISSAO DE ECF"]
+    merged_pas = [r.get("pa") for r in merged_ecf]
+    assert_true(merged_pas == ["2022"], f"ECF merge PA={merged_pas}", failures)
+    regex_rows = parse_ecac_debitos_regex(
+        "\n".join(FIXTURE_ECF_148_LITERALS), "ECAC", "148-ECAC.pdf", "federal"
+    )
+    regex_ecf = [r for r in regex_rows if r.get("titulo") == "OMISSAO DE ECF"]
+    regex_pas = [r.get("pa") for r in regex_ecf]
+    assert_true("AGO/2026" not in regex_pas, f"ECF regex puxou cabeçalho {regex_pas}", failures)
+    assert_true("2022" in regex_pas, f"ECF regex sem 2022 {regex_pas}", failures)
 
 
 FIXTURE_SIEF_4_TRIM_LITERALS = [
@@ -643,6 +696,7 @@ def main() -> int:
     test_fixture_jd76_efd_e_cadastral(failures)
     test_fixture_tjj_138_pendencia_sem_valor(failures)
     test_fixture_omissao_dctf_mm_yyyy(failures)
+    test_fixture_omissao_ecf_ano_calendario(failures)
     test_fixture_sief_4_trim(failures)
     test_fixture_outras_secoes_ecac(failures)
     test_cid_literal_caesar(failures)

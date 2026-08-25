@@ -85,12 +85,28 @@ def test_lida_com_cnpj_e_nome_em_linhas(failures: list[str]) -> None:
     assert_true(nome is not None and "EXITO" in nome.upper(), f"linhas nome={nome!r}", failures)
 
 
+def test_buffet_nao_e_lixo_pdf(failures: list[str]) -> None:
+    text = (
+        "CNPJ:\n"
+        "34.867.799 - BUFFET CHA DAS DUAS SERVICOS E LOCACAO PARA EVENTOS LTDA\n"
+        "CNPJ: 34.867.799/0001-30\n"
+    )
+    cnpj, nome = extract_company(text)
+    assert_true(cnpj == "34.867.799/0001-30", f"BUFFET CNPJ={cnpj}", failures)
+    assert_true(
+        nome is not None and "BUFFET CHA DAS DUAS" in nome.upper(),
+        f"BUFFET nome={nome!r}",
+        failures,
+    )
+
+
 def main() -> int:
     failures: list[str] = []
     test_checksum(failures)
     test_sida_nao_vira_filial(failures)
     test_empresa_normal_nao_pega_certificado(failures)
     test_lida_com_cnpj_e_nome_em_linhas(failures)
+    test_buffet_nao_e_lixo_pdf(failures)
     if failures:
         print("FALHAS:")
         for item in failures:
