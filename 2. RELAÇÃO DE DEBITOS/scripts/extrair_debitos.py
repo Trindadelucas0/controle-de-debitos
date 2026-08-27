@@ -224,6 +224,9 @@ FISCAL_MARKERS = (
     "portalcidadao",
     "prefeituraunai",
     "municipio de",
+    "consulta de debitos",
+    "lancamento administrativo",
+    "documento de arrecadacao",
 )
 
 
@@ -233,6 +236,24 @@ def has_fiscal_markers(text: str) -> bool:
         return False
     f = fold(text)
     return any(marker in f for marker in FISCAL_MARKERS)
+
+
+def printable_ratio(text: str) -> float:
+    """Fração ASCII alfanumérica/espaço — CID lixo fica perto de 0."""
+    if not text:
+        return 0.0
+    printable = sum(1 for ch in text if ch.isascii() and (ch.isalnum() or ch.isspace()))
+    return printable / max(len(text), 1)
+
+
+def text_is_cid_garbage(text: str) -> bool:
+    """UTF-16/CID mal decodificado: longo, pouco ASCII, ou cheio de NUL."""
+    if not text or not str(text).strip():
+        return False
+    n = len(text)
+    if text.count("\x00") / n > 0.05:
+        return True
+    return printable_ratio(text) < 0.25
 
 
 def _caesar_printable(text: str, shift: int) -> str:
@@ -555,6 +576,8 @@ def score_text(text: str) -> int:
     # Penaliza lixo com NULs (CID mal decodificado)
     if text.count("\x00") > 50:
         score = min(score, 1)
+    if text_is_cid_garbage(text):
+        score = min(score, 1)
     return score
 
 
@@ -743,6 +766,23 @@ def extract_company(text: str) -> tuple[str | None, str | None]:
             name = name or clean_company_name(raw_nome)
             cnpj = cnpj or format_cnpj_digits(m.group(2))
 
+    # 4d) CND GDF: CERTIDÃO Nº:\n{numero}\n{RAZÃO SOCIAL}\nNOME:
+    if not name or not cnpj:
+        m = re.search(
+            r"CERTID[AÃ]O\s+N[ºO°]?\s*:?\s*\n\s*\d+\s*\n\s*"
+            r"([A-Za-zÁ-ú0-9& /.,\-]{5,120})\s*\n\s*NOME\s*:",
+            text,
+            re.I,
+        )
+        if m:
+            name = name or clean_company_name(m.group(1))
+        if not cnpj:
+            for hit in CNPJ_STRICT_RE.finditer(text):
+                formatted = format_cnpj_digits(hit.group(1))
+                if formatted:
+                    cnpj = formatted
+                    break
+
     # 4c) Itajaí: Nome do contribuinte: 7270309 - EMPRESA + CNPJ: xx...
     if not name or not cnpj:
         m = re.search(
@@ -889,11 +929,26 @@ def classify_text(text: str) -> tuple[str, list[str]]:
     if "nao foram detectadas pend" in f and not _has_receita_pendencia_signals(f):
         return "SEM_PENDENCIA", []
 
+    # CND estadual GDF (PDF da certidão, ~5 KB) — frase diferente da consulta
+    if (
+        "certidao negativa de debitos" in f
+        and "relativos aos tributos federais" not in f
+        and "exibir debitos" not in f
+        and (
+            "nao constam debitos de tribut" in f
+            or "nao constam debitos de competencia" in f
+        )
+    ):
+        return "SEM_PENDENCIA", []
+
+    tem_bloco_consulta = "seguinte(s) debito(s)" in f
+
     # Agenci@net estadual sem débitos (prioridade sobre títulos de menu)
+    # Não vale se a mesma tela lista LANÇAMENTO / A VENCER / DÍVIDA ATIVA.
     if (
         "nao constam debitos para o objeto consultado" in f
         or ("emissao de certidao negativa" in f and "exibir debitos" not in f)
-    ):
+    ) and not tem_bloco_consulta:
         return "SEM_PENDENCIA", []
 
     # Certidão Negativa federal completa (CND), sem diagnóstico de pendência ativa
@@ -933,6 +988,13 @@ def classify_text(text: str) -> tuple[str, list[str]]:
     ):
         if "CERTIDAO_POSITIVA_ESTADUAL" not in tipos:
             tipos.append("CERTIDAO_POSITIVA_ESTADUAL")
+
+    if "debito(s) a vencer" in f or "debitos a vencer" in f:
+        if "DEBITO_A_VENCER" not in tipos:
+            tipos.append("DEBITO_A_VENCER")
+    if "em parcelamento" in f and "PARCELAMENTO_ESTADUAL" not in tipos:
+        if tem_bloco_consulta:
+            tipos.append("PARCELAMENTO_ESTADUAL")
 
     # Lançamento Administrativo / DAR (SEFAZ-DF) com valores de cota
     if "lancamento administrativo" in f or (

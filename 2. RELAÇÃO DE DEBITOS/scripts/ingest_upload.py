@@ -637,6 +637,14 @@ def ingest_one(
                 "Não foi possível ler o Diagnóstico Fiscal deste PDF "
                 "(texto ilegível). Reexporte o arquivo ou instale pymupdf."
             )
+        elif tipo == "AGENCIANET" and (
+            any("OCR" in a or "Tesseract" in a or "pymupdf" in a for a in result["avisos"])
+            or text_is_really_empty(text)
+        ):
+            result["erro"] = (
+                "PDF da Agenci@Net ilegível (imagem/CID). "
+                "Exporte a Consulta de Débitos ou a Certidão Negativa em PDF."
+            )
         else:
             result["erro"] = (
                 "Nenhum lançamento extraído. A importação não pode ser "

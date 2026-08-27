@@ -32,6 +32,7 @@ from extrair_debitos import (  # noqa: E402
     resolve_workspace_root,
     run_all_modes,
     score_text,
+    text_is_cid_garbage,
 )
 
 ESFERAS = ("federal", "estadual", "municipal")
@@ -49,13 +50,23 @@ DEBITO_ROW_RE = re.compile(
     re.I,
 )
 
-# Agenci@Net: inscrição / ano / receita / tributo / valor (campos podem vir em linhas)
+# Agenci@Net: inscrição (número ou placa Mercosul) / ano / receita / tributo / [QPA] / valor
 AGENCIANET_ROW_RE = re.compile(
-    r"(?P<insc>\d{5,14})\s+"
+    r"(?P<insc>(?:[A-Z]{3}\d[A-Z0-9]{3}|\d{5,14}))\s+"
     r"(?P<ano>\d{4})\s+"
     r"(?P<receita>\d{1,6})\s+"
     r"(?P<tributo>[a-z0-9Á-ú /.*%-]{2,40}?)\s+"
+    r"(?:\d{1,4}\s+)?"
     r"(?P<valor>\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2}|00)\b",
+    re.I,
+)
+
+# Bloco A VENCER: inscrição / ano / descrição / código de receita (sem BRL)
+AGENCIANET_AVENCER_RE = re.compile(
+    r"(?P<insc>\d{5,14})\s+"
+    r"(?P<ano>20\d{2})\s+"
+    r"(?P<desc>[a-z0-9Á-ú /.*%-]{3,80}?)\s+"
+    r"(?P<receita>\d{3,6})\b",
     re.I,
 )
 
@@ -203,11 +214,13 @@ def best_text(path: Path) -> tuple[str, str]:
 
     def rank_key(item):
         res = item[1]
-        cnpj, nome = extract_company(res.text or "")
+        blob = res.text or ""
+        cnpj, nome = extract_company(blob)
         has_cnpj = 1 if cnpj and len(re.sub(r"\D", "", cnpj)) == 14 else 0
         has_nome = 1 if nome else 0
-        has_fiscal = 1 if has_fiscal_markers(res.text or "") else 0
-        return (has_fiscal, res.score, has_cnpj, has_nome, len(res.text or ""))
+        has_fiscal = 1 if has_fiscal_markers(blob) else 0
+        readable = 0 if text_is_cid_garbage(blob) else 1
+        return (readable, has_fiscal, res.score, has_cnpj, has_nome, len(blob))
 
     ranked = sorted(modes.items(), key=rank_key, reverse=True)
     best_mode, best = ranked[0]
@@ -1522,7 +1535,7 @@ def parse_agencianet_consulta(text: str, origem: str, arquivo: str) -> list[dict
             valor = parse_brl(valor_raw)
         receita_code = match.group("receita")
         ano = match.group("ano")
-        insc = match.group("insc")
+        insc = match.group("insc").upper()
         key = (insc, ano, receita_code, fold(tributo), valor)
         if key in seen:
             continue
@@ -1547,6 +1560,62 @@ def parse_agencianet_consulta(text: str, origem: str, arquivo: str) -> list[dict
                 numero_lancamento=insc,
             )
         )
+    rows.extend(_parse_agencianet_avencer(text, origem, arquivo, seen, codigo))
+    return rows
+
+
+def _parse_agencianet_avencer(
+    text: str,
+    origem: str,
+    arquivo: str,
+    seen: set[tuple],
+    codigo: str,
+) -> list[dict]:
+    """Bloco A VENCER: inscrição/ano/descrição/código, sem valor BRL na tela."""
+    f = fold(text)
+    rows: list[dict] = []
+    for block in re.finditer(
+        r"debito\(s\)\s+a vencer.*?(?=consta\(|clique no botao voltar|$)",
+        f,
+        re.S | re.I,
+    ):
+        chunk = block.group(0)
+        for match in AGENCIANET_AVENCER_RE.finditer(chunk):
+            desc = re.sub(r"\s+", " ", match.group("desc")).strip()
+            if fold(desc) in {
+                "identificacao",
+                "descricao",
+                "codigo de receita",
+                "ano",
+            }:
+                continue
+            insc = match.group("insc").upper()
+            ano = match.group("ano")
+            receita_code = match.group("receita")
+            key = (insc, ano, receita_code, fold(desc), 0.0)
+            if key in seen:
+                continue
+            seen.add(key)
+            receita = f"{receita_code} - {desc.upper()}"
+            rows.append(
+                _make_debito_row(
+                    receita=receita,
+                    pa=ano,
+                    vencimento="",
+                    original=0.0,
+                    saldo=0.0,
+                    multa=0.0,
+                    juros=0.0,
+                    consolidado=0.0,
+                    situacao="A VENCER",
+                    origem=origem,
+                    arquivo=arquivo,
+                    codigo=codigo,
+                    esfera="estadual",
+                    inscricao=insc,
+                    numero_lancamento=insc,
+                )
+            )
     return rows
 
 
