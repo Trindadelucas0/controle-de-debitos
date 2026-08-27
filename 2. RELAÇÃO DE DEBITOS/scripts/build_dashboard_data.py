@@ -220,7 +220,8 @@ def best_text(path: Path) -> tuple[str, str]:
         has_nome = 1 if nome else 0
         has_fiscal = 1 if has_fiscal_markers(blob) else 0
         readable = 0 if text_is_cid_garbage(blob) else 1
-        return (readable, has_fiscal, res.score, has_cnpj, has_nome, len(blob))
+        structured = 1 if blob.count("\n") >= 8 else 0
+        return (readable, structured, has_fiscal, res.score, has_cnpj, has_nome, len(blob))
 
     ranked = sorted(modes.items(), key=rank_key, reverse=True)
     best_mode, best = ranked[0]
@@ -1575,7 +1576,7 @@ def _parse_agencianet_avencer(
     f = fold(text)
     rows: list[dict] = []
     for block in re.finditer(
-        r"debito\(s\)\s+a vencer.*?(?=consta\(|clique no botao voltar|$)",
+        r"d\s*e?\s*bito\(s\)\s+a vencer.*?(?=consta\(|clique no botao voltar|$)",
         f,
         re.S | re.I,
     ):

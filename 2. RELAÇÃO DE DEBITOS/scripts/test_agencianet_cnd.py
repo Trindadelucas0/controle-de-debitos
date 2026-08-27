@@ -157,6 +157,56 @@ def test_placa_ipva(failures: list[str]) -> None:
     assert_true(len(tfe) == 1, f"TFE rows={tfe}", failures)
 
 
+def test_cid_hex_tokens_newline(failures: list[str]) -> None:
+    """Servidor Linux sem pymupdf: CID hex vira um Tj por linha."""
+    text = """
+Pagar / Parcelar débito(s)
+Consulta de Débitos - Identificação do Contribuinte
+Nome/Razão social:
+BEM MAIS SERVICOS DE TELECOMUNICACAO LTDA
+CPF/CNPJ:
+26752955000199
+Consta(m) o(s) seguinte(s) débito(s) em LANÇAMENTO (2)
+Inscrição
+Ano
+Receita
+Tributo
+QPA
+Valor Débito
+DAR
+REV7J55
+2026
+1244
+IPVA
+2
+1324,47
+Listar
+0005421698
+2026
+6176
+TFE
+61,08
+Listar
+Agenci@Net - Certidão Positiva - Exibir Débitos
+"""
+    classe, _tipos = classify_text(text)
+    assert_true(classe == "COM_PENDENCIA", f"CID newline classe={classe}", failures)
+    cnpj, nome = extract_company(text)
+    assert_true(cnpj == "26.752.955/0001-99", f"CID newline CNPJ={cnpj}", failures)
+    assert_true(nome is not None and "BEM MAIS" in nome.upper(), f"CID newline nome={nome!r}", failures)
+    rows = parse_agencianet_debitos(text, "AGENCIANET", "8-AGENCIANET.pdf")
+    inscs = {str(r.get("inscricao") or "") for r in rows}
+    assert_true("REV7J55" in inscs, f"CID newline placa {inscs} n={len(rows)}", failures)
+    assert_true(len(rows) >= 2, f"CID newline rows={len(rows)}", failures)
+
+
+def test_classify_debito_com_espaco(failures: list[str]) -> None:
+    """CID quebra o é de débito → fold vira 'd bito'."""
+    text = "Consta(m) o(s) seguinte(s) d bito(s) em LANCAMENTO (1)\n0005421698 2026 6176 TFE 61,08"
+    classe, _tipos = classify_text(text)
+    assert_true(classe == "COM_PENDENCIA", f"d bito classe={classe}", failures)
+
+
 def test_consulta_sem_bloco(failures: list[str]) -> None:
     classe, _tipos = classify_text(CONSULTA_LIMPA)
     assert_true(classe == "SEM_PENDENCIA", f"consulta limpa classe={classe}", failures)
@@ -176,6 +226,8 @@ def main() -> int:
     test_avencer_nao_vira_sem_pendencia(failures)
     test_placa_ipva(failures)
     test_consulta_sem_bloco(failures)
+    test_cid_hex_tokens_newline(failures)
+    test_classify_debito_com_espaco(failures)
     test_cid_garbage_score(failures)
     if failures:
         print("FALHAS:")

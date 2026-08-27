@@ -459,6 +459,10 @@ def _cid_hex_shift_score(text: str) -> int:
         ("guia", 2),
         ("extrato", 2),
         ("vencimento", 1),
+        ("consulta de debitos", 3),
+        ("agencianet", 3),
+        ("certidao positiva", 2),
+        ("lancamento", 1),
     ):
         if token in f:
             score += pts
@@ -481,10 +485,13 @@ def extract_cid_hex_shifted(path: Path) -> str:
     best_score = -1
     for shift in CID_HEX_SHIFT_CANDIDATES:
         parts = [_decode_cid_hex_tj(h, shift) for h in hexes]
-        joined = "".join(parts)
-        spaced = " ".join(p for p in parts if p.strip())
-        # junta as duas formas: contínuo (melhor para regex) + espaçado
-        candidate = f"{joined}\n{spaced}"
+        clean = [p.strip() for p in parts if p and p.strip()]
+        # Compacto primeiro: extract_company pega "RENATO" e não "R E N A T O".
+        # Uma linha por Tj: o parser Agenci@Net precisa de \s+ entre inscrição/ano/valor.
+        newline_joined = "\n".join(clean)
+        spaced = " ".join(clean)
+        compact = "".join(parts)
+        candidate = f"{compact}\n{newline_joined}\n{spaced}"
         sc = _cid_hex_shift_score(candidate)
         if sc > best_score:
             best_score = sc
@@ -551,6 +558,8 @@ def score_text(text: str) -> int:
     if "nao foram detectadas pend" in f or "pendencia -" in f:
         score += 4
     if "certidao negativa" in f or "certidao positiva" in f:
+        score += 3
+    if "consulta de debitos" in f or "agencianet" in f:
         score += 3
     if "nao constam debitos" in f:
         score += 4
@@ -742,10 +751,11 @@ def extract_company(text: str) -> tuple[str | None, str | None]:
                 matches.append(formatted)
         cnpj = _prefer_cnpj_matriz(matches)
 
-    # 4) Agenci@net: Razão Social: EMPRESA ... CPF/CNPJ: ...
+    # 4) Agenci@net: Razão Social: EMPRESA ... CPF/CNPJ: ... (valor pode estar na linha seguinte)
     if not name or not cnpj:
         m = re.search(
-            r"Raz[aã]o Social:\s*([^\n\r]{5,120}?)\s*(?:CPF/)?CNPJ:\s*([\d\.\s/-]{11,22})",
+            r"(?:Nome\s*/\s*)?Raz[aã]o social:\s*\n?\s*([^\n\r]{5,120}?)\s*"
+            r"(?:CPF/)?CNPJ:\s*\n?\s*([\d\.\s/-]{11,22})",
             text,
             re.I,
         )
@@ -941,7 +951,10 @@ def classify_text(text: str) -> tuple[str, list[str]]:
     ):
         return "SEM_PENDENCIA", []
 
-    tem_bloco_consulta = "seguinte(s) debito(s)" in f
+    tem_bloco_consulta = bool(
+        "seguinte(s) debito(s)" in f
+        or re.search(r"seguinte\(s\)\s+d\s*e?\s*bito", f)
+    )
 
     # Agenci@net estadual sem débitos (prioridade sobre títulos de menu)
     # Não vale se a mesma tela lista LANÇAMENTO / A VENCER / DÍVIDA ATIVA.
@@ -995,6 +1008,10 @@ def classify_text(text: str) -> tuple[str, list[str]]:
     if "em parcelamento" in f and "PARCELAMENTO_ESTADUAL" not in tipos:
         if tem_bloco_consulta:
             tipos.append("PARCELAMENTO_ESTADUAL")
+
+    # CID quebra o é de débito: o bloco da consulta basta para COM_PENDENCIA.
+    if tem_bloco_consulta and "CERTIDAO_POSITIVA_ESTADUAL" not in tipos:
+        tipos.append("CERTIDAO_POSITIVA_ESTADUAL")
 
     # Lançamento Administrativo / DAR (SEFAZ-DF) com valores de cota
     if "lancamento administrativo" in f or (
