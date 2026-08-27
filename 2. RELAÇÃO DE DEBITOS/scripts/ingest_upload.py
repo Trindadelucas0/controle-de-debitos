@@ -35,6 +35,8 @@ from extrair_debitos import (  # noqa: E402
     _is_inbox_upload_path,
     classify_text,
     codigo_from_filename,
+    collapse_equivalent_codigos,
+    codigos_equivalentes,
     detect_competencia_from_text,
     ensure_competencia_dir,
     extract_company_from_pdf,
@@ -219,7 +221,7 @@ def lookup_nome_historico(
             codes = [str(c) for c in (emp.get("codigos") or []) if c]
             if emp.get("codigo"):
                 codes.append(str(emp["codigo"]))
-            if code and code in codes:
+            if code and any(codigos_equivalentes(code, c) for c in codes):
                 return str(nome).strip()
     return None
 
@@ -241,8 +243,9 @@ def load_empresa_index(month: Path) -> list[dict[str, Any]]:
                         codigos.append(str(emp["codigo"]))
                     for pdf in pasta.glob("*.pdf"):
                         code = codigo_from_filename(pdf.name)
-                        if code and code not in codigos:
+                        if code and not any(codigos_equivalentes(code, c) for c in codigos):
                             codigos.append(code)
+                    codigos = collapse_equivalent_codigos(codigos)
                     index.append(
                         {
                             "nome": emp.get("nome") or pasta.name,
@@ -270,9 +273,9 @@ def load_empresa_index(month: Path) -> list[dict[str, Any]]:
                         codes = list(item.get("codigos") or [])
                         for pdf in folder.glob("*.pdf"):
                             code = codigo_from_filename(pdf.name)
-                            if code and code not in codes:
+                            if code and not any(codigos_equivalentes(code, c) for c in codes):
                                 codes.append(code)
-                        item["codigos"] = codes
+                        item["codigos"] = collapse_equivalent_codigos(codes)
                         if not item.get("codigo") and codes:
                             item["codigo"] = codes[0]
                         break
@@ -280,8 +283,9 @@ def load_empresa_index(month: Path) -> list[dict[str, Any]]:
             codes: list[str] = []
             for pdf in folder.glob("*.pdf"):
                 code = codigo_from_filename(pdf.name)
-                if code and code not in codes:
+                if code and not any(codigos_equivalentes(code, c) for c in codes):
                     codes.append(code)
+            codes = collapse_equivalent_codigos(codes)
             index.append(
                 {
                     "nome": folder.name,
@@ -321,13 +325,13 @@ def match_empresa(
                     *[str(c).strip() for c in (item.get("codigos") or [])],
                 }
                 item_codes.discard("")
-                if code in item_codes:
+                if code in item_codes or any(codigos_equivalentes(code, c) for c in item_codes):
                     return item
                 # PDF na pasta com prefixo do código
                 pasta = item["pasta"]
                 if pasta.exists():
                     for pdf in pasta.glob("*.pdf"):
-                        if codigo_from_filename(pdf.name) == code:
+                        if codigos_equivalentes(codigo_from_filename(pdf.name), code):
                             return item
                 pasta_name = item["pasta"].name
                 if pasta_name.upper().startswith(f"{code} ") or pasta_name.upper().startswith(
@@ -405,6 +409,24 @@ def force_filename(codigo: str, tipo: str, original_name: str) -> str:
         code = codigo_from_filename(f"{code}-{tipo}.pdf")
     code = re.sub(r"[^\w.-]", "", code) or "doc"
     return f"{code}-{tipo}.pdf"
+
+
+def _align_forced_name_to_empresa(forced_name: str, tipo: str, matched: dict[str, Any]) -> str:
+    """Se a empresa já é 08, não grava 8-AGENCIANET.pdf."""
+    incoming = codigo_from_filename(forced_name)
+    candidates = [
+        str(matched.get("codigo") or "").strip(),
+        *[str(c).strip() for c in (matched.get("codigos") or [])],
+    ]
+    best = incoming
+    for cand in candidates:
+        if not cand or not codigos_equivalentes(cand, incoming):
+            continue
+        if cand.isdigit() and (not best.isdigit() or len(cand) > len(best)):
+            best = cand
+    if best == incoming:
+        return forced_name
+    return f"{best}-{tipo}.pdf"
 
 
 def paste_status_from_classe(classe: str) -> str:
@@ -702,6 +724,11 @@ def ingest_one(
             result["avisos"].append(rename_msg)
             matched["pasta"] = dest_folder
             result["empresa"] = dest_folder.name
+        aligned = _align_forced_name_to_empresa(forced_name, tipo, matched)
+        if aligned != forced_name:
+            forced_name = aligned
+            for row in rows:
+                row["arquivo"] = forced_name
     else:
         # Preferir anexar se empresa do mesmo status já existir só por nome de pasta
         codigo = codigo_from_filename(forced_name)

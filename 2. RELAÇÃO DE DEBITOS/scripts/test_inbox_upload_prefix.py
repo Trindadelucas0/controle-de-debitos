@@ -10,7 +10,11 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 
-from extrair_debitos import codigo_from_filename, strip_inbox_upload_prefix  # noqa: E402
+from extrair_debitos import (  # noqa: E402
+    codigo_from_filename,
+    collapse_equivalent_codigos,
+    strip_inbox_upload_prefix,
+)
 from ingest_upload import force_filename, unique_dest_path  # noqa: E402
 
 
@@ -89,11 +93,30 @@ def test_unique_dest_mesmo_hash_na_pasta_da_empresa(failures: list[str]) -> None
         assert_true(dest == existing, f"dest {dest}", failures)
 
 
+def test_collapse_oito_e_zero_oito(failures: list[str]) -> None:
+    from build_dashboard_data import sort_codigos
+    from ingest_upload import _align_forced_name_to_empresa
+
+    assert_true(
+        collapse_equivalent_codigos(["8", "08", "8"]) == ["08"],
+        f"collapse={collapse_equivalent_codigos(['8', '08', '8'])}",
+        failures,
+    )
+    assert_true(sort_codigos({"8", "08"}) == ["08"], f"sort={sort_codigos({'8', '08'})}", failures)
+    aligned = _align_forced_name_to_empresa(
+        "8-AGENCIANET.pdf",
+        "AGENCIANET",
+        {"codigo": "08", "codigos": ["08"]},
+    )
+    assert_true(aligned == "08-AGENCIANET.pdf", f"align={aligned}", failures)
+
+
 def main() -> int:
     failures: list[str] = []
     test_strip_prefixo_api(failures)
     test_unique_dest_nao_duplica_o_proprio_inbox(failures)
     test_unique_dest_mesmo_hash_na_pasta_da_empresa(failures)
+    test_collapse_oito_e_zero_oito(failures)
     if failures:
         print("FALHAS:")
         for item in failures:

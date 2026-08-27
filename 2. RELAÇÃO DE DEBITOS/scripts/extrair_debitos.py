@@ -897,6 +897,40 @@ def codigo_from_filename(file_name: str) -> str:
     return stem.split("-")[0]
 
 
+def codigos_equivalentes(a: str | None, b: str | None) -> bool:
+    """'8' e '08' são o mesmo código da empresa."""
+    left = str(a or "").strip()
+    right = str(b or "").strip()
+    if not left or not right:
+        return False
+    if left == right:
+        return True
+    if left.isdigit() and right.isdigit():
+        return int(left) == int(right)
+    return False
+
+
+def collapse_equivalent_codigos(codigos: list[str] | set[str] | tuple[str, ...]) -> list[str]:
+    """Junta 8 e 08; fica a forma com mais dígitos (a do cadastro, em geral)."""
+    best: dict[int, str] = {}
+    other: list[str] = []
+    seen_other: set[str] = set()
+    for raw in codigos:
+        code = str(raw or "").strip()
+        if not code:
+            continue
+        if code.isdigit():
+            n = int(code)
+            prev = best.get(n)
+            if prev is None or len(code) > len(prev):
+                best[n] = code
+            continue
+        if code not in seen_other:
+            seen_other.add(code)
+            other.append(code)
+    return list(best.values()) + other
+
+
 # Data/hora de emissão no cabeçalho ECAC: "17/07/2026 09:57:32"
 EMISSAO_DT_RE = re.compile(r"\b(\d{2})/(\d{2})/(20\d{2})\s+\d{2}:\d{2}:\d{2}\b")
 

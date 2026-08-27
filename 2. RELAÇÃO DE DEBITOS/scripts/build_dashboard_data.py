@@ -22,6 +22,7 @@ from extrair_debitos import (  # noqa: E402
     COMPETENCIA_DIR_RE,
     classify_text,
     codigo_from_filename,
+    collapse_equivalent_codigos,
     extract_company,
     extract_company_from_pdf,
     fold,
@@ -239,13 +240,15 @@ def best_text(path: Path) -> tuple[str, str]:
 
 
 def sort_codigos(codigos: set[str] | list[str]) -> list[str]:
+    collapsed = collapse_equivalent_codigos(codigos)
+
     def key(code: str) -> tuple[int, str]:
         try:
             return (int(code), code)
         except ValueError:
             return (10**9, code)
 
-    return sorted(set(codigos), key=key)
+    return sorted(set(collapsed), key=key)
 
 
 def text_is_weak(text: str) -> bool:
