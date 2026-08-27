@@ -157,6 +157,26 @@ def test_placa_ipva(failures: list[str]) -> None:
     assert_true(len(tfe) == 1, f"TFE rows={tfe}", failures)
 
 
+def test_consulta_glued_sem_espaco(failures: list[str]) -> None:
+    """CID no Linux cola inscrição+ano+valor (sem espaço entre campos)."""
+    glued = "REV7J5520261244IPVA21324,47Listar000542169820266176TFE61,08"
+    rows = parse_agencianet_debitos(glued, "AGENCIANET", "8-AGENCIANET.pdf")
+    inscs = {str(r.get("inscricao") or "") for r in rows}
+    assert_true("REV7J55" in inscs, f"glued placa {inscs} n={len(rows)}", failures)
+    ipva = [r for r in rows if "IPVA" in str(r.get("receita") or "").upper()]
+    assert_true(len(ipva) == 1, f"glued IPVA={ipva}", failures)
+    if ipva:
+        assert_true(
+            abs(ipva[0]["consolidado"] - 1324.47) < 0.02,
+            f"glued IPVA valor={ipva[0]['consolidado']}",
+            failures,
+        )
+    tfe = [r for r in rows if "TFE" in str(r.get("receita") or "").upper()]
+    assert_true(len(tfe) == 1, f"glued TFE={tfe}", failures)
+    if tfe:
+        assert_true(abs(tfe[0]["consolidado"] - 61.08) < 0.02, f"glued TFE valor={tfe[0]['consolidado']}", failures)
+
+
 def test_cid_hex_tokens_newline(failures: list[str]) -> None:
     """Servidor Linux sem pymupdf: CID hex vira um Tj por linha."""
     text = """
@@ -225,6 +245,7 @@ def main() -> int:
     test_cnd_gdf(failures)
     test_avencer_nao_vira_sem_pendencia(failures)
     test_placa_ipva(failures)
+    test_consulta_glued_sem_espaco(failures)
     test_consulta_sem_bloco(failures)
     test_cid_hex_tokens_newline(failures)
     test_classify_debito_com_espaco(failures)

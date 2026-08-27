@@ -61,6 +61,16 @@ AGENCIANET_ROW_RE = re.compile(
     re.I,
 )
 
+# Chrome/Skia no Linux: cada glifo é um Tj → inscrição+ano+valor saem colados, sem \s+.
+AGENCIANET_ROW_GLUED_RE = re.compile(
+    r"(?P<insc>(?:[A-Z]{3}\d[A-Z0-9]{3}|\d{8,12}))"
+    r"(?P<ano>20\d{2})"
+    r"(?P<receita>\d{3,4})"
+    r"(?P<tributo>[A-Z]{2,20})"
+    r"(?P<tail>\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})",
+    re.I,
+)
+
 # Bloco A VENCER: inscrição / ano / descrição / código de receita (sem BRL)
 AGENCIANET_AVENCER_RE = re.compile(
     r"(?P<insc>\d{5,14})\s+"
@@ -1519,6 +1529,63 @@ def parse_agencianet_lancamento(text: str, origem: str, arquivo: str) -> list[di
     return rows
 
 
+def _peel_qpa_valor(tail: str) -> str | None:
+    """Separa QPA colado (ex. 21324,47 → 1324,47)."""
+    raw = (tail or "").strip()
+    if not raw:
+        return None
+    match = re.search(
+        r"^(?P<head>\d*?)(?P<body>\d{1,3}(?:\.\d{3})+|\d{1,4}),(?P<dec>\d{2})$",
+        raw,
+    )
+    if not match:
+        return raw if re.fullmatch(r"\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2}", raw) else None
+    return f"{match.group('body')},{match.group('dec')}"
+
+
+def _append_agencianet_consulta_row(
+    *,
+    rows: list[dict],
+    seen: set[tuple],
+    insc: str,
+    ano: str,
+    receita_code: str,
+    tributo: str,
+    valor: float,
+    origem: str,
+    arquivo: str,
+    codigo: str,
+) -> None:
+    tributo_fold = fold(tributo)
+    if tributo_fold in {"listar", "imprimir", "dar", "qpa", "situacao", "valor debito"}:
+        return
+    if insc.isdigit() and len(insc) == 14:
+        return
+    key = (insc, ano, receita_code, tributo_fold, valor)
+    if key in seen:
+        return
+    seen.add(key)
+    rows.append(
+        _make_debito_row(
+            receita=f"{receita_code} - {tributo.upper()}",
+            pa=ano,
+            vencimento="",
+            original=valor,
+            saldo=valor,
+            multa=0.0,
+            juros=0.0,
+            consolidado=valor,
+            situacao="DEVEDOR" if valor > 0 else "INDEFINIDO",
+            origem=origem,
+            arquivo=arquivo,
+            codigo=codigo,
+            esfera="estadual",
+            inscricao=insc,
+            numero_lancamento=insc,
+        )
+    )
+
+
 def parse_agencianet_consulta(text: str, origem: str, arquivo: str) -> list[dict]:
     """Grade clássica Agenci@Net (inscrição / ano / receita / tributo / valor)."""
     f = fold(text)
@@ -1526,41 +1593,38 @@ def parse_agencianet_consulta(text: str, origem: str, arquivo: str) -> list[dict
     rows: list[dict] = []
     seen: set[tuple] = set()
     for match in AGENCIANET_ROW_RE.finditer(f):
-        tributo = re.sub(r"\s+", " ", match.group("tributo")).strip()
-        if fold(tributo) in {"listar", "imprimir", "dar", "qpa", "situacao", "valor debito"}:
-            continue
         valor_raw = match.group("valor")
-        if valor_raw == "00":
-            valor = 0.0
-        else:
-            valor = parse_brl(valor_raw)
-        receita_code = match.group("receita")
-        ano = match.group("ano")
-        insc = match.group("insc").upper()
-        key = (insc, ano, receita_code, fold(tributo), valor)
-        if key in seen:
-            continue
-        seen.add(key)
-        receita = f"{receita_code} - {tributo.upper()}"
-        rows.append(
-            _make_debito_row(
-                receita=receita,
-                pa=ano,
-                vencimento="",
-                original=valor,
-                saldo=valor,
-                multa=0.0,
-                juros=0.0,
-                consolidado=valor,
-                situacao="DEVEDOR" if valor > 0 else "INDEFINIDO",
+        valor = 0.0 if valor_raw == "00" else parse_brl(valor_raw)
+        _append_agencianet_consulta_row(
+            rows=rows,
+            seen=seen,
+            insc=match.group("insc").upper(),
+            ano=match.group("ano"),
+            receita_code=match.group("receita"),
+            tributo=re.sub(r"\s+", " ", match.group("tributo")).strip(),
+            valor=valor,
+            origem=origem,
+            arquivo=arquivo,
+            codigo=codigo,
+        )
+    if not rows:
+        glued = re.sub(r"\s+", "", f)
+        for match in AGENCIANET_ROW_GLUED_RE.finditer(glued):
+            valor_raw = _peel_qpa_valor(match.group("tail"))
+            if not valor_raw:
+                continue
+            _append_agencianet_consulta_row(
+                rows=rows,
+                seen=seen,
+                insc=match.group("insc").upper(),
+                ano=match.group("ano"),
+                receita_code=match.group("receita"),
+                tributo=match.group("tributo"),
+                valor=parse_brl(valor_raw),
                 origem=origem,
                 arquivo=arquivo,
                 codigo=codigo,
-                esfera="estadual",
-                inscricao=insc,
-                numero_lancamento=insc,
             )
-        )
     rows.extend(_parse_agencianet_avencer(text, origem, arquivo, seen, codigo))
     return rows
 
