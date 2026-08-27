@@ -230,6 +230,17 @@ def test_classify_debito_com_espaco(failures: list[str]) -> None:
 def test_consulta_sem_bloco(failures: list[str]) -> None:
     classe, _tipos = classify_text(CONSULTA_LIMPA)
     assert_true(classe == "SEM_PENDENCIA", f"consulta limpa classe={classe}", failures)
+    rows = parse_agencianet_debitos(CONSULTA_LIMPA, "AGENCIANET", "10-AGENCIANET.pdf")
+    assert_true(len(rows) == 0, f"consulta limpa não deve marcar débito: {len(rows)}", failures)
+
+
+def test_bloco_sem_grade_marca_pendencia(failures: list[str]) -> None:
+    text = "Consta(m) o(s) seguinte(s) d bito(s) em LANCAMENTO (1)\nAgenci@Net - Certidao Positiva - Exibir Debitos"
+    rows = parse_agencianet_debitos(text, "AGENCIANET", "76-AGENCIANET.pdf")
+    assert_true(len(rows) == 1, f"bloco sem grade rows={len(rows)}", failures)
+    if rows:
+        assert_true(abs(rows[0].get("consolidado") or 0) < 0.01, "não inventar BRL", failures)
+        assert_true(rows[0].get("situacao") == "DEVEDOR", f"sit={rows[0].get('situacao')}", failures)
 
 
 def test_cid_garbage_score(failures: list[str]) -> None:
@@ -247,6 +258,7 @@ def main() -> int:
     test_placa_ipva(failures)
     test_consulta_glued_sem_espaco(failures)
     test_consulta_sem_bloco(failures)
+    test_bloco_sem_grade_marca_pendencia(failures)
     test_cid_hex_tokens_newline(failures)
     test_classify_debito_com_espaco(failures)
     test_cid_garbage_score(failures)

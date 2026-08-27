@@ -1696,8 +1696,45 @@ def parse_agencianet_debitos(text: str, origem: str, arquivo: str) -> list[dict]
         return rows
     # Última tentativa: layout admin mesmo sem keyword forte
     if layout != "consulta_debitos":
-        return parse_agencianet_lancamento(text, origem, arquivo)
-    return []
+        rows = parse_agencianet_lancamento(text, origem, arquivo)
+        if rows:
+            return rows
+    return _agencianet_bloco_sem_grade(text, origem, arquivo)
+
+
+def _agencianet_bloco_sem_grade(text: str, origem: str, arquivo: str) -> list[dict]:
+    """Consulta com 'seguinte(s) débito(s)' mas grade ilegível no CID: marca pendência sem inventar BRL."""
+    f = fold(text)
+    tem_bloco = "seguinte(s) debito(s)" in f or re.search(r"seguinte\(s\)\s+d\s*e?\s*bito", f)
+    if not tem_bloco:
+        return []
+    if "parcelamento" in f:
+        situacao = "PARCELADO"
+        receita = "PARCELAMENTO ESTADUAL"
+    elif re.search(r"d\s*e?\s*bito\(s\)\s+a vencer", f) or "a vencer" in f:
+        situacao = "A VENCER"
+        receita = "DEBITO ESTADUAL A VENCER"
+    else:
+        situacao = "DEVEDOR"
+        receita = "DEBITO ESTADUAL"
+    codigo = codigo_from_filename(arquivo)
+    return [
+        _make_debito_row(
+            receita=receita,
+            pa="",
+            vencimento="",
+            original=0.0,
+            saldo=0.0,
+            multa=0.0,
+            juros=0.0,
+            consolidado=0.0,
+            situacao=situacao,
+            origem=origem,
+            arquivo=arquivo,
+            codigo=codigo,
+            esfera="estadual",
+        )
+    ]
 
 
 # Portal do Cidadão (Balneário Camboriú): TRIBUTO \n ANO \n R$ valor
