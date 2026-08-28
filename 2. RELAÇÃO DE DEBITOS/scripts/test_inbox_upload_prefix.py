@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -13,9 +14,10 @@ sys.path.insert(0, str(SCRIPTS))
 from extrair_debitos import (  # noqa: E402
     codigo_from_filename,
     collapse_equivalent_codigos,
+    resolve_workspace_root,
     strip_inbox_upload_prefix,
 )
-from ingest_upload import force_filename, unique_dest_path  # noqa: E402
+from ingest_upload import _inbox_rel_path, force_filename, unique_dest_path  # noqa: E402
 
 
 def assert_true(cond: bool, msg: str, failures: list[str]) -> None:
@@ -111,12 +113,26 @@ def test_collapse_oito_e_zero_oito(failures: list[str]) -> None:
     assert_true(aligned == "08-AGENCIANET.pdf", f"align={aligned}", failures)
 
 
+def test_inbox_rel_path(failures: list[str]) -> None:
+    ws = resolve_workspace_root()
+    batch = ws / "resultados" / "inbox_upload" / "99-2099" / "_pytest_inbox"
+    batch.mkdir(parents=True, exist_ok=True)
+    source = batch / "0_149-AGENCIANET.pdf"
+    try:
+        source.write_bytes(b"%PDF-1.4 test")
+        rel = _inbox_rel_path(source, "99-2099")
+        assert_true(rel == "_pytest_inbox/0_149-AGENCIANET.pdf", f"inbox_rel={rel!r}", failures)
+    finally:
+        shutil.rmtree(ws / "resultados" / "inbox_upload" / "99-2099", ignore_errors=True)
+
+
 def main() -> int:
     failures: list[str] = []
     test_strip_prefixo_api(failures)
     test_unique_dest_nao_duplica_o_proprio_inbox(failures)
     test_unique_dest_mesmo_hash_na_pasta_da_empresa(failures)
     test_collapse_oito_e_zero_oito(failures)
+    test_inbox_rel_path(failures)
     if failures:
         print("FALHAS:")
         for item in failures:

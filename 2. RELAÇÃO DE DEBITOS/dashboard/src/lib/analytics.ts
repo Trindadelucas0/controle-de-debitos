@@ -1,4 +1,4 @@
-import { formatTituloPendencia } from "@/lib/format";
+import { formatTituloPendencia, normalizeTituloKey } from "@/lib/format";
 import type { DebitoLinha, Empresa, Esfera, Totais, TotaisGerais } from "@/lib/types";
 
 export const ESFERA_COLORS: Record<Esfera, string> = {
@@ -192,14 +192,7 @@ export function buildPortfolioAnalytics(empresas: Empresa[], esfera?: Esfera | n
     .sort((a, b) => b.consolidado - a.consolidado)
     .slice(0, 10);
 
-  const allDebitos = base.flatMap((empresa) =>
-    esfera
-      ? empresa.debitos.filter((d) => (d.esfera ?? inferEsferaDebito(d)) === esfera)
-      : empresa.debitos,
-  );
-  const porTitulo = aggregatePorTitulo(
-    allDebitos.filter((d) => Boolean((d.titulo || "").trim())),
-  );
+  const porTitulo = aggregatePorTituloPortfolio(base, esfera);
 
   return { porEsfera, composicao, statusDonut, topEmpresas, porTitulo };
 }
@@ -248,12 +241,19 @@ export type DebitoGrupo = {
   juros: number;
 };
 
+export type TituloEmpresaRef = {
+  id: string;
+  nome: string;
+};
+
 export type TituloSlice = {
   titulo: string;
   label: string;
   labelCurto: string;
   consolidado: number;
   qtd: number;
+  qtdEmpresas: number;
+  empresas: TituloEmpresaRef[];
   fill: string;
   saldo: number;
   multa: number;
@@ -277,6 +277,8 @@ export function aggregatePorTitulo(debitos: DebitoLinha[]): TituloSlice[] {
       labelCurto: truncate(grupo.label, 28),
       consolidado: grupo.consolidado,
       qtd: grupo.debitos.length,
+      qtdEmpresas: 0,
+      empresas: [],
       fill: colorForTitulo(grupo.titulo, index),
       saldo: grupo.saldo,
       multa: grupo.multa,
@@ -292,12 +294,118 @@ export function aggregatePorTitulo(debitos: DebitoLinha[]): TituloSlice[] {
     .sort((a, b) => b.consolidado - a.consolidado || b.qtd - a.qtd);
 }
 
+type TituloPortfolioBucket = {
+  titulo: string;
+  debitos: DebitoLinha[];
+  empresas: Map<string, TituloEmpresaRef>;
+  consolidado: number;
+  saldo: number;
+  multa: number;
+  juros: number;
+};
+
+/** Agrega títulos do portfólio contando empresas distintas (não só PAs). */
+export function aggregatePorTituloPortfolio(
+  empresas: Empresa[],
+  esfera?: Esfera | null,
+): TituloSlice[] {
+  const map = new Map<string, TituloPortfolioBucket>();
+
+  for (const empresa of empresas) {
+    const debitos = esfera
+      ? empresa.debitos.filter((d) => (d.esfera ?? inferEsferaDebito(d)) === esfera)
+      : empresa.debitos;
+
+    const titulosEmpresa = new Set<string>();
+
+    for (const row of debitos) {
+      const titulo = normalizeTituloKey(row.titulo);
+      if (!titulo) continue;
+
+      titulosEmpresa.add(titulo);
+
+      let bucket = map.get(titulo);
+      if (!bucket) {
+        bucket = {
+          titulo,
+          debitos: [],
+          empresas: new Map(),
+          consolidado: 0,
+          saldo: 0,
+          multa: 0,
+          juros: 0,
+        };
+        map.set(titulo, bucket);
+      }
+
+      bucket.debitos.push(row);
+      bucket.consolidado = round2(bucket.consolidado + (row.consolidado || 0));
+      bucket.saldo = round2(bucket.saldo + (row.saldo || 0));
+      bucket.multa = round2(bucket.multa + (row.multa || 0));
+      bucket.juros = round2(bucket.juros + (row.juros || 0));
+    }
+
+    for (const titulo of titulosEmpresa) {
+      const bucket = map.get(titulo);
+      if (bucket) {
+        bucket.empresas.set(empresa.id, { id: empresa.id, nome: empresa.nome });
+      }
+    }
+  }
+
+  return [...map.values()]
+    .map((bucket, index) => ({
+      titulo: bucket.titulo,
+      label: formatTituloPendencia(bucket.titulo),
+      labelCurto: truncate(formatTituloPendencia(bucket.titulo), 28),
+      consolidado: bucket.consolidado,
+      qtd: bucket.debitos.length,
+      qtdEmpresas: bucket.empresas.size,
+      empresas: [...bucket.empresas.values()].sort((a, b) =>
+        a.nome.localeCompare(b.nome, "pt-BR"),
+      ),
+      fill: colorForTitulo(bucket.titulo, index),
+      saldo: bucket.saldo,
+      multa: bucket.multa,
+      juros: bucket.juros,
+      composicao: composicaoFromTotais({
+        original: 0,
+        saldo: bucket.saldo,
+        multa: bucket.multa,
+        juros: bucket.juros,
+        consolidado: bucket.consolidado,
+      }),
+    }))
+    .sort(
+      (a, b) =>
+        b.consolidado - a.consolidado ||
+        b.qtdEmpresas - a.qtdEmpresas ||
+        b.qtd - a.qtd,
+    );
+}
+
+/** Verifica se a empresa possui lançamentos com o título informado. */
+export function empresaTemTitulo(
+  empresa: Empresa,
+  tituloKey: string,
+  esfera?: Esfera | null,
+): boolean {
+  const target = normalizeTituloKey(tituloKey);
+  if (!target) return false;
+
+  return empresa.debitos.some((d) => {
+    if (normalizeTituloKey(d.titulo) !== target) return false;
+    if (esfera && (d.esfera ?? inferEsferaDebito(d)) !== esfera) return false;
+    return true;
+  });
+}
+
 /** Agrupa lançamentos pela seção do Diagnóstico Fiscal, na ordem de aparição. */
 export function groupDebitosByTitulo(debitos: DebitoLinha[]): DebitoGrupo[] {
   const groups: DebitoGrupo[] = [];
   const index = new Map<string, number>();
   for (const row of debitos) {
-    const titulo = (row.titulo || "").trim();
+    const titulo = normalizeTituloKey(row.titulo);
     const key = titulo || "__sem_titulo__";
     const existing = index.get(key);
     if (existing === undefined) {

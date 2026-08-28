@@ -38,12 +38,18 @@ type Props = {
   empresas: Empresa[];
   totais: TotaisGerais;
   esfera?: Esfera | null;
+  competencia?: string;
+  activeTitulo?: string | null;
+  onTituloClick?: (titulo: string) => void;
 };
 
 export function DashboardOverview({
   empresas,
   totais,
   esfera = null,
+  competencia,
+  activeTitulo = null,
+  onTituloClick,
 }: Props) {
   const analytics = buildPortfolioAnalytics(empresas, esfera);
   const kpis = esfera ? buildTotaisGerais(empresas, esfera) : totais;
@@ -291,7 +297,12 @@ export function DashboardOverview({
           </CardContent>
         </Card>
       ) : (
-        <TituloConsolChart items={analytics.porTitulo} />
+        <TituloConsolChart
+          items={analytics.porTitulo}
+          activeTitulo={activeTitulo}
+          onTituloClick={onTituloClick}
+          competencia={competencia}
+        />
       )}
     </div>
   );

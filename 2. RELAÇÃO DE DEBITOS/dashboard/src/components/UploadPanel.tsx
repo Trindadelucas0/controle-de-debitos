@@ -61,6 +61,7 @@ type IngestItem = {
   index?: number;
   duplicado?: boolean;
   inbox_path?: string | null;
+  inbox_rel?: string | null;
   dry_run?: boolean;
 };
 
@@ -128,6 +129,15 @@ function hasRealExtract(item?: IngestItem): boolean {
   const qtd = item.qtd_debitos ?? 0;
   if (qtd > 0) return true;
   return item.classe === "SEM_PENDENCIA";
+}
+
+/** Referência estável para reabrir o PDF no inbox na confirmação. */
+function inboxRefForCommit(item?: IngestItem): string | null {
+  if (!item) return null;
+  const rel = (item.inbox_rel || "").trim();
+  if (rel) return rel;
+  const abs = (item.inbox_path || "").trim();
+  return abs || null;
 }
 
 async function readNdjsonStream(
@@ -207,7 +217,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       f.selected &&
       f.status === "ok" &&
       hasRealExtract(f.result) &&
-      f.result?.inbox_path &&
+      inboxRefForCommit(f.result) &&
       !f.result.duplicado &&
       !(f.result.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a)),
   );
@@ -523,7 +533,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       body.set("competencia", competenciaEfetiva);
       body.set("mode", "commit");
       for (const item of selectedForCommit) {
-        body.append("paths", item.result!.inbox_path!);
+        const ref = inboxRefForCommit(item.result);
+        if (!ref) continue;
+        body.append("paths", ref);
         body.append("tipos", (item.result?.tipo as DocTipo) || item.tipo);
       }
 
@@ -542,6 +554,13 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       if (!res.ok && !contentType.includes("ndjson")) {
         const payload = await res.json().catch(() => ({}));
         setGlobalError(payload?.erro || "Falha na importação");
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.status === "queued" && selectedForCommit.some((s) => s.id === f.id)
+              ? { ...f, status: "ok" }
+              : f,
+          ),
+        );
         setPhase("review");
         return;
       }
@@ -981,7 +1000,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                     phase === "review" &&
                     f.status === "ok" &&
                     !duplicado &&
-                    Boolean(r?.inbox_path) &&
+                    inboxRefForCommit(r) &&
                     hasRealExtract(r);
                   return (
                     <tr

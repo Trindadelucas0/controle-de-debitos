@@ -1,7 +1,7 @@
 import path from "path";
 import { NextResponse } from "next/server";
 import { mkdir, unlink, writeFile } from "fs/promises";
-import { existsSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { invalidateDashboardCache, listCompetencias } from "@/lib/data";
 import { resolveWorkspaceRoot, spawnPythonScript } from "@/lib/workspace";
 
@@ -34,18 +34,48 @@ function looksLikePdf(buffer: Buffer): boolean {
   return at >= 0 && at < 32;
 }
 
-function assertInboxPath(workspace: string, filePath: string, competencia: string): string | null {
+/** Caminho absoluto do PDF dentro do inbox da competência (com fallbacks). */
+function resolveInboxFile(
+  workspace: string,
+  filePath: string,
+  competencia: string,
+): string | null {
   const inboxRoot = path.resolve(workspace, "resultados", "inbox_upload", competencia);
-  const resolved = path.resolve(filePath);
   const rootWithSep = inboxRoot.endsWith(path.sep) ? inboxRoot : inboxRoot + path.sep;
-  const normalizedResolved = resolved.toLowerCase();
   const normalizedRoot = rootWithSep.toLowerCase();
-  if (!normalizedResolved.startsWith(normalizedRoot) && normalizedResolved !== inboxRoot.toLowerCase()) {
+
+  const accept = (candidate: string): string | null => {
+    const resolved = path.resolve(candidate);
+    const lower = resolved.toLowerCase();
+    if (!lower.endsWith(".pdf")) return null;
+    if (!lower.startsWith(normalizedRoot) && lower !== inboxRoot.toLowerCase()) return null;
+    if (!existsSync(resolved)) return null;
+    return resolved;
+  };
+
+  const direct = accept(filePath);
+  if (direct) return direct;
+
+  const trimmed = filePath.replace(/^[/\\]+/, "");
+  if (trimmed && trimmed !== filePath) {
+    const relative = accept(path.join(inboxRoot, trimmed));
+    if (relative) return relative;
+  }
+
+  const base = path.basename(filePath);
+  if (!base.toLowerCase().endsWith(".pdf")) return null;
+  if (!existsSync(inboxRoot)) return null;
+
+  try {
+    for (const ent of readdirSync(inboxRoot, { withFileTypes: true })) {
+      if (!ent.isDirectory()) continue;
+      const hit = accept(path.join(inboxRoot, ent.name, base));
+      if (hit) return hit;
+    }
+  } catch {
     return null;
   }
-  if (!existsSync(resolved)) return null;
-  if (!resolved.toLowerCase().endsWith(".pdf")) return null;
-  return resolved;
+  return null;
 }
 
 function streamPython(
@@ -230,10 +260,15 @@ export async function POST(request: Request) {
 
       const savedPaths: string[] = [];
       for (const raw of pathsRaw) {
-        const safe = assertInboxPath(workspace, raw, competencia);
+        const safe = resolveInboxFile(workspace, raw, competencia);
         if (!safe) {
           return NextResponse.json(
-            { ok: false, erro: `Caminho inválido ou fora do inbox: ${path.basename(raw)}` },
+            {
+              ok: false,
+              erro:
+                `Arquivo temporário não encontrado no inbox (${path.basename(raw)}). ` +
+                "Analise os PDFs de novo antes de confirmar.",
+            },
             { status: 400 },
           );
         }
@@ -345,7 +380,7 @@ export async function DELETE(request: Request) {
     const workspace = resolveWorkspaceRoot();
     let removidos = 0;
     for (const raw of paths) {
-      const safe = assertInboxPath(workspace, raw, competencia);
+      const safe = resolveInboxFile(workspace, raw, competencia);
       if (!safe) continue;
       try {
         await unlink(safe);

@@ -5,6 +5,19 @@ export function formatBRL(value: number): string {
   });
 }
 
+/** Remove acentos e lower-case — busca tolerante a "Omissão" vs "OMISSAO". */
+export function fold(value: string | null | undefined): string {
+  return (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+/** Chave canônica de título (remove asterisco decorativo do PDF). */
+export function normalizeTituloKey(titulo?: string | null): string {
+  return (titulo || "").trim().replace(/\*+$/, "").trim();
+}
+
 const TITULO_PENDENCIA_LABELS: Record<string, string> = {
   "OMISSAO DE DCTFWEB": "Pendência · Omissão de DCTFWeb",
   "OMISSAO DE DCTF": "Pendência · Omissão de DCTF",
@@ -26,7 +39,7 @@ const TITULO_PENDENCIA_LABELS: Record<string, string> = {
 };
 
 export function formatTituloPendencia(titulo?: string | null): string {
-  const key = (titulo || "").trim();
+  const key = normalizeTituloKey(titulo);
   if (!key) return "Lançamentos";
   const mapped = TITULO_PENDENCIA_LABELS[key];
   if (mapped) return mapped;
@@ -41,6 +54,18 @@ export function formatItensETotal(qtd: number, consolidado: number): string {
   const itens = qtd === 1 ? "1 item" : `${qtd} itens`;
   if (consolidado > 0) return `${itens} · ${formatBRL(consolidado)}`;
   return itens;
+}
+
+/** Resumo do card por título: "3 empresas · 21 itens · R$ …". */
+export function formatTituloResumo(
+  qtdEmpresas: number,
+  qtdItens: number,
+  consolidado: number,
+): string {
+  const empresas = qtdEmpresas === 1 ? "1 empresa" : `${qtdEmpresas} empresas`;
+  const itens = qtdItens === 1 ? "1 item" : `${qtdItens} itens`;
+  if (consolidado > 0) return `${empresas} · ${itens} · ${formatBRL(consolidado)}`;
+  return `${empresas} · ${itens}`;
 }
 
 export function isOmissaoDebito(row: { situacao?: string; titulo?: string }): boolean {
@@ -64,4 +89,22 @@ export function formatCnpj(cnpj: string | null | undefined): string {
     );
   }
   return cnpj;
+}
+
+/** '8' e '08' são o mesmo código; mostra só a forma com zero à esquerda. */
+export function collapseCodigos(codigos: string[] | undefined | null): string[] {
+  const best = new Map<number, string>();
+  const other: string[] = [];
+  for (const raw of codigos ?? []) {
+    const code = String(raw || "").trim();
+    if (!code) continue;
+    if (/^\d+$/.test(code)) {
+      const n = Number(code);
+      const prev = best.get(n);
+      if (!prev || code.length > prev.length) best.set(n, code);
+      continue;
+    }
+    if (!other.includes(code)) other.push(code);
+  }
+  return [...best.values(), ...other];
 }

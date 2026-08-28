@@ -31,6 +31,20 @@ PDFs Agenci@Net costumam ser imagem/CID. Para extrair linhas estaduais/municipai
 
 Sem Tesseract, o ECAC (federal) continua funcionando; Agenci@Net fica só com aviso.
 
+== Upload Agenci@Net (servidor) ==
+
+Após analisar PDFs, a confirmação usa o inbox temporário em:
+  resultados/inbox_upload/MM-YYYY/{lote}/0_arquivo.pdf
+
+Se aparecer "Arquivo temporário não encontrado no inbox", clique em
+"Cancelar revisão" e analise de novo (não confirme horas depois).
+
+Deploy no servidor (GIT.TXT):
+  git pull → npm run build → pm2 restart dashboard-debitos
+
+PDFs Agenci@Net aceitos: Certidão Negativa GDF (~5 KB), Consulta com débitos,
+DAR/Lançamento Administrativo. pymupdf é obrigatório (requirements-debitos.txt).
+
 == Pastas de PDFs ==
 
 .\2. RELAÇÃO DE DEBITOS\07-2026\pendencias\<NOME DA EMPRESA>\

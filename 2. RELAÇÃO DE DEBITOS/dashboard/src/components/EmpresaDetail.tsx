@@ -42,7 +42,7 @@ import {
   ESFERA_LABELS,
 } from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
-import { formatBRL, formatCnpj, formatItensETotal, isOmissaoDebito } from "@/lib/format";
+import { collapseCodigos, formatBRL, formatCnpj, formatItensETotal, isOmissaoDebito } from "@/lib/format";
 import { TituloConsolChart } from "@/components/TituloConsolList";
 import type { SiteEmissaoRef } from "@/lib/parcelamentos-utils";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
@@ -101,7 +101,7 @@ export function EmpresaDetail({
           title={empresa.nome}
           description={[
             empresa.codigo
-              ? `Cód. ${empresa.codigo}${(empresa.codigos?.length ?? 0) > 1 ? ` (${empresa.codigos!.join(", ")})` : ""}`
+              ? `Cód. ${collapseCodigos([empresa.codigo, ...(empresa.codigos ?? [])]).join(", ")}`
               : null,
             `CNPJ ${formatCnpj(empresa.cnpj)}`,
             `Competência ${formatCompetencia(competencia)}`,

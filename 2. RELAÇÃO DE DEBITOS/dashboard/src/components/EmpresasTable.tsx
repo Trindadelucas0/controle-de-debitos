@@ -21,8 +21,15 @@ import { StatusBadge } from "@/components/StatusBadges";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ESFERA_FONTES, ESFERA_LABELS } from "@/lib/analytics";
-import { formatBRL, formatCnpj } from "@/lib/format";
+import { ESFERA_FONTES, ESFERA_LABELS, empresaTemTitulo } from "@/lib/analytics";
+import {
+  collapseCodigos,
+  fold,
+  formatBRL,
+  formatCnpj,
+  formatTituloPendencia,
+  normalizeTituloKey,
+} from "@/lib/format";
 import {
   padCnpj14,
   type SiteEmissaoRef,
@@ -38,6 +45,7 @@ import {
   ListFilter,
   MapPin,
   Search,
+  X,
 } from "lucide-react";
 
 type Props = {
@@ -85,6 +93,7 @@ export function EmpresasTable({
   const searchParams = useSearchParams();
   const esferaFiltro = parseEsfera(searchParams.get("esfera"));
   const filtro = parseStatus(searchParams.get("status"));
+  const tituloFiltro = normalizeTituloKey(searchParams.get("titulo"));
 
   const competenciaQS = `competencia=${encodeURIComponent(competencia)}`;
 
@@ -109,8 +118,31 @@ export function EmpresasTable({
     router.push(queryString ? `/?${queryString}` : "/");
   };
 
+  const setTituloFiltro = (titulo: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("competencia", competencia);
+    const key = normalizeTituloKey(titulo);
+    if (tituloFiltro && tituloFiltro === key) {
+      params.delete("titulo");
+    } else if (key) {
+      params.set("titulo", key);
+    } else {
+      params.delete("titulo");
+    }
+    const queryString = params.toString();
+    router.push(queryString ? `/?${queryString}` : "/");
+  };
+
+  const clearTituloFiltro = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("competencia", competencia);
+    params.delete("titulo");
+    const queryString = params.toString();
+    router.push(queryString ? `/?${queryString}` : "/");
+  };
+
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = fold(query);
     return empresas.filter((empresa) => {
       if (esferaFiltro) {
         const bucket = empresa.esferas?.[esferaFiltro];
@@ -120,26 +152,40 @@ export function EmpresasTable({
         if (bucket.status !== "pendencia" && bucket.status !== "indeterminado") return false;
       }
       if (filtro !== "todas" && empresa.status !== filtro) return false;
+      if (tituloFiltro && !empresaTemTitulo(empresa, tituloFiltro, esferaFiltro)) return false;
       if (!q) return true;
       const codigos = (empresa.codigos ?? (empresa.codigo ? [empresa.codigo] : [])).join(" ");
       const lancamentos = empresa.debitos
         .map((d) => d.numero_lancamento || "")
         .filter(Boolean)
         .join(" ");
+      const tiposFold = empresa.tipos
+        .flatMap((tipo) => [tipo, formatTituloPendencia(tipo)])
+        .map(fold)
+        .join(" ");
+      const debitosFold = empresa.debitos
+        .flatMap((d) => [
+          d.titulo,
+          d.receita,
+          formatTituloPendencia(d.titulo),
+        ])
+        .map(fold)
+        .join(" ");
       return (
-        empresa.nome.toLowerCase().includes(q) ||
-        (empresa.cnpj || "").toLowerCase().includes(q) ||
-        (empresa.codigo || "").toLowerCase().includes(q) ||
-        codigos.toLowerCase().includes(q) ||
-        lancamentos.toLowerCase().includes(q) ||
-        empresa.tipos.some((tipo) => tipo.toLowerCase().includes(q))
+        fold(empresa.nome).includes(q) ||
+        fold(empresa.cnpj).includes(q) ||
+        fold(empresa.codigo).includes(q) ||
+        fold(codigos).includes(q) ||
+        fold(lancamentos).includes(q) ||
+        tiposFold.includes(q) ||
+        debitosFold.includes(q)
       );
     });
-  }, [empresas, esferaFiltro, filtro, query]);
+  }, [empresas, esferaFiltro, filtro, tituloFiltro, query]);
 
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [query, filtro, esferaFiltro]);
+  }, [query, filtro, esferaFiltro, tituloFiltro]);
 
   const columns = useMemo(
     () => [
@@ -148,9 +194,9 @@ export function EmpresasTable({
         header: "Cód.",
         cell: (info) => {
           const empresa = info.row.original;
-          const labels =
-            (empresa.codigos?.length ? empresa.codigos : null) ??
-            (empresa.codigo ? [empresa.codigo] : []);
+          const labels = collapseCodigos(
+            empresa.codigos?.length ? empresa.codigos : empresa.codigo ? [empresa.codigo] : [],
+          );
           return (
             <span className="tabular font-semibold text-slate-800">
               {labels.join(", ") || "—"}
@@ -242,13 +288,15 @@ export function EmpresasTable({
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  const subtitulo = esferaFiltro
-    ? `Pendências · ${ESFERA_LABELS[esferaFiltro]}`
-    : filtro === "pendencia"
-      ? "Pendências"
-      : filtro === "regular"
-        ? "Sem pendências"
-        : "Filtre e abra o detalhe para agir por esfera";
+  const subtitulo = tituloFiltro
+    ? `${formatTituloPendencia(tituloFiltro)} · ${filtered.length} ${filtered.length === 1 ? "empresa" : "empresas"}`
+    : esferaFiltro
+      ? `Pendências · ${ESFERA_LABELS[esferaFiltro]}`
+      : filtro === "pendencia"
+        ? "Pendências"
+        : filtro === "regular"
+          ? "Sem pendências"
+          : "Filtre e abra o detalhe para agir por esfera";
 
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
@@ -270,6 +318,9 @@ export function EmpresasTable({
         empresas={empresas}
         totais={totais}
         esfera={esferaFiltro}
+        competencia={competencia}
+        activeTitulo={tituloFiltro || null}
+        onTituloClick={setTituloFiltro}
       />
 
       <section className="space-y-3">
@@ -294,10 +345,16 @@ export function EmpresasTable({
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar código, nº lançamento, empresa, CNPJ ou tipo"
+              placeholder="Buscar empresa, CNPJ, omissão, DCTFWeb ou tipo"
               className="pl-8"
             />
           </div>
+          {tituloFiltro ? (
+            <Button type="button" size="sm" variant="outline" onClick={clearTituloFiltro}>
+              <X className="size-3.5" aria-hidden />
+              Limpar título
+            </Button>
+          ) : null}
           <div className="flex gap-1 rounded-md bg-muted/70 p-1">
             {(
               [

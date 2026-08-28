@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { TituloSlice } from "@/lib/analytics";
-import { formatBRL, formatItensETotal } from "@/lib/format";
+import { formatBRL, formatTituloResumo } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const tooltipStyle = {
@@ -12,13 +14,23 @@ const tooltipStyle = {
   boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
 };
 
+type Props = {
+  items: TituloSlice[];
+  pieHeight?: number;
+  /** Título ativo na URL (?titulo=). */
+  activeTitulo?: string | null;
+  /** Clique no card filtra a tabela de empresas. */
+  onTituloClick?: (titulo: string) => void;
+  competencia?: string;
+};
+
 export function TituloConsolChart({
   items,
   pieHeight = 160,
-}: {
-  items: TituloSlice[];
-  pieHeight?: number;
-}) {
+  activeTitulo = null,
+  onTituloClick,
+  competencia,
+}: Props) {
   if (items.length === 0) return null;
 
   const cols =
@@ -31,7 +43,14 @@ export function TituloConsolChart({
   return (
     <div className={`grid gap-4 ${cols}`}>
       {items.map((item) => (
-        <TituloChartCard key={item.titulo || item.label} item={item} pieHeight={pieHeight} />
+        <TituloChartCard
+          key={item.titulo || item.label}
+          item={item}
+          pieHeight={pieHeight}
+          active={Boolean(activeTitulo && activeTitulo === item.titulo)}
+          onClick={onTituloClick ? () => onTituloClick(item.titulo) : undefined}
+          competencia={competencia}
+        />
       ))}
     </div>
   );
@@ -40,12 +59,40 @@ export function TituloConsolChart({
 function TituloChartCard({
   item,
   pieHeight,
+  active,
+  onClick,
+  competencia,
 }: {
   item: TituloSlice;
   pieHeight: number;
+  active?: boolean;
+  onClick?: () => void;
+  competencia?: string;
 }) {
+  const clickable = Boolean(onClick);
+  const qtdEmpresas = item.qtdEmpresas || item.empresas.length;
+
   return (
-    <Card>
+    <Card
+      className={cn(
+        "transition-colors",
+        clickable && "cursor-pointer hover:border-slate-400 hover:shadow-sm",
+        active && "border-cyan-600 ring-2 ring-cyan-600/30",
+      )}
+      onClick={onClick}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={
+        clickable
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick?.();
+              }
+            }
+          : undefined
+      }
+    >
       <CardHeader>
         <CardTitle className="flex items-start gap-2 leading-snug">
           <span
@@ -55,7 +102,9 @@ function TituloChartCard({
           />
           <span>{item.label}</span>
         </CardTitle>
-        <CardDescription>{formatItensETotal(item.qtd, item.consolidado)}</CardDescription>
+        <CardDescription>
+          {formatTituloResumo(qtdEmpresas, item.qtd, item.consolidado)}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {item.composicao.length > 0 ? (
@@ -95,11 +144,35 @@ function TituloChartCard({
               ))}
             </ul>
           </div>
+        ) : item.empresas.length > 0 ? (
+          <ul className="space-y-1.5 py-2">
+            {item.empresas.map((empresa) => {
+              const href = competencia
+                ? `/empresas/${empresa.id}?competencia=${encodeURIComponent(competencia)}`
+                : `/empresas/${empresa.id}`;
+              return (
+                <li key={empresa.id}>
+                  <Link
+                    href={href}
+                    className="block truncate text-sm text-slate-800 underline-offset-2 hover:text-cyan-800 hover:underline"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {empresa.nome}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         ) : (
           <p className="py-8 text-center text-sm text-muted-foreground">
             Sem valores monetários neste título.
           </p>
         )}
+        {clickable ? (
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            {active ? "Filtro ativo — clique para remover" : "Clique para filtrar empresas"}
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   );

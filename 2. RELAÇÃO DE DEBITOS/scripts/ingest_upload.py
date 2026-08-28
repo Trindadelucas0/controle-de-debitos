@@ -491,6 +491,21 @@ def painel_tem_empresa(
     return False
 
 
+def _inbox_rel_path(path: Path, competencia: str) -> str | None:
+    """Caminho relativo dentro de inbox_upload/{competencia}/ (ex.: lote/0_arquivo.pdf)."""
+    try:
+        inbox_root = (
+            resolve_workspace_root()
+            / "resultados"
+            / "inbox_upload"
+            / competencia
+        ).resolve()
+        rel = path.resolve().relative_to(inbox_root)
+        return rel.as_posix()
+    except (ValueError, OSError):
+        return None
+
+
 def ingest_one(
     path: Path,
     *,
@@ -523,6 +538,7 @@ def ingest_one(
         "layout_municipal": None,
         "duplicado": False,
         "inbox_path": str(path.resolve()) if path.exists() else str(path),
+        "inbox_rel": _inbox_rel_path(path, selected),
         "dry_run": dry_run,
     }
 
@@ -1044,6 +1060,7 @@ def run(
                     "totais": sum_totais([]),
                     "duplicado": False,
                     "inbox_path": str(path),
+                    "inbox_rel": _inbox_rel_path(path, competencia),
                     "dry_run": dry_run,
                 }
             results.append(item)
