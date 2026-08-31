@@ -2,8 +2,8 @@
 
 | Item | Valor |
 |------|--------|
-| Versão do sistema | 1.2.0 — Exportar omissões |
-| Última atualização | 31/08/2026 (botão Excel só Detalhe na home) |
+| Versão do sistema | 1.2.1 — Exportar omissões |
+| Última atualização | 31/08/2026 (Agenci@Net consulta: descrição longa + A VENCER só na tabela própria) |
 | Fonte oficial | Este arquivo |
 | Guia rápido | `2. RELAÇÃO DE DEBITOS/COMO_RODAR.txt` |
 | Deploy | `GIT.TXT` |
@@ -25,6 +25,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Versão | Nome | O que mudou | Onde |
 |--------|------|-------------|------|
+| 1.2.1 | Exportar omissões | Agenci@Net consulta: tributo/descrição até 120 chars (ex. ocupação área pública); bloco A VENCER só com tabela própria (Identificação + Código de Receita), sem inventar fantasma sobre grade clássica | `scripts/build_dashboard_data.py` (`parse_agencianet_consulta`) |
 | 1.2.0 | Exportar omissões | Botão na home baixa Excel só com aba Detalhe (todas as omissões / competências) | `/` e `GET /api/omissoes/export` |
 | 1.1.0 | Importar relatórios | PDF já na pasta (mesmo hash) pode ser confirmado: reindexa o painel, limpa o inbox, Agenci@Net = Estadual | `/upload` |
 | 1.0.0 | Painel de débitos | Extração ECAC / Agenci@Net / Municipal e upload com preview | `/` e `/upload` |
@@ -87,6 +88,8 @@ Critério das linhas do Excel: `situacao = OMISSAO` ou `titulo` começa com `OMI
 
 - Tipo `AGENCIANET` = esfera **Estadual** (não Federal).
 - Layouts Agenci@Net: Certidão Negativa GDF, Consulta (Certidão Positiva), DAR/Lançamento Administrativo.
+- Consulta (grade clássica): inscrição / ano / receita / tributo (descrição até **120** caracteres) / QPA opcional / valor BRL. Exemplos longos: “insc dat-ocupacao area publica propaganda”, “ocupacao area publica por meio de propaganda”.
+- Bloco **A VENCER**: só quando o chunk tem cabeçalho próprio (`Identificação` + `Código de Receita`) e **não** tem grade clássica (`Valor Débito` / `Tributo`). Se a mesma inscrição+ano já veio da grade clássica com valor > 0, não cria linha A VENCER zerada.
 - CND sem débitos: `SEM_PENDENCIA`, 0 linhas — importação permitida.
 - Mesmo hash na pasta da empresa + commit: `ok`, não `duplicado` bloqueante; aviso `PDF já existia — painel reindexado`.
 - Preview de mesmo hash: `duplicado: true` só para o badge; confirmação continua habilitada.

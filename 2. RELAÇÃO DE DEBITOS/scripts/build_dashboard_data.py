@@ -52,22 +52,25 @@ DEBITO_ROW_RE = re.compile(
 )
 
 # Agenci@Net: inscrição (número ou placa Mercosul) / ano / receita / tributo / [QPA] / valor
+# Tributo até 120 chars: descrições longas (ex. ocupação área pública / propaganda).
 AGENCIANET_ROW_RE = re.compile(
     r"(?P<insc>(?:[A-Z]{3}\d[A-Z0-9]{3}|\d{5,14}))\s+"
     r"(?P<ano>\d{4})\s+"
     r"(?P<receita>\d{1,6})\s+"
-    r"(?P<tributo>[a-z0-9Á-ú /.*%-]{2,40}?)\s+"
+    r"(?P<tributo>[a-z0-9Á-ú /.*%-]{2,120}?)\s+"
     r"(?:\d{1,4}\s+)?"
     r"(?P<valor>\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2}|00)\b",
     re.I,
 )
 
 # Chrome/Skia no Linux: cada glifo é um Tj → inscrição+ano+valor saem colados, sem \s+.
+# Tributo até 80 letras (descrições longas coladas). QPA opcional fica no tail
+# e é separado por _peel_qpa_valor (ex. IPVA21324,47 → 1324,47).
 AGENCIANET_ROW_GLUED_RE = re.compile(
     r"(?P<insc>(?:[A-Z]{3}\d[A-Z0-9]{3}|\d{8,12}))"
     r"(?P<ano>20\d{2})"
     r"(?P<receita>\d{3,4})"
-    r"(?P<tributo>[A-Z]{2,20})"
+    r"(?P<tributo>[A-Z]{2,80})"
     r"(?P<tail>\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})",
     re.I,
 )
@@ -1632,6 +1635,16 @@ def parse_agencianet_consulta(text: str, origem: str, arquivo: str) -> list[dict
     return rows
 
 
+def _seen_has_positive_insc_ano(seen: set[tuple], insc: str, ano: str) -> bool:
+    """True se a grade clássica já capturou a mesma inscrição+ano com valor > 0."""
+    for item in seen:
+        if len(item) < 5:
+            continue
+        if item[0] == insc and item[1] == ano and float(item[4] or 0) > 0:
+            return True
+    return False
+
+
 def _parse_agencianet_avencer(
     text: str,
     origem: str,
@@ -1639,7 +1652,12 @@ def _parse_agencianet_avencer(
     seen: set[tuple],
     codigo: str,
 ) -> list[dict]:
-    """Bloco A VENCER: inscrição/ano/descrição/código, sem valor BRL na tela."""
+    """Bloco A VENCER: inscrição/ano/descrição/código, sem valor BRL na tela.
+
+    Só parseia tabela própria (Identificação + Código de Receita).
+    Ignora páginas cujo título fala em A VENCER mas a grade ainda é clássica
+    (Tributo / Valor Débito) — evita fantasmas que engolem a inscrição vizinha.
+    """
     f = fold(text)
     rows: list[dict] = []
     for block in re.finditer(
@@ -1648,6 +1666,12 @@ def _parse_agencianet_avencer(
         re.S | re.I,
     ):
         chunk = block.group(0)
+        # Cabeçalho da tabela A VENCER (não da grade clássica).
+        if "identificacao" not in chunk or "codigo de receita" not in chunk:
+            continue
+        # Grade clássica no mesmo chunk → não inventar A VENCER zerado.
+        if "valor debito" in chunk or re.search(r"\btributo\b", chunk):
+            continue
         for match in AGENCIANET_AVENCER_RE.finditer(chunk):
             desc = re.sub(r"\s+", " ", match.group("desc")).strip()
             if fold(desc) in {
@@ -1660,6 +1684,8 @@ def _parse_agencianet_avencer(
             insc = match.group("insc").upper()
             ano = match.group("ano")
             receita_code = match.group("receita")
+            if _seen_has_positive_insc_ano(seen, insc, ano):
+                continue
             key = (insc, ano, receita_code, fold(desc), 0.0)
             if key in seen:
                 continue
