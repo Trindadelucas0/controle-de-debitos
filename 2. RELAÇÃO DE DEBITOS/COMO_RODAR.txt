@@ -39,6 +39,10 @@ Após analisar PDFs, a confirmação usa o inbox temporário em:
 Se aparecer "Arquivo temporário não encontrado no inbox", clique em
 "Cancelar revisão" e analise de novo (não confirme horas depois).
 
+Badge DUPLICADO (já importado, mesmo hash): o PDF já está na pasta da
+empresa. Marque a linha e clique em Confirmar — o painel é reindexado
+(aba Estadual). Não precisa excluir o PDF antigo para reenviar o mesmo arquivo.
+
 Deploy no servidor (GIT.TXT):
   git pull → npm run build → pm2 restart dashboard-debitos
 

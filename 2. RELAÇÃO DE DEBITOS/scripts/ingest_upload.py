@@ -54,7 +54,24 @@ TIPO_TO_ESFERA = {
     "AGENCIANET": "estadual",
     "MUNICIPAL": "municipal",
 }
+ESFERA_UI_LABEL = {
+    "ECAC": "Federal",
+    "AGENCIANET": "Estadual",
+    "MUNICIPAL": "Municipal",
+    "federal": "Federal",
+    "estadual": "Estadual",
+    "municipal": "Municipal",
+}
 SAFE_NAME_RE = re.compile(r"[<>:\"/\\|?*\x00-\x1f]")
+
+
+def esfera_ui_label(tipo: str, esfera: str | None = None) -> str:
+    """Rótulo da esfera na UI (Agenci@Net = Estadual, não Federal)."""
+    return (
+        ESFERA_UI_LABEL.get((tipo or "").upper())
+        or ESFERA_UI_LABEL.get((esfera or "").lower())
+        or "painel"
+    )
 
 
 class IngestLock:
@@ -456,6 +473,47 @@ def resolve_month_for_ingest(competencia: str, *, dry_run: bool) -> Path:
     return month
 
 
+def apply_same_hash_skip(
+    result: dict[str, Any],
+    *,
+    path: Path,
+    skip_reason: str,
+    ja_no_painel: bool,
+    dry_run: bool,
+    tipos: list[str],
+    tipo: str,
+) -> dict[str, Any]:
+    """PDF já na pasta (mesmo hash): preview informa; commit reindexa e limpa o inbox."""
+    result["ok"] = True
+    result["avisos"].append(skip_reason)
+    esfera_txt = esfera_ui_label(tipo, result.get("esfera"))
+    if dry_run:
+        result["duplicado"] = True
+        if ja_no_painel:
+            result["avisos"].append("PDF já na pasta — confirmar reindexa o painel")
+        else:
+            result["avisos"].append(
+                "PDF já está na pasta, mas a empresa não está no painel — "
+                f"confirmar reindexa o {esfera_txt}"
+            )
+        return result
+
+    result["duplicado"] = False
+    if ja_no_painel:
+        result["avisos"].append("PDF já existia — painel reindexado")
+    else:
+        result["avisos"].append(
+            "PDF já está na pasta, mas a empresa não está no painel — "
+            f"confirmar reindexa o {esfera_txt}"
+        )
+    result["avisos"].append(f"tipos: {', '.join(tipos) if tipos else '—'}")
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        pass
+    return result
+
+
 def painel_tem_empresa(
     competencia: str,
     *,
@@ -805,25 +863,23 @@ def ingest_one(
     if skip_reason:
         result["arquivo_final"] = dest_path.name
         same_hash = "já importado (mesmo hash)" in skip_reason
-        ja_no_painel = painel_tem_empresa(
-            str(result.get("competencia") or selected),
-            cnpj=cnpj,
-            dest_folder=dest_folder,
-        )
-        if same_hash and not ja_no_painel:
-            result["avisos"].append(
-                "PDF já está na pasta, mas a empresa não está no painel — confirmar reindexa o Federal"
+        if same_hash:
+            ja_no_painel = painel_tem_empresa(
+                str(result.get("competencia") or selected),
+                cnpj=cnpj,
+                dest_folder=dest_folder,
             )
-            result["ok"] = True
-            result["duplicado"] = False
-            if dry_run:
-                return result
-            result["avisos"].append(f"tipos: {', '.join(tipos) if tipos else '—'}")
-            return result
+            return apply_same_hash_skip(
+                result,
+                path=path,
+                skip_reason=skip_reason,
+                ja_no_painel=ja_no_painel,
+                dry_run=dry_run,
+                tipos=tipos,
+                tipo=tipo,
+            )
         result["ok"] = True
         result["avisos"].append(skip_reason)
-        if same_hash:
-            result["duplicado"] = True
         return result
 
     if dry_run:

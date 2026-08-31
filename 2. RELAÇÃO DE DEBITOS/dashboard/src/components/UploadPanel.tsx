@@ -125,10 +125,25 @@ function makeId() {
 
 function hasRealExtract(item?: IngestItem): boolean {
   if (!item?.ok) return false;
-  if (item.duplicado) return false;
   const qtd = item.qtd_debitos ?? 0;
   if (qtd > 0) return true;
   return item.classe === "SEM_PENDENCIA";
+}
+
+function esferaUiLabel(item?: IngestItem): string {
+  const tipo = (item?.tipo || "").toUpperCase();
+  if (tipo === "AGENCIANET") return "Estadual";
+  if (tipo === "ECAC") return "Federal";
+  if (tipo === "MUNICIPAL") return "Municipal";
+  const esfera = (item?.esfera || "").toLowerCase();
+  if (esfera === "estadual") return "Estadual";
+  if (esfera === "federal") return "Federal";
+  if (esfera === "municipal") return "Municipal";
+  return "painel";
+}
+
+function isSameHashAviso(avisos?: string[]): boolean {
+  return (avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a));
 }
 
 /** Referência estável para reabrir o PDF no inbox na confirmação. */
@@ -212,15 +227,16 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
   const busy = phase === "previewing" || phase === "committing" || deleting;
   const okCount = files.filter((f) => f.status === "ok").length;
   const errorCount = files.filter((f) => f.status === "error").length;
-  const selectedForCommit = files.filter(
-    (f) =>
+  const selectedForCommit = files.filter((f) => {
+    const r = f.result;
+    if (!r) return false;
+    return (
       f.selected &&
       f.status === "ok" &&
-      hasRealExtract(f.result) &&
-      inboxRefForCommit(f.result) &&
-      !f.result.duplicado &&
-      !(f.result.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a)),
-  );
+      hasRealExtract(r) &&
+      Boolean(inboxRefForCommit(r))
+    );
+  });
 
   const importadosOk = useMemo(
     () =>
@@ -229,9 +245,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           phase === "done" &&
           f.status === "ok" &&
           Boolean(f.result?.destino || f.result?.arquivo_final) &&
-          !deletedIds.includes(f.id) &&
-          !f.result?.duplicado &&
-          !(f.result?.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a)),
+          !deletedIds.includes(f.id),
       ),
     [files, deletedIds, phase],
   );
@@ -279,16 +293,14 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     setFiles((prev) =>
       prev.map((f, idx) => {
         if (idx !== index) return f;
-        const duplicado =
-          Boolean(item.duplicado) ||
-          (item.avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a));
+        const duplicado = Boolean(item.duplicado) || isSameHashAviso(item.avisos);
         return {
           ...f,
           status: item.ok ? "ok" : "error",
           result: { ...item, duplicado },
           error: item.erro || undefined,
           selected: selectDefault
-            ? Boolean(item.ok && !duplicado && hasRealExtract({ ...item, duplicado }))
+            ? Boolean(item.ok && hasRealExtract({ ...item, duplicado }))
             : f.selected,
         };
       }),
@@ -518,7 +530,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     setGlobalError(null);
     setProgress({ current: 0, total: selectedForCommit.length });
 
-    // Marca não selecionados / duplicados como skipped na UI
+    // Marca os confirmados como queued; o restante permanece na revisão
     setFiles((prev) =>
       prev.map((f) => {
         if (selectedForCommit.some((s) => s.id === f.id)) {
@@ -613,12 +625,14 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         return;
       }
 
-      // Limpa inbox dos não confirmados (duplicados / desmarcados)
       const selectedIds = new Set(selectedForCommit.map((s) => s.id));
-      const leftover = files
+      const leftoverUnselected = files
         .filter((f) => !selectedIds.has(f.id) && f.result?.inbox_path)
         .map((f) => f.result!.inbox_path!);
-      await limparInbox(leftover);
+      const committedInbox = (finalDone.itens || [])
+        .filter((item) => item.ok && item.inbox_path)
+        .map((item) => item.inbox_path as string);
+      await limparInbox([...leftoverUnselected, ...committedInbox]);
 
       setDonePayload({
         ok: Boolean(finalDone.ok),
@@ -901,15 +915,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
             role="status"
             className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950"
           >
-            A extração terminou, mas nada será gravado: os PDFs já estão no painel (duplicados) ou
-            vieram com erro. Abra a competência{" "}
-            <Link
-              href={`/?competencia=${encodeURIComponent(competenciaEfetiva)}`}
-              className="font-medium underline underline-offset-2"
-            >
-              {formatCompetencia(competenciaEfetiva)}
-            </Link>
-            , exclua o PDF antigo da empresa e analise de novo para substituir.
+            A extração terminou, mas nada será gravado: os PDFs vieram com erro
+            ou sem extração válida. Corrija o arquivo e analise de novo. PDFs já
+            existentes na pasta podem ser marcados e confirmados para atualizar o painel.
           </p>
         ) : (
           <p className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
@@ -969,8 +977,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               {phase === "review" ? "Revisão antes de gravar" : "Resultado da importação"}
             </CardTitle>
             <CardDescription>
-              Só confirme PDFs com lançamentos extraídos (ex.: Lançamentos · Federal /
-              Pendência · Omissão de DCTFWeb)
+              Só confirme PDFs com extração válida (débitos ou certidão sem pendência).
+              Se aparecer Duplicado, o arquivo já está na pasta: marque e confirme para
+              atualizar o painel.
             </CardDescription>
           </CardHeader>
           <div className="overflow-auto">
@@ -994,13 +1003,14 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               <tbody>
                 {files.map((f, idx) => {
                   const r = f.result;
-                  const duplicado = Boolean(r?.duplicado);
+                  const duplicadoPreview =
+                    Boolean(r?.duplicado) || isSameHashAviso(r?.avisos);
+                  const duplicado = phase === "done" ? Boolean(r?.duplicado) : duplicadoPreview;
                   const wasDeleted = deletedIds.includes(f.id);
                   const canSelect =
                     phase === "review" &&
                     f.status === "ok" &&
-                    !duplicado &&
-                    inboxRefForCommit(r) &&
+                    Boolean(inboxRefForCommit(r)) &&
                     hasRealExtract(r);
                   return (
                     <tr
@@ -1073,9 +1083,8 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                           <div className="space-y-1">
                             <Badge variant="outline">Duplicado</Badge>
                             <div className="text-[11px] text-amber-900">
-                              Este PDF já está na pasta da competência e a empresa já
-                              consta no painel. Abra o Federal desta competência; para
-                              substituir, exclua o PDF antigo e envie de novo.
+                              Já importado — marque e confirme para atualizar o{" "}
+                              {esferaUiLabel(r)}.
                             </div>
                           </div>
                         ) : f.status === "ok" ? (
@@ -1099,8 +1108,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                         <td className="px-3 py-2 align-top">
                           {f.status === "ok" &&
                           r?.destino &&
-                          !wasDeleted &&
-                          !duplicado ? (
+                          !wasDeleted ? (
                             <button
                               type="button"
                               className="text-xs font-medium text-red-700 hover:underline disabled:opacity-50"

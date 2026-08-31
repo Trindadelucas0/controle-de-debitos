@@ -17,7 +17,13 @@ from extrair_debitos import (  # noqa: E402
     resolve_workspace_root,
     strip_inbox_upload_prefix,
 )
-from ingest_upload import _inbox_rel_path, force_filename, unique_dest_path  # noqa: E402
+from ingest_upload import (  # noqa: E402
+    _inbox_rel_path,
+    apply_same_hash_skip,
+    esfera_ui_label,
+    force_filename,
+    unique_dest_path,
+)
 
 
 def assert_true(cond: bool, msg: str, failures: list[str]) -> None:
@@ -113,6 +119,177 @@ def test_collapse_oito_e_zero_oito(failures: list[str]) -> None:
     assert_true(aligned == "08-AGENCIANET.pdf", f"align={aligned}", failures)
 
 
+def test_esfera_ui_label(failures: list[str]) -> None:
+    assert_true(
+        esfera_ui_label("AGENCIANET") == "Estadual",
+        f"AGENCIANET={esfera_ui_label('AGENCIANET')!r}",
+        failures,
+    )
+    assert_true(esfera_ui_label("ECAC") == "Federal", f"ECAC={esfera_ui_label('ECAC')!r}", failures)
+    assert_true(
+        esfera_ui_label("MUNICIPAL") == "Municipal",
+        f"MUNICIPAL={esfera_ui_label('MUNICIPAL')!r}",
+        failures,
+    )
+    assert_true(
+        esfera_ui_label("", "estadual") == "Estadual",
+        f"esfera estadual={esfera_ui_label('', 'estadual')!r}",
+        failures,
+    )
+
+
+def test_apply_same_hash_skip_preview_e_commit(failures: list[str]) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = Path(tmp) / "0_149-AGENCIANET.pdf"
+        inbox.write_bytes(b"%PDF-1.4 mesmo-hash")
+        skip = "já importado (mesmo hash)"
+
+        preview = apply_same_hash_skip(
+            {"ok": False, "avisos": [], "esfera": "estadual", "duplicado": False},
+            path=inbox,
+            skip_reason=skip,
+            ja_no_painel=True,
+            dry_run=True,
+            tipos=["ICMS"],
+            tipo="AGENCIANET",
+        )
+        assert_true(preview["ok"] is True, "preview deve ser ok", failures)
+        assert_true(preview["duplicado"] is True, "preview marca duplicado visual", failures)
+        assert_true(
+            inbox.exists(),
+            "preview não apaga o inbox",
+            failures,
+        )
+        assert_true(
+            any("confirmar reindexa o painel" in a for a in preview["avisos"]),
+            f"aviso preview={preview['avisos']}",
+            failures,
+        )
+        joined = " ".join(preview["avisos"])
+        assert_true("Federal" not in joined, f"preview não deve falar Federal: {joined}", failures)
+
+        commit = apply_same_hash_skip(
+            {"ok": False, "avisos": [], "esfera": "estadual", "duplicado": True},
+            path=inbox,
+            skip_reason=skip,
+            ja_no_painel=True,
+            dry_run=False,
+            tipos=["ICMS"],
+            tipo="AGENCIANET",
+        )
+        assert_true(commit["ok"] is True, "commit duplicado deve ser ok", failures)
+        assert_true(commit["duplicado"] is False, "commit não bloqueia como duplicado", failures)
+        assert_true(not inbox.exists(), "commit apaga a cópia do inbox", failures)
+        assert_true(
+            any("painel reindexado" in a for a in commit["avisos"]),
+            f"aviso commit={commit['avisos']}",
+            failures,
+        )
+        joined_c = " ".join(commit["avisos"])
+        assert_true("Federal" not in joined_c, f"commit não deve falar Federal: {joined_c}", failures)
+
+
+def test_apply_same_hash_skip_fora_do_painel_usa_estadual(failures: list[str]) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = Path(tmp) / "0_149-AGENCIANET.pdf"
+        inbox.write_bytes(b"%PDF-1.4")
+        result = apply_same_hash_skip(
+            {"ok": False, "avisos": [], "esfera": "estadual", "duplicado": False},
+            path=inbox,
+            skip_reason="já importado (mesmo hash)",
+            ja_no_painel=False,
+            dry_run=True,
+            tipos=[],
+            tipo="AGENCIANET",
+        )
+        joined = " ".join(result["avisos"])
+        assert_true("Estadual" in joined, f"esperado Estadual: {joined}", failures)
+        assert_true("Federal" not in joined, f"não deve ser Federal: {joined}", failures)
+
+
+def test_ingest_one_commit_mesmo_hash_reindexa(failures: list[str]) -> None:
+    """PDF já em pendencias/ com mesmo hash: commit ok, inbox some, rebuild segue no batch."""
+    from unittest.mock import patch
+
+    from ingest_upload import ingest_one
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        month = tmp_path / "08-2026"
+        dest_folder = month / "pendencias" / "LOJAO DAS FERRAMENTAS LTDA"
+        dest_folder.mkdir(parents=True)
+        payload = b"%PDF-1.4 test-duplicate-agencianet\n%%EOF"
+        existing = dest_folder / "149-AGENCIANET.pdf"
+        existing.write_bytes(payload)
+        inbox = tmp_path / "lote" / "0_149-AGENCIANET.pdf"
+        inbox.parent.mkdir(parents=True)
+        inbox.write_bytes(payload)
+        fake_index = [
+            {
+                "nome": dest_folder.name,
+                "pasta": dest_folder,
+                "cnpj": "28204374000148",
+                "id": "emp-149",
+                "codigo": "149",
+                "codigos": ["149"],
+            }
+        ]
+        debit_row = {
+            "titulo": "ICMS",
+            "saldo": 10,
+            "original": 10,
+            "multa": 0,
+            "juros": 0,
+            "consolidado": 10,
+        }
+        with (
+            patch(
+                "ingest_upload.resolve_pdf_text",
+                return_value=("texto fiscal agencianet suficiente", "pymupdf", []),
+            ),
+            patch("ingest_upload.detect_content_tipo", return_value=(None, False)),
+            patch("ingest_upload.detect_competencia_from_text", return_value=(None, None)),
+            patch("ingest_upload.classify_text", return_value=("COM_PENDENCIA", ["ICMS"])),
+            patch(
+                "ingest_upload.extract_company_from_pdf",
+                return_value=("28.204.374/0001-48", "LOJAO DAS FERRAMENTAS LTDA"),
+            ),
+            patch(
+                "ingest_upload.extract_documentos_from_pdf",
+                return_value=([{"debitos": [debit_row]}], ["ICMS"]),
+            ),
+            patch("ingest_upload.painel_tem_empresa", return_value=True),
+            patch("ingest_upload.is_pdf_magic", return_value=True),
+        ):
+            item = ingest_one(
+                inbox,
+                tipo="AGENCIANET",
+                month=month,
+                indexes={"08-2026": fake_index},
+                selected_competencia="08-2026",
+                dry_run=False,
+            )
+        assert_true(item.get("ok") is True, f"ok={item.get('ok')} erro={item.get('erro')}", failures)
+        assert_true(
+            item.get("duplicado") is False,
+            f"duplicado commit={item.get('duplicado')}",
+            failures,
+        )
+        assert_true(not inbox.exists(), "inbox deveria ser removido no commit duplicado", failures)
+        assert_true(existing.exists(), "PDF da pasta da empresa permanece", failures)
+        avisos = item.get("avisos") or []
+        assert_true(
+            any("painel reindexado" in str(a) for a in avisos),
+            f"avisos={avisos}",
+            failures,
+        )
+        assert_true(
+            all("Federal" not in str(a) for a in avisos),
+            f"avisos com Federal={avisos}",
+            failures,
+        )
+
+
 def test_inbox_rel_path(failures: list[str]) -> None:
     ws = resolve_workspace_root()
     batch = ws / "resultados" / "inbox_upload" / "99-2099" / "_pytest_inbox"
@@ -132,6 +309,10 @@ def main() -> int:
     test_unique_dest_nao_duplica_o_proprio_inbox(failures)
     test_unique_dest_mesmo_hash_na_pasta_da_empresa(failures)
     test_collapse_oito_e_zero_oito(failures)
+    test_esfera_ui_label(failures)
+    test_apply_same_hash_skip_preview_e_commit(failures)
+    test_apply_same_hash_skip_fora_do_painel_usa_estadual(failures)
+    test_ingest_one_commit_mesmo_hash_reindexa(failures)
     test_inbox_rel_path(failures)
     if failures:
         print("FALHAS:")
