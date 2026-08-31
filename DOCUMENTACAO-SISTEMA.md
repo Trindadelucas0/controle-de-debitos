@@ -2,8 +2,8 @@
 
 | Item | Valor |
 |------|--------|
-| Versão do sistema | 1.1.0 — Importar relatórios |
-| Última atualização | 31/08/2026 (reimportar PDF duplicado reindexa o painel) |
+| Versão do sistema | 1.2.0 — Exportar omissões |
+| Última atualização | 31/08/2026 (botão Excel só Detalhe na home) |
 | Fonte oficial | Este arquivo |
 | Guia rápido | `2. RELAÇÃO DE DEBITOS/COMO_RODAR.txt` |
 | Deploy | `GIT.TXT` |
@@ -25,6 +25,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Versão | Nome | O que mudou | Onde |
 |--------|------|-------------|------|
+| 1.2.0 | Exportar omissões | Botão na home baixa Excel só com aba Detalhe (todas as omissões / competências) | `/` e `GET /api/omissoes/export` |
 | 1.1.0 | Importar relatórios | PDF já na pasta (mesmo hash) pode ser confirmado: reindexa o painel, limpa o inbox, Agenci@Net = Estadual | `/upload` |
 | 1.0.0 | Painel de débitos | Extração ECAC / Agenci@Net / Municipal e upload com preview | `/` e `/upload` |
 
@@ -32,6 +33,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Origem | Ação | Destino |
 |--------|------|---------|
+| Home `/` | Exportar omissões | Download Excel (`omissoes_detalhe_….xlsx`) |
 | Home `/` | Importar relatórios | `/upload` |
 | `/upload` | Confirmar e gravar | Home da competência (`/?competencia=MM-YYYY`) |
 | `/upload` | Voltar ao painel | Home |
@@ -40,16 +42,26 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Tela | Rota | Código |
 |------|------|--------|
-| Painel | `/` | `dashboard/src/app/page.tsx` |
+| Painel | `/` | `dashboard/src/app/page.tsx` + `EmpresasTable.tsx` |
 | Importar relatórios | `/upload` | `dashboard/src/components/UploadPanel.tsx` |
 | API preview/commit | `POST /api/ingest` | `dashboard/src/app/api/ingest/route.ts` |
 | API limpar inbox | `DELETE /api/ingest` | `dashboard/src/app/api/ingest/route.ts` |
 | API excluir importado | `POST /api/delete-imported` | `dashboard/src/app/api/delete-imported/route.ts` |
+| API exportar omissões | `GET /api/omissoes/export` | `dashboard/src/app/api/omissoes/export/route.ts` |
+| Coleta omissões Excel | — | `dashboard/src/lib/omissoes-export.ts` |
 | Ingestão/gravação | — | `scripts/ingest_upload.py` |
 | Extração Agenci@Net | — | `scripts/build_dashboard_data.py` (`parse_agencianet_debitos`) |
 | Classificação | — | `scripts/extrair_debitos.py` (`classify_text`) |
 
 ## 6. Telas e fluxos
+
+### Painel (`/`)
+
+| Seção | Campo / ação | Como funciona | Regra / bloqueio | Código |
+|-------|----------------|----------------|------------------|--------|
+| Cabeçalho | Exportar omissões | Baixa Excel com **só** a aba Detalhe | Lê `empresas.json`; todas as competências em `snapshots` | `EmpresasTable.tsx` + `/api/omissoes/export` |
+
+Critério das linhas do Excel: `situacao = OMISSAO` ou `titulo` começa com `OMISSAO` (DCTFWEB, DCTF, ECF, DIRF, EFD, PGDAS, GFIP, etc.). Não inclui INAPTA nem irregularidade cadastral.
 
 ### Importar relatórios (`/upload`)
 
@@ -79,8 +91,18 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 - Mesmo hash na pasta da empresa + commit: `ok`, não `duplicado` bloqueante; aviso `PDF já existia — painel reindexado`.
 - Preview de mesmo hash: `duplicado: true` só para o badge; confirmação continua habilitada.
 - pymupdf é obrigatório (`scripts/requirements-debitos.txt`).
+- Exportar omissões: Excel com uma aba Detalhe; todas as competências; só linhas `OMISSAO` / título `OMISSAO…`.
 
 ## 8. Como usar o sistema (guia do dia a dia)
+
+### Exportar omissões (Excel)
+
+1. Abra a home do painel (`/`).
+2. Clique em **Exportar omissões**.
+3. Abra o arquivo baixado (`omissoes_detalhe_AAAA-MM-DD.xlsx`).
+4. Use o filtro da coluna **Título** ou **Competência** na aba Detalhe.
+
+### Importar PDFs
 
 1. Abra **Importar relatórios** (`/upload`).
 2. Escolha a competência (ex.: 08-2026).

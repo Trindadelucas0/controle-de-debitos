@@ -40,6 +40,7 @@ import {
   AlertTriangle,
   Building2,
   CheckCircle2,
+  FileSpreadsheet,
   Landmark,
   LayoutDashboard,
   ListFilter,
@@ -308,9 +309,22 @@ export function EmpresasTable({
             : "VISÃO GERAL DOS DEBITOS"
         }
         actions={
-          <p className="text-xs text-muted-foreground">
-            Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                window.location.href = "/api/omissoes/export?formato=xlsx";
+              }}
+            >
+              <FileSpreadsheet className="size-3.5" aria-hidden />
+              Exportar omissões
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
+            </p>
+          </div>
         }
       />
 
