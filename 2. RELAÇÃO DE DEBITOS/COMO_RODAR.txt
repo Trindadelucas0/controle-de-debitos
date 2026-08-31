@@ -38,6 +38,8 @@ Após analisar PDFs, a confirmação usa o inbox temporário em:
 
 Se aparecer "Arquivo temporário não encontrado no inbox", clique em
 "Cancelar revisão" e analise de novo (não confirme horas depois).
+Nomes do site (Agenci@Net, acento, espaços) passam a ser gravados no
+inbox sem @; o Confirmar usa o caminho relativo do lote.
 
 Badge DUPLICADO (já importado, mesmo hash): o PDF já está na pasta da
 empresa. Marque a linha e clique em Confirmar — o painel é reindexado

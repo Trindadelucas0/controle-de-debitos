@@ -1,8 +1,8 @@
 import path from "path";
 import { NextResponse } from "next/server";
 import { mkdir, unlink, writeFile } from "fs/promises";
-import { existsSync, readdirSync } from "fs";
 import { invalidateDashboardCache, listCompetencias } from "@/lib/data";
+import { resolveInboxFile, sanitizeFileName } from "@/lib/inbox-file";
 import { resolveWorkspaceRoot, spawnPythonScript } from "@/lib/workspace";
 
 export const runtime = "nodejs";
@@ -16,15 +16,6 @@ const MAX_BYTES = 20 * 1024 * 1024;
 /** Timeout total do lote (rebuild completo pode demorar). */
 const BATCH_TIMEOUT_MS = 15 * 60 * 1000;
 
-function sanitizeFileName(name: string): string {
-  const base = path.basename(name).replace(/[<>:"/\\|?*\x00-\x1f]/g, "_");
-  const cleaned = base.replace(/\.\.+/g, ".");
-  if (!cleaned.toLowerCase().endsWith(".pdf")) {
-    return `${cleaned || "arquivo"}.pdf`;
-  }
-  return cleaned.slice(0, 180);
-}
-
 /** Aceita %PDF no início ou após BOM/espaços. */
 function looksLikePdf(buffer: Buffer): boolean {
   if (!buffer.length) return false;
@@ -32,50 +23,6 @@ function looksLikePdf(buffer: Buffer): boolean {
   const head = buffer.subarray(0, Math.min(buffer.length, 1024));
   const at = head.indexOf(marker);
   return at >= 0 && at < 32;
-}
-
-/** Caminho absoluto do PDF dentro do inbox da competência (com fallbacks). */
-function resolveInboxFile(
-  workspace: string,
-  filePath: string,
-  competencia: string,
-): string | null {
-  const inboxRoot = path.resolve(workspace, "resultados", "inbox_upload", competencia);
-  const rootWithSep = inboxRoot.endsWith(path.sep) ? inboxRoot : inboxRoot + path.sep;
-  const normalizedRoot = rootWithSep.toLowerCase();
-
-  const accept = (candidate: string): string | null => {
-    const resolved = path.resolve(candidate);
-    const lower = resolved.toLowerCase();
-    if (!lower.endsWith(".pdf")) return null;
-    if (!lower.startsWith(normalizedRoot) && lower !== inboxRoot.toLowerCase()) return null;
-    if (!existsSync(resolved)) return null;
-    return resolved;
-  };
-
-  const direct = accept(filePath);
-  if (direct) return direct;
-
-  const trimmed = filePath.replace(/^[/\\]+/, "");
-  if (trimmed && trimmed !== filePath) {
-    const relative = accept(path.join(inboxRoot, trimmed));
-    if (relative) return relative;
-  }
-
-  const base = path.basename(filePath);
-  if (!base.toLowerCase().endsWith(".pdf")) return null;
-  if (!existsSync(inboxRoot)) return null;
-
-  try {
-    for (const ent of readdirSync(inboxRoot, { withFileTypes: true })) {
-      if (!ent.isDirectory()) continue;
-      const hit = accept(path.join(inboxRoot, ent.name, base));
-      if (hit) return hit;
-    }
-  } catch {
-    return null;
-  }
-  return null;
 }
 
 function streamPython(

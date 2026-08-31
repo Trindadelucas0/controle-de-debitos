@@ -41,13 +41,22 @@ def test_strip_prefixo_api(failures: list[str]) -> None:
         "86-ECAC.pdf": ("86-ECAC", "86", "86-ECAC.pdf"),
         "12-AGENCIANET.pdf": ("12-AGENCIANET", "12", "12-AGENCIANET.pdf"),
         "0_12-AGENCIANET.pdf": ("12-AGENCIANET", "12", "12-AGENCIANET.pdf"),
+        "1_159-Agenci@Net - Certidão Positiva - Exibir Débitos.pdf": (
+            "159-Agenci@Net - Certidão Positiva - Exibir Débitos",
+            "159",
+            "159-AGENCIANET.pdf",
+        ),
+        "0_149-Agenci@Net - Certidão Positiva - Exibir Débitos (1).pdf": (
+            "149-Agenci@Net - Certidão Positiva - Exibir Débitos (1)",
+            "149",
+            "149-AGENCIANET.pdf",
+        ),
     }
     for name, (stripped, codigo, forced) in cases.items():
         got_strip = strip_inbox_upload_prefix(name)
         got_cod = codigo_from_filename(name)
-        got_forced = force_filename(codigo_from_filename(name), "ECAC", name)
-        if "AGENCIANET" in name.upper():
-            got_forced = force_filename(codigo_from_filename(name), "AGENCIANET", name)
+        tipo = "AGENCIANET" if "AGENCI" in name.upper() else "ECAC"
+        got_forced = force_filename(codigo_from_filename(name), tipo, name)
         assert_true(
             got_strip == stripped,
             f"{name}: strip {got_strip!r} != {stripped!r}",

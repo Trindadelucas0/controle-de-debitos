@@ -885,9 +885,15 @@ def strip_inbox_upload_prefix(stem_or_name: str) -> str:
         stem = match.group(3)
     while True:
         prefixed = INBOX_INDEX_PREFIX_RE.match(stem)
-        if not prefixed or not INBOX_TIPO_STEM_RE.match(stem):
+        if not prefixed:
             break
-        stem = prefixed.group(2)
+        rest = prefixed.group(2)
+        # 0_09-ECAC.pdf  ou  1_159-Agenci@Net - Certidão….pdf
+        looks_like_tipo = bool(INBOX_TIPO_STEM_RE.match(stem))
+        looks_like_codigo = bool(re.match(r"^\d+-", rest))
+        if not looks_like_tipo and not looks_like_codigo:
+            break
+        stem = rest
     return stem
 
 

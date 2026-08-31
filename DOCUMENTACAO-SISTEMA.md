@@ -2,8 +2,8 @@
 
 | Item | Valor |
 |------|--------|
-| Versão do sistema | 1.2.1 — Exportar omissões |
-| Última atualização | 31/08/2026 (Agenci@Net consulta: descrição longa + A VENCER só na tabela própria) |
+| Versão do sistema | 1.2.2 — Exportar omissões |
+| Última atualização | 31/08/2026 (Confirmar no upload acha PDF no inbox mesmo com nome Agenci@Net) |
 | Fonte oficial | Este arquivo |
 | Guia rápido | `2. RELAÇÃO DE DEBITOS/COMO_RODAR.txt` |
 | Deploy | `GIT.TXT` |
@@ -25,6 +25,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Versão | Nome | O que mudou | Onde |
 |--------|------|-------------|------|
+| 1.2.2 | Exportar omissões | Confirmar acha o PDF no inbox com nome Agenci@Net (arroba, acento, espaços); destino `{codigo}-AGENCIANET.pdf` sem virar `1_159` | `/upload`, `dashboard/src/lib/inbox-file.ts`, `extrair_debitos.py` |
 | 1.2.1 | Exportar omissões | Agenci@Net consulta: tributo/descrição até 120 chars (ex. ocupação área pública); bloco A VENCER só com tabela própria (Identificação + Código de Receita), sem inventar fantasma sobre grade clássica | `scripts/build_dashboard_data.py` (`parse_agencianet_consulta`) |
 | 1.2.0 | Exportar omissões | Botão na home baixa Excel só com aba Detalhe (todas as omissões / competências) | `/` e `GET /api/omissoes/export` |
 | 1.1.0 | Importar relatórios | PDF já na pasta (mesmo hash) pode ser confirmado: reindexa o painel, limpa o inbox, Agenci@Net = Estadual | `/upload` |
@@ -46,6 +47,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 | Painel | `/` | `dashboard/src/app/page.tsx` + `EmpresasTable.tsx` |
 | Importar relatórios | `/upload` | `dashboard/src/components/UploadPanel.tsx` |
 | API preview/commit | `POST /api/ingest` | `dashboard/src/app/api/ingest/route.ts` |
+| Inbox do upload | Nome seguro + resolver lote | `dashboard/src/lib/inbox-file.ts` |
 | API limpar inbox | `DELETE /api/ingest` | `dashboard/src/app/api/ingest/route.ts` |
 | API excluir importado | `POST /api/delete-imported` | `dashboard/src/app/api/delete-imported/route.ts` |
 | API exportar omissões | `GET /api/omissoes/export` | `dashboard/src/app/api/omissoes/export/route.ts` |
@@ -73,14 +75,14 @@ Critério das linhas do Excel: `situacao = OMISSAO` ou `titulo` começa com `OMI
 | Analisar | Preview dry-run | Extrai lançamentos no inbox | Extração inválida = erro | `ingest_upload.py` |
 | Revisão | Checkbox Incluir | Marca o que vai ao painel | Precisa extração válida (débitos ou `SEM_PENDENCIA`) e arquivo no inbox | `hasRealExtract` |
 | Duplicado | Badge | PDF já existe na pasta (mesmo hash) | **Não bloqueia.** Confirmar reindexa o painel | `apply_same_hash_skip` |
-| Confirmar | Gravar | Move PDF (ou reindexa se já existir) + `rebuild_dashboard` | Overlay até o rebuild | `ingest_upload.py` |
+| Confirmar | Gravar | Resolve o inbox (`inbox_rel` relativo, nome com `@`/acento) e move ou reindexa | Arquivo some do inbox só depois de gravar; nome do site Agenci@Net não bloqueia | `inbox-file.ts` + `ingest_upload.py` |
 
 ### Fluxo
 
-1. **Preview** — PDFs vão para `resultados/inbox_upload/MM-YYYY/{lote}/N_nome.pdf`; Python extrai em dry-run.
+1. **Preview** — PDFs vão para `resultados/inbox_upload/MM-YYYY/{lote}/N_nome.pdf` (nome ASCII, sem `@`); Python extrai em dry-run.
 2. **Revisão** — Usuário marca linhas com extração válida (débitos ou `SEM_PENDENCIA`). Badge Duplicado é informativo.
-3. **Commit** — API resolve o arquivo no inbox (`inbox_rel` ou busca por nome).
-   - Arquivo novo: move para `pendencias/` (ou `sem_pendencias/`) e regenera o JSON.
+3. **Commit** — API resolve o arquivo no inbox (`inbox_rel` relativo ao lote, depois nome normalizado).
+   - Arquivo novo: move para `pendencias/` (ou `sem_pendencias/`) como `{codigo}-AGENCIANET.pdf` (ex. `159-AGENCIANET.pdf`, não `1_159-…`).
    - Mesmo hash já na pasta: **não move de novo**; apaga a cópia do inbox; regenera o JSON com o parser atual.
 4. Após commit ok, o inbox do lote é limpo (confirmados e desmarcados).
 
@@ -93,6 +95,7 @@ Critério das linhas do Excel: `situacao = OMISSAO` ou `titulo` começa com `OMI
 - CND sem débitos: `SEM_PENDENCIA`, 0 linhas — importação permitida.
 - Mesmo hash na pasta da empresa + commit: `ok`, não `duplicado` bloqueante; aviso `PDF já existia — painel reindexado`.
 - Preview de mesmo hash: `duplicado: true` só para o badge; confirmação continua habilitada.
+- Prefixo `{indice}_` do inbox (ex. `1_159-Agenci@Net - Certidão…`) vira código `159` e destino `159-AGENCIANET.pdf`.
 - pymupdf é obrigatório (`scripts/requirements-debitos.txt`).
 - Exportar omissões: Excel com uma aba Detalhe; todas as competências; só linhas `OMISSAO` / título `OMISSAO…`.
 
@@ -114,6 +117,8 @@ Critério das linhas do Excel: `situacao = OMISSAO` ou `titulo` começa com `OMI
 5. Na revisão, deixe marcados os PDFs com extração ok — inclusive os com badge **Duplicado**.
 6. Clique **Confirmar e gravar no painel**.
 7. Abra o link da competência e confira a aba Estadual da empresa.
+
+PDFs baixados do site com nome **Agenci@Net - Certidão Positiva…** podem ser analisados e confirmados assim. Se a revisão ficou aberta de um deploy antigo e aparecer “Arquivo temporário não encontrado no inbox”, clique **Cancelar revisão**, **Analisar** de novo e então **Confirmar**.
 
 Não é necessário excluir o PDF antigo para reenviar o mesmo arquivo. Excluir só se o arquivo no disco estiver errado (nome corrompido, PDF de outra empresa).
 
