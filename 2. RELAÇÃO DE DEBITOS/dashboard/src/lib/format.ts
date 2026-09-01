@@ -79,6 +79,36 @@ export function isOmissaoDebito(row: { situacao?: string; titulo?: string }): bo
   );
 }
 
+/** Agenci@Net A VENCER: consulta lista o débito mas sem valor BRL na tela. */
+export function isAvencerSemValor(row: {
+  situacao?: string;
+  consolidado?: number;
+  saldo?: number;
+  original?: number;
+}): boolean {
+  const sit = (row.situacao || "").toUpperCase();
+  if (!sit.includes("A VENCER")) return false;
+  const val = row.consolidado ?? row.saldo ?? row.original ?? 0;
+  return Math.abs(val) < 0.01;
+}
+
+/** Valor monetário na tabela de débitos (omissão, A VENCER sem BRL, ou BRL). */
+export function formatDebitoValor(
+  row: {
+    situacao?: string;
+    titulo?: string;
+    consolidado?: number;
+    saldo?: number;
+    original?: number;
+  },
+  valor?: number,
+): string {
+  if (isOmissaoDebito(row)) return "—";
+  if (isAvencerSemValor(row)) return "A vencer (sem valor na consulta)";
+  const n = valor ?? row.consolidado ?? row.saldo ?? row.original ?? 0;
+  return formatBRL(n);
+}
+
 export function formatCnpj(cnpj: string | null | undefined): string {
   if (!cnpj) return "—";
   const digits = cnpj.replace(/\D/g, "");

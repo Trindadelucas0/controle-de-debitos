@@ -42,7 +42,7 @@ import {
   ESFERA_LABELS,
 } from "@/lib/analytics";
 import { formatCompetencia } from "@/lib/competencia";
-import { collapseCodigos, formatBRL, formatCnpj, formatItensETotal, isOmissaoDebito } from "@/lib/format";
+import { collapseCodigos, formatBRL, formatCnpj, formatDebitoValor, formatItensETotal, isOmissaoDebito } from "@/lib/format";
 import { TituloConsolChart } from "@/components/TituloConsolList";
 import type { SiteEmissaoRef } from "@/lib/parcelamentos-utils";
 import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
@@ -468,16 +468,16 @@ function DebitosTableBlock({
       columnHelper.accessor("original", {
         header: "Vl. original",
         cell: (info) => (
-          <span className="tabular">
-            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
+          <span className="tabular text-[11px] sm:text-sm">
+            {formatDebitoValor(info.row.original, info.getValue())}
           </span>
         ),
       }),
       columnHelper.accessor("saldo", {
         header: "Sdo. devedor",
         cell: (info) => (
-          <span className="tabular font-semibold text-cyan-800">
-            {isOmissaoDebito(info.row.original) ? "—" : formatBRL(info.getValue())}
+          <span className="tabular text-[11px] font-semibold text-cyan-800 sm:text-sm">
+            {formatDebitoValor(info.row.original, info.getValue())}
           </span>
         ),
       }),

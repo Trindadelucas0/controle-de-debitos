@@ -43,6 +43,7 @@ from extrair_debitos import (  # noqa: E402
     extract_company_from_pdf,
     fold,
     has_fiscal_markers,
+    is_legitimate_sem_pendencia,
     list_competencia_dirs,
     competencias_parent_dir,
     resolve_workspace_root,
@@ -717,17 +718,25 @@ def ingest_one(
     titulos: list[str] = []
     for row in rows:
         titulo = str(row.get("titulo") or "").strip()
+        if not titulo:
+            receita = str(row.get("receita") or "").strip()
+            situacao = str(row.get("situacao") or "").strip()
+            if receita:
+                titulo = receita
+            elif situacao:
+                titulo = situacao
         if titulo and titulo not in titulos:
             titulos.append(titulo)
     result["titulos"] = titulos
 
-    if not rows:
+    sem_layout = not rows
+    if sem_layout:
         result["avisos"].append(
             "conteúdo sem layout de débitos reconhecido — revisar PDF"
         )
 
     extract_failed = False
-    if not rows and classe != "SEM_PENDENCIA":
+    if sem_layout and not is_legitimate_sem_pendencia(text):
         extract_failed = True
         if tipo == "ECAC" and not has_fiscal_markers(text):
             result["erro"] = (
@@ -741,6 +750,12 @@ def ingest_one(
             result["erro"] = (
                 "PDF da Agenci@Net ilegível (imagem/CID). "
                 "Exporte a Consulta de Débitos ou a Certidão Negativa em PDF."
+            )
+        elif classe == "SEM_PENDENCIA":
+            result["erro"] = (
+                "PDF classificado como sem pendência, mas nenhum lançamento "
+                "foi extraído. Reexporte o relatório ou confira se o layout "
+                "é suportado — não grave no painel até extrair de verdade."
             )
         else:
             result["erro"] = (

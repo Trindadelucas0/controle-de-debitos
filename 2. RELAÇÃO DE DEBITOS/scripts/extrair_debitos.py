@@ -971,6 +971,49 @@ def _has_receita_pendencia_signals(folded: str) -> bool:
     return False
 
 
+def _tem_bloco_consulta_debitos(folded: str) -> bool:
+    return bool(
+        "seguinte(s) debito(s)" in folded
+        or re.search(r"seguinte\(s\)\s+d\s*e?\s*bito", folded)
+    )
+
+
+def is_legitimate_sem_pendencia(text: str) -> bool:
+    """True só quando o PDF é certidão/consulta limpa de verdade (0 linhas ok).
+
+    Espelha os ramos de classify_text que devolvem SEM_PENDENCIA. Evita gravar
+    ECAC/Agenci@Net ilegível como sem_pendencias só porque o classificador errou.
+    """
+    f = fold(text)
+
+    if "nao foram detectadas pend" in f and not _has_receita_pendencia_signals(f):
+        return True
+
+    if (
+        "certidao negativa de debitos" in f
+        and "relativos aos tributos federais" not in f
+        and "exibir debitos" not in f
+        and (
+            "nao constam debitos de tribut" in f
+            or "nao constam debitos de competencia" in f
+        )
+    ):
+        return True
+
+    tem_bloco = _tem_bloco_consulta_debitos(f)
+    if (
+        "nao constam debitos para o objeto consultado" in f
+        or ("emissao de certidao negativa" in f and "exibir debitos" not in f)
+    ) and not tem_bloco:
+        return True
+
+    if "certidao negativa de debitos relativos aos tributos federais" in f:
+        if "pendencia -" not in f and "exigibilidade suspensa" not in f:
+            return True
+
+    return False
+
+
 def classify_text(text: str) -> tuple[str, list[str]]:
     f = fold(text)
 
@@ -991,10 +1034,7 @@ def classify_text(text: str) -> tuple[str, list[str]]:
     ):
         return "SEM_PENDENCIA", []
 
-    tem_bloco_consulta = bool(
-        "seguinte(s) debito(s)" in f
-        or re.search(r"seguinte\(s\)\s+d\s*e?\s*bito", f)
-    )
+    tem_bloco_consulta = _tem_bloco_consulta_debitos(f)
 
     # Agenci@net estadual sem débitos (prioridade sobre títulos de menu)
     # Não vale se a mesma tela lista LANÇAMENTO / A VENCER / DÍVIDA ATIVA.
