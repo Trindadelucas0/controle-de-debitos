@@ -321,6 +321,17 @@ export function EmpresasTable({
               <FileSpreadsheet className="size-3.5" aria-hidden />
               Exportar omissões
             </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                window.location.href = "/api/debitos/export?formato=xlsx";
+              }}
+            >
+              <FileSpreadsheet className="size-3.5" aria-hidden />
+              Exportar débitos
+            </Button>
             <p className="text-xs text-muted-foreground">
               Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
             </p>
