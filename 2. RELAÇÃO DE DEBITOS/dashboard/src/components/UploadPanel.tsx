@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatCompetencia } from "@/lib/competencia";
+import { toRelativePdfDestino } from "@/lib/delete-destino";
 import { formatBRL, formatTituloPendencia } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -146,20 +147,6 @@ function esferaUiLabel(item?: IngestItem): string {
 
 function isSameHashAviso(avisos?: string[]): boolean {
   return (avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a));
-}
-
-function normalizeDeleteDestino(destino: string): string | null {
-  const raw = destino.replace(/\\/g, "/").trim();
-  if (!raw) return null;
-  if (/^[a-zA-Z]:\//.test(raw)) {
-    const parts = raw.split("/").filter(Boolean);
-    const idx = parts.findIndex((p) => /^(0[1-9]|1[0-2])-\d{4}$/.test(p));
-    if (idx >= 0 && parts.length > idx + 3) {
-      return `${parts[idx + 1]}/${parts[idx + 2]}/${parts.slice(idx + 3).join("/")}`;
-    }
-    return null;
-  }
-  return raw.replace(/^\/+/, "");
 }
 
 /** Referência estável para reabrir o PDF no inbox na confirmação. */
@@ -382,15 +369,17 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       for (const f of targets) {
         const comp = f.result?.competencia || competenciaEfetiva;
         const destino = f.result?.destino;
-        if (!destino || !comp) continue;
-        const normalized = normalizeDeleteDestino(destino);
-        if (!normalized) continue;
+        if (!comp) continue;
+        const normalized = destino ? toRelativePdfDestino(destino) : null;
+        const arquivo = f.result?.arquivo_final || f.result?.arquivo || undefined;
+        const empresaId = f.result?.empresa_id || undefined;
+        if (!normalized && !(empresaId && arquivo)) continue;
         const bucket = byComp.get(comp) || { ids: [], itens: [] };
         bucket.ids.push(f.id);
         bucket.itens.push({
-          destino: normalized,
-          empresaId: f.result?.empresa_id || undefined,
-          arquivo: f.result?.arquivo_final || f.result?.arquivo || undefined,
+          destino: normalized || undefined,
+          empresaId,
+          arquivo,
         });
         byComp.set(comp, bucket);
       }
@@ -694,7 +683,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
 
   const overlayProgress = rebuildProgress ?? progress;
   const overlayTitle = rebuildProgress
-    ? "Atualizando o painel…"
+    ? `Atualizando o painel (${rebuildProgress.current}/${rebuildProgress.total})`
     : phase === "previewing"
       ? "Analisando PDFs…"
       : phase === "committing"
@@ -703,11 +692,11 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           ? "Excluindo PDF…"
           : "";
   const overlayDesc = rebuildProgress
-    ? `Reindexando ${rebuildProgress.nome || "empresa"} (${rebuildProgress.current}/${rebuildProgress.total}).`
+    ? `Só a empresa ${rebuildProgress.nome || "do lote"} está sendo relida. As demais não entram nesta atualização.`
     : phase === "previewing"
       ? "Extraindo lançamentos de verdade. A tela só libera quando cada PDF terminar."
       : phase === "committing"
-        ? "Gravando arquivos e atualizando o painel. Só libera depois do rebuild."
+        ? "Gravando arquivos. Em seguida o painel atualiza só a empresa do lote."
         : "Aguarde a exclusão terminar. Não feche a página nem clique em outra ação.";
 
   return (

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import path from "path";
 import {
   findEmpresaNaCompetencia,
   getEmpresa,
   listCompetencias,
   resolveCompetencia,
 } from "@/lib/data";
+import { toRelativeEmpresaDestino, toRelativePdfDestino } from "@/lib/delete-destino";
 import { resolveWorkspaceRoot, runPythonJson } from "@/lib/workspace";
 
 export const runtime = "nodejs";
@@ -60,23 +60,11 @@ function resolveDestinoFromEmpresa(
     }
   }
   if (!empresa) return null;
-  if (!empresa.arquivos.includes(arquivo)) return null;
 
   const pasta = empresa.pasta;
   if (!pasta) return null;
 
-  // Preferir caminho relativo MM-YYYY/status/empresa/arquivo
-  const parts = pasta.replace(/\\/g, "/").split("/").filter(Boolean);
-  const idx = parts.findIndex((p) => COMPETENCIA_RE.test(p));
-  if (idx >= 0 && parts.length > idx + 2) {
-    const status = parts[idx + 1];
-    const empresaDir = parts[idx + 2];
-    if (["pendencias", "sem_pendencias", "revisar"].includes(status)) {
-      return `${status}/${empresaDir}/${arquivo}`;
-    }
-  }
-
-  return path.join(pasta, arquivo);
+  return toRelativeEmpresaDestino(pasta, arquivo);
 }
 
 export async function POST(request: Request) {
@@ -129,8 +117,11 @@ export async function POST(request: Request) {
 
     for (const item of rawItens) {
       const compItem = String(item.competencia || competencia).trim();
-      if (item.destino && String(item.destino).trim()) {
-        destinos.push(String(item.destino).trim());
+      const fromDestino = item.destino
+        ? toRelativePdfDestino(String(item.destino))
+        : null;
+      if (fromDestino) {
+        destinos.push(fromDestino);
         continue;
       }
       if (item.empresaId && item.arquivo) {
@@ -146,7 +137,7 @@ export async function POST(request: Request) {
         }
         continue;
       }
-      erros.push("item sem destino nem empresaId+arquivo");
+      erros.push("item sem destino relativo nem empresaId+arquivo");
     }
 
     if (destinos.length === 0) {

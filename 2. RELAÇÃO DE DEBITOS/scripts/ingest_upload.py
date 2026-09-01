@@ -1143,6 +1143,20 @@ def run(
                         if rel:
                             touch_paths.append(rel)
                 touch_paths = list(dict.fromkeys(touch_paths))
+                if stream:
+                    emit_line(
+                        {
+                            "event": "rebuild",
+                            "fase": "atualizando_painel",
+                            "index": 0,
+                            "total": max(len(touch_paths), 1),
+                            "nome": (
+                                touch_paths[0].rsplit("/", 1)[-1]
+                                if touch_paths
+                                else "competência"
+                            ),
+                        }
+                    )
                 emit_cb = emit_line if stream else None
                 payload_dash = rebuild_dashboard(
                     only_competencias=sorted(comps),

@@ -2320,14 +2320,25 @@ def compute_totais_gerais(empresas: list[dict]) -> dict:
     }
 
 
-def normalize_empresa_relpath(value: str) -> str | None:
-    """`pendencias/EMPRESA` a partir de destino ou touch explícito."""
-    rel = value.replace("\\", "/").strip().lstrip("/")
+def _status_path_parts(value: str) -> list[str] | None:
+    """Partes a partir da pasta de status (pendencias|sem_pendencias|revisar)."""
+    rel = value.replace("\\", "/").strip()
     parts = [p for p in rel.split("/") if p]
-    if len(parts) < 2:
+    if parts and len(parts[0]) == 2 and parts[0][1] == ":":
+        parts = parts[1:]
+    idx = next(
+        (i for i, part in enumerate(parts) if part.lower() in EMPRESA_STATUS_FOLDERS),
+        None,
+    )
+    if idx is None or len(parts) < idx + 2:
         return None
-    status = parts[0].lower()
-    if status not in EMPRESA_STATUS_FOLDERS:
+    return parts[idx:]
+
+
+def normalize_empresa_relpath(value: str) -> str | None:
+    """`pendencias/EMPRESA` a partir de destino relativo ou path absoluto."""
+    parts = _status_path_parts(value)
+    if not parts:
         return None
     return f"{parts[0]}/{parts[1]}"
 
@@ -2337,12 +2348,15 @@ def empresa_relpath_from_destino(destino: str) -> str | None:
 
 
 def _empresa_matches_relpath(empresa: dict, relpath: str) -> bool:
-    rel = relpath.replace("\\", "/").lower()
+    rel = (normalize_empresa_relpath(relpath) or relpath).replace("\\", "/").strip("/").lower()
     pasta = str(empresa.get("pasta") or "").replace("\\", "/").lower()
-    if rel in pasta:
+    if not rel or not pasta:
+        return False
+    pasta_norm = pasta.strip("/")
+    if f"/{rel}/" in f"/{pasta_norm}/":
         return True
-    folder_name = rel.split("/")[-1]
-    return pasta.endswith(f"/{folder_name}") or pasta.endswith(folder_name)
+    pasta_tail = "/".join(pasta_norm.split("/")[-2:])
+    return pasta_tail == rel
 
 
 def build_empresa_from_folder(

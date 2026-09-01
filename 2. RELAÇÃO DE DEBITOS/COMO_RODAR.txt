@@ -42,8 +42,9 @@ Nomes do site (Agenci@Net, acento, espaços) passam a ser gravados no
 inbox sem @; o Confirmar usa o caminho relativo do lote.
 
 Badge DUPLICADO (já importado, mesmo hash): o PDF já está na pasta da
-empresa. Marque a linha e clique em Confirmar — o painel é reindexado
-(aba Estadual). Não precisa excluir o PDF antigo para reenviar o mesmo arquivo.
+empresa. Marque a linha e clique em Confirmar — o painel reindexa só
+essa empresa (overlay "Atualizando o painel"). Não precisa excluir o
+PDF antigo para reenviar o mesmo arquivo.
 
 Deploy no servidor (GIT.TXT):
   git pull → npm run build → pm2 restart dashboard-debitos
