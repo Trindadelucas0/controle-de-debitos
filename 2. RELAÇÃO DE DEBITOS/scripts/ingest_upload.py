@@ -24,6 +24,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 from build_dashboard_data import (  # noqa: E402
     detect_content_tipo,
+    empresa_relpath_from_destino,
     extract_documentos_from_pdf,
     parse_municipal_debitos,
     rebuild_dashboard,
@@ -854,11 +855,11 @@ def ingest_one(
             dest_folder.mkdir(parents=True, exist_ok=True)
 
     dest_path, skip_reason = unique_dest_path(dest_folder, forced_name, path)
-    result["destino"] = str(dest_folder.relative_to(month)) if month in dest_folder.parents or dest_folder.parent == month else str(dest_folder)
     try:
+        rel_folder = dest_folder.relative_to(month)
+        result["destino"] = f"{rel_folder.as_posix()}/{dest_path.name}"
+    except ValueError:
         result["destino"] = f"{dest_folder.parent.name}/{dest_folder.name}/{dest_path.name}"
-    except Exception:
-        result["destino"] = str(dest_path)
 
     if skip_reason:
         result["arquivo_final"] = dest_path.name
@@ -1132,7 +1133,22 @@ def run(
                     comp = str(item.get("competencia") or "").strip()
                     if COMPETENCIA_DIR_RE.match(comp):
                         comps.add(comp)
-                payload_dash = rebuild_dashboard(only_competencias=sorted(comps))
+                touch_paths: list[str] = []
+                for item in results:
+                    if not item.get("ok"):
+                        continue
+                    destino = item.get("destino")
+                    if destino:
+                        rel = empresa_relpath_from_destino(str(destino))
+                        if rel:
+                            touch_paths.append(rel)
+                touch_paths = list(dict.fromkeys(touch_paths))
+                emit_cb = emit_line if stream else None
+                payload_dash = rebuild_dashboard(
+                    only_competencias=sorted(comps),
+                    touch_relpaths=touch_paths or None,
+                    emit_event=emit_cb,
+                )
                 attach_empresa_ids(results, payload_dash)
             except Exception as exc:  # noqa: BLE001
                 rebuild_ok = False

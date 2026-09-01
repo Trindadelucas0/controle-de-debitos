@@ -78,6 +78,8 @@ type StreamEvent = {
   aviso_global?: string | null;
   itens?: IngestItem[];
   dry_run?: boolean;
+  fase?: string;
+  nome?: string;
 } & IngestItem;
 
 type Props = {
@@ -146,6 +148,20 @@ function isSameHashAviso(avisos?: string[]): boolean {
   return (avisos || []).some((a) => /já importado \(mesmo hash\)/i.test(a));
 }
 
+function normalizeDeleteDestino(destino: string): string | null {
+  const raw = destino.replace(/\\/g, "/").trim();
+  if (!raw) return null;
+  if (/^[a-zA-Z]:\//.test(raw)) {
+    const parts = raw.split("/").filter(Boolean);
+    const idx = parts.findIndex((p) => /^(0[1-9]|1[0-2])-\d{4}$/.test(p));
+    if (idx >= 0 && parts.length > idx + 3) {
+      return `${parts[idx + 1]}/${parts[idx + 2]}/${parts.slice(idx + 3).join("/")}`;
+    }
+    return null;
+  }
+  return raw.replace(/^\/+/, "");
+}
+
 /** Referência estável para reabrir o PDF no inbox na confirmação. */
 function inboxRefForCommit(item?: IngestItem): string | null {
   if (!item) return null;
@@ -207,6 +223,11 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
   const [files, setFiles] = useState<ZoneFile[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
+  const [rebuildProgress, setRebuildProgress] = useState<{
+    current: number;
+    total: number;
+    nome?: string;
+  } | null>(null);
   const [dragOver, setDragOver] = useState<DocTipo | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [donePayload, setDonePayload] = useState<{
@@ -354,14 +375,23 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     setDeleting(true);
     setGlobalError(null);
     try {
-      const byComp = new Map<string, { ids: string[]; destinos: string[] }>();
+      const byComp = new Map<
+        string,
+        { ids: string[]; itens: { destino?: string; empresaId?: string; arquivo?: string }[] }
+      >();
       for (const f of targets) {
         const comp = f.result?.competencia || competenciaEfetiva;
         const destino = f.result?.destino;
         if (!destino || !comp) continue;
-        const bucket = byComp.get(comp) || { ids: [], destinos: [] };
+        const normalized = normalizeDeleteDestino(destino);
+        if (!normalized) continue;
+        const bucket = byComp.get(comp) || { ids: [], itens: [] };
         bucket.ids.push(f.id);
-        bucket.destinos.push(destino);
+        bucket.itens.push({
+          destino: normalized,
+          empresaId: f.result?.empresa_id || undefined,
+          arquivo: f.result?.arquivo_final || f.result?.arquivo || undefined,
+        });
         byComp.set(comp, bucket);
       }
 
@@ -377,7 +407,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             competencia: comp,
-            itens: bucket.destinos.map((destino) => ({ destino })),
+            itens: bucket.itens,
           }),
         });
         const payload = await res.json().catch(() => ({}));
@@ -528,6 +558,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
     if (busy || selectedForCommit.length === 0) return;
     setPhase("committing");
     setGlobalError(null);
+    setRebuildProgress(null);
     setProgress({ current: 0, total: selectedForCommit.length });
 
     // Marca os confirmados como queued; o restante permanece na revisão
@@ -616,11 +647,19 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           applyByCommitIndex(ev.index, ev);
         } else if (ev.event === "done" && Array.isArray(ev.itens)) {
           ev.itens.forEach((item, idx) => applyByCommitIndex(idx, item));
+        } else if (ev.event === "rebuild") {
+          setRebuildProgress({
+            current: (ev.index ?? 0) + 1,
+            total: ev.total || 1,
+            nome: ev.nome,
+          });
         }
       });
 
       if (!finalDone) {
-        setGlobalError("A gravação não terminou. O painel não foi atualizado.");
+        setGlobalError(
+          "A gravação pode ter terminado, mas o painel não confirmou. Atualize a página e confira a competência.",
+        );
         setPhase("review");
         return;
       }
@@ -649,19 +688,23 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       setPhase("review");
     } finally {
       setProgress(null);
+      setRebuildProgress(null);
     }
   };
 
-  const overlayTitle =
-    phase === "previewing"
+  const overlayProgress = rebuildProgress ?? progress;
+  const overlayTitle = rebuildProgress
+    ? "Atualizando o painel…"
+    : phase === "previewing"
       ? "Analisando PDFs…"
       : phase === "committing"
         ? "Importando PDFs…"
         : deleting
           ? "Excluindo PDF…"
           : "";
-  const overlayDesc =
-    phase === "previewing"
+  const overlayDesc = rebuildProgress
+    ? `Reindexando ${rebuildProgress.nome || "empresa"} (${rebuildProgress.current}/${rebuildProgress.total}).`
+    : phase === "previewing"
       ? "Extraindo lançamentos de verdade. A tela só libera quando cada PDF terminar."
       : phase === "committing"
         ? "Gravando arquivos e atualizando o painel. Só libera depois do rebuild."
@@ -673,7 +716,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         open={busy}
         title={overlayTitle}
         description={overlayDesc}
-        progress={progress}
+        progress={overlayProgress}
       />
       <div>
         {busy ? (

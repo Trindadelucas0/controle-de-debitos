@@ -19,7 +19,7 @@ from typing import Any
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 
-from build_dashboard_data import rebuild_dashboard  # noqa: E402
+from build_dashboard_data import empresa_relpath_from_destino, rebuild_dashboard  # noqa: E402
 from extrair_debitos import (  # noqa: E402
     COMPETENCIA_DIR_RE,
     ensure_competencia_dir,
@@ -191,9 +191,20 @@ def run(
         rebuild_ok = True
         rebuild_error = None
         try:
-            # Só regenera o mês afetado — rebuild de todas as competências
-            # (ex.: 07-2026 com 80+ empresas) deixava a exclusão parecer “travada”.
-            rebuild_dashboard(only_competencias=[competencia])
+            touch_paths: list[str] = []
+            for item in results:
+                destino = item.get("destino")
+                if destino:
+                    rel = empresa_relpath_from_destino(str(destino))
+                    if rel:
+                        touch_paths.append(rel)
+            touch_paths = list(dict.fromkeys(touch_paths))
+            emit_cb = (lambda payload: emit(payload, stream=True)) if stream else None
+            rebuild_dashboard(
+                only_competencias=[competencia],
+                touch_relpaths=touch_paths or None,
+                emit_event=emit_cb,
+            )
         except Exception as exc:  # noqa: BLE001
             rebuild_ok = False
             rebuild_error = str(exc)

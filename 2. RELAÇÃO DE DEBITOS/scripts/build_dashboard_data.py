@@ -14,6 +14,7 @@ import re
 import sys
 import unicodedata
 from pathlib import Path
+from typing import Any
 
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
@@ -2298,6 +2299,323 @@ def build_esferas(documentos: list[dict]) -> dict:
     return esferas
 
 
+STATUS_FOLDER_TO_EMPRESA = {
+    "pendencias": "pendencia",
+    "sem_pendencias": "regular",
+    "revisar": "indeterminado",
+}
+EMPRESA_STATUS_FOLDERS = frozenset(STATUS_FOLDER_TO_EMPRESA.keys())
+
+
+def compute_totais_gerais(empresas: list[dict]) -> dict:
+    return {
+        "empresas": len(empresas),
+        "com_pendencia": sum(1 for item in empresas if item["status"] == "pendencia"),
+        "regulares": sum(1 for item in empresas if item["status"] == "regular"),
+        "saldo": round(sum(item["totais"]["saldo"] for item in empresas), 2),
+        "consolidado": round(sum(item["totais"]["consolidado"] for item in empresas), 2),
+        "docs_federal": sum(item["esferas"]["federal"]["qtdDocs"] for item in empresas),
+        "docs_estadual": sum(item["esferas"]["estadual"]["qtdDocs"] for item in empresas),
+        "docs_municipal": sum(item["esferas"]["municipal"]["qtdDocs"] for item in empresas),
+    }
+
+
+def normalize_empresa_relpath(value: str) -> str | None:
+    """`pendencias/EMPRESA` a partir de destino ou touch explícito."""
+    rel = value.replace("\\", "/").strip().lstrip("/")
+    parts = [p for p in rel.split("/") if p]
+    if len(parts) < 2:
+        return None
+    status = parts[0].lower()
+    if status not in EMPRESA_STATUS_FOLDERS:
+        return None
+    return f"{parts[0]}/{parts[1]}"
+
+
+def empresa_relpath_from_destino(destino: str) -> str | None:
+    return normalize_empresa_relpath(destino)
+
+
+def _empresa_matches_relpath(empresa: dict, relpath: str) -> bool:
+    rel = relpath.replace("\\", "/").lower()
+    pasta = str(empresa.get("pasta") or "").replace("\\", "/").lower()
+    if rel in pasta:
+        return True
+    folder_name = rel.split("/")[-1]
+    return pasta.endswith(f"/{folder_name}") or pasta.endswith(folder_name)
+
+
+def build_empresa_from_folder(
+    folder: Path,
+    *,
+    status: str,
+    competencia: str,
+    used_ids: set[str],
+    preserve_id: str | None = None,
+) -> dict | None:
+    """Monta uma empresa a partir da pasta no disco (parsers calibrados)."""
+    pdfs = sorted(folder.glob("*.pdf"))
+    if not pdfs:
+        return None
+
+    nome = folder.name
+    cnpj: str | None = None
+    cnpj_matriz: str | None = None
+    codigo_ecac_matriz: str | None = None
+    had_ecac_matriz = False
+    tipos: list[str] = []
+    debitos: list[dict] = []
+    documentos: list[dict] = []
+    arquivos: list[str] = []
+    codigos: set[str] = set()
+    avisos: list[str] = []
+    parsed_pdfs: list[dict] = []
+
+    for pdf in pdfs:
+        label = origem_label(pdf.name)
+        codigo = codigo_from_filename(pdf.name)
+        codigos.add(codigo)
+        text, _mode, text_avisos = resolve_pdf_text(pdf, label)
+        avisos.extend(text_avisos)
+        found_cnpj, found_nome = extract_company_from_pdf(pdf, text)
+        parsed_pdfs.append(
+            {
+                "pdf": pdf,
+                "label": label,
+                "codigo": codigo,
+                "text": text,
+                "found_cnpj": found_cnpj,
+                "found_nome": found_nome,
+            }
+        )
+        if label == "ECAC" and found_cnpj and is_cnpj_matriz(found_cnpj):
+            had_ecac_matriz = True
+            codigo_ecac_matriz = codigo
+
+    for item in parsed_pdfs:
+        pdf = item["pdf"]
+        label = item["label"]
+        text = item["text"]
+        found_cnpj = item["found_cnpj"]
+        found_nome = item["found_nome"]
+
+        if found_cnpj:
+            if is_cnpj_matriz(found_cnpj):
+                cnpj_matriz = found_cnpj
+                cnpj = found_cnpj
+            elif not cnpj or not is_cnpj_matriz(cnpj):
+                if not cnpj:
+                    cnpj = found_cnpj
+
+        folder_is_generic = fold(nome).replace(" ", "_") in {
+            "sem_nome",
+            "semnome",
+            "revisar",
+        } or nome.strip().isdigit()
+        if found_nome and folder_is_generic:
+            nome = found_nome
+        elif found_nome and not folder_is_generic:
+            if fold(found_nome).startswith(fold(nome)[:12]) and len(found_nome) > len(nome) + 5:
+                nome = found_nome
+
+        skip_filial = (
+            label == "ECAC"
+            and is_cnpj_filial(found_cnpj)
+            and had_ecac_matriz
+        )
+        if skip_filial:
+            est = cnpj_estabelecimento(found_cnpj) or "?"
+            avisos.append(
+                f"ECAC filial ignorado nos totais ({pdf.name}, /{est}) — matriz /0001 já importada"
+            )
+            arquivos.append(pdf.name)
+            documentos.append(
+                make_documento(
+                    arquivo=pdf.name,
+                    esfera="federal",
+                    origem_label=label,
+                    status_doc="indeterminado",
+                    debitos=[],
+                )
+            )
+            continue
+
+        if not text.strip():
+            avisos.append(f"sem texto em {pdf.name}")
+
+        arquivos.append(pdf.name)
+        docs, found_tipos = extract_documentos_from_pdf(
+            pdf_name=pdf.name,
+            text=text,
+            pasta_status=status,
+            path=pdf,
+        )
+        for tipo in found_tipos:
+            if tipo not in tipos:
+                tipos.append(tipo)
+        documentos.extend(docs)
+        for doc in docs:
+            debitos.extend(doc["debitos"])
+
+    if debitos:
+        avisos = [
+            item
+            for item in avisos
+            if "OCR indisponível" not in item and "OCR sem texto" not in item
+        ]
+
+    if status == "pendencia" and not debitos and not tipos:
+        tipos = ["PENDENCIA_SEM_VALORES_EXTRAIDOS"]
+        avisos.append("valores não extraídos — abrir PDF")
+    elif status == "pendencia" and not debitos:
+        avisos.append("valores não extraídos — abrir PDF")
+    elif status == "indeterminado":
+        avisos.append("documento em revisar — conferir extração / layout")
+        if not tipos:
+            tipos = ["REVISAR"]
+
+    empresa_status = status
+    if status == "indeterminado":
+        empresa_status = "pendencia"
+    elif debitos and status == "regular":
+        empresa_status = "pendencia"
+        avisos.append("status elevado a pendencia — débitos extraídos do PDF")
+    elif status == "regular":
+        tipos = []
+
+    esferas = build_esferas(documentos)
+    codigos_sorted = sort_codigos(codigos)
+    codigo_principal = (
+        codigo_ecac_matriz
+        or next(
+            (codigo_from_filename(name) for name in arquivos if "ECAC" in name.upper()),
+            None,
+        )
+        or (codigos_sorted[0] if codigos_sorted else "")
+    )
+    cnpj = cnpj_matriz or cnpj
+
+    folder_dig = re.sub(r"\D", "", folder.name)
+    cnpj_dig = re.sub(r"\D", "", cnpj or "")
+    pasta_so_cnpj = folder.name.isdigit() or (
+        bool(cnpj_dig) and folder_dig == cnpj_dig and len(folder_dig) == 14
+    )
+    if nome and not nome.strip().isdigit() and pasta_so_cnpj:
+        safe = re.sub(r'[<>:"/\\|?*]', "_", nome).strip(" .")[:120]
+        target = folder.parent / safe
+        if safe and safe != folder.name and not target.exists():
+            try:
+                folder.rename(target)
+                folder = target
+            except OSError:
+                pass
+
+    empresa_id = preserve_id
+    if not empresa_id:
+        base_id = slugify(f"{codigo_principal}-{nome}" if codigo_principal else nome)
+        empresa_id = base_id
+        idx = 2
+        while empresa_id in used_ids:
+            empresa_id = f"{base_id}-{idx}"
+            idx += 1
+    used_ids.add(empresa_id)
+
+    empresa = {
+        "id": empresa_id,
+        "nome": nome,
+        "cnpj": cnpj,
+        "codigo": codigo_principal,
+        "codigos": codigos_sorted,
+        "status": empresa_status,
+        "tipos": tipos,
+        "totais": sum_totais(debitos),
+        "debitos": debitos,
+        "documentos": documentos,
+        "esferas": esferas,
+        "temFederal": esferas["federal"]["qtdDocs"] > 0,
+        "temEstadual": esferas["estadual"]["qtdDocs"] > 0,
+        "temMunicipal": esferas["municipal"]["qtdDocs"] > 0,
+        "arquivos": arquivos,
+        "pasta": str(folder),
+        "avisos": avisos,
+        "qtd_debitos": len(debitos),
+        "competencia": competencia,
+    }
+    print(
+        f"[{competencia}] {empresa_status:10} [{codigo_principal:>4}] {nome[:36]:36} "
+        f"F={esferas['federal']['qtdDocs']} "
+        f"E={esferas['estadual']['qtdDocs']} "
+        f"M={esferas['municipal']['qtdDocs']} "
+        f"deb={len(debitos)}",
+        file=sys.stderr,
+    )
+    return empresa
+
+
+def apply_touch_relpaths_to_snapshot(
+    month: Path,
+    snap: dict,
+    touch_relpaths: list[str],
+    *,
+    emit_event: Any | None = None,
+) -> dict:
+    """Atualiza só as pastas tocadas no snapshot existente do mês."""
+    competencia = month.name
+    empresas = list(snap.get("empresas") or [])
+    used_ids = {str(e.get("id")) for e in empresas if e.get("id")}
+
+    touches = []
+    for raw in touch_relpaths:
+        rel = normalize_empresa_relpath(raw)
+        if rel and rel not in touches:
+            touches.append(rel)
+
+    total = len(touches)
+    for idx, relpath in enumerate(touches):
+        if emit_event:
+            emit_event(
+                {
+                    "event": "rebuild",
+                    "fase": "atualizando_painel",
+                    "index": idx,
+                    "total": total,
+                    "nome": relpath.split("/")[-1],
+                    "competencia": competencia,
+                }
+            )
+
+        empresas = [e for e in empresas if not _empresa_matches_relpath(e, relpath)]
+        preserve = next(
+            (e.get("id") for e in (snap.get("empresas") or []) if _empresa_matches_relpath(e, relpath)),
+            None,
+        )
+
+        parts = relpath.replace("\\", "/").split("/")
+        status_folder = parts[0]
+        empresa_folder = parts[1]
+        status = STATUS_FOLDER_TO_EMPRESA.get(status_folder.lower(), "pendencia")
+        folder = month / status_folder / empresa_folder
+        if folder.is_dir():
+            built = build_empresa_from_folder(
+                folder,
+                status=status,
+                competencia=competencia,
+                used_ids=used_ids,
+                preserve_id=str(preserve) if preserve else None,
+            )
+            if built:
+                empresas.append(built)
+
+    empresas.sort(key=lambda item: (0 if item["status"] == "pendencia" else 1, item["nome"].upper()))
+    return {
+        "competencia": competencia,
+        "gerado_em": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        "pasta_mes": str(month),
+        "totais_gerais": compute_totais_gerais(empresas),
+        "empresas": empresas,
+    }
+
+
 def build_snapshot_for_month(month: Path) -> dict:
     """Monta o snapshot completo de uma competência (pasta MM-YYYY)."""
     competencia = month.name
@@ -2315,206 +2633,14 @@ def build_snapshot_for_month(month: Path) -> dict:
         for folder in sorted(root.iterdir(), key=lambda item: item.name.lower()):
             if not folder.is_dir():
                 continue
-            pdfs = sorted(folder.glob("*.pdf"))
-            if not pdfs:
-                continue
-
-            nome = folder.name
-            cnpj: str | None = None
-            cnpj_matriz: str | None = None
-            codigo_ecac_matriz: str | None = None
-            had_ecac_matriz = False
-            tipos: list[str] = []
-            debitos: list[dict] = []
-            documentos: list[dict] = []
-            arquivos: list[str] = []
-            codigos: set[str] = set()
-            avisos: list[str] = []
-            parsed_pdfs: list[dict] = []
-
-            for pdf in pdfs:
-                label = origem_label(pdf.name)
-                codigo = codigo_from_filename(pdf.name)
-                codigos.add(codigo)
-                text, _mode, text_avisos = resolve_pdf_text(pdf, label)
-                avisos.extend(text_avisos)
-                found_cnpj, found_nome = extract_company_from_pdf(pdf, text)
-                parsed_pdfs.append(
-                    {
-                        "pdf": pdf,
-                        "label": label,
-                        "codigo": codigo,
-                        "text": text,
-                        "found_cnpj": found_cnpj,
-                        "found_nome": found_nome,
-                    }
-                )
-                if label == "ECAC" and found_cnpj and is_cnpj_matriz(found_cnpj):
-                    had_ecac_matriz = True
-                    codigo_ecac_matriz = codigo
-
-            for item in parsed_pdfs:
-                pdf = item["pdf"]
-                label = item["label"]
-                text = item["text"]
-                found_cnpj = item["found_cnpj"]
-                found_nome = item["found_nome"]
-
-                if found_cnpj:
-                    if is_cnpj_matriz(found_cnpj):
-                        cnpj_matriz = found_cnpj
-                        cnpj = found_cnpj
-                    elif not cnpj or not is_cnpj_matriz(cnpj):
-                        if not cnpj:
-                            cnpj = found_cnpj
-
-                folder_is_generic = fold(nome).replace(" ", "_") in {
-                    "sem_nome",
-                    "semnome",
-                    "revisar",
-                } or nome.strip().isdigit()
-                if found_nome and folder_is_generic:
-                    nome = found_nome
-                elif found_nome and not folder_is_generic:
-                    if fold(found_nome).startswith(fold(nome)[:12]) and len(found_nome) > len(nome) + 5:
-                        nome = found_nome
-
-                # ECAC filial só fica de fora dos totais se a matriz (/0001) também veio.
-                # PDF único (ou CNPJ ilegível/SIDA) continua no painel para abrir e extrair.
-                skip_filial = (
-                    label == "ECAC"
-                    and is_cnpj_filial(found_cnpj)
-                    and had_ecac_matriz
-                )
-                if skip_filial:
-                    est = cnpj_estabelecimento(found_cnpj) or "?"
-                    avisos.append(
-                        f"ECAC filial ignorado nos totais ({pdf.name}, /{est}) — matriz /0001 já importada"
-                    )
-                    arquivos.append(pdf.name)
-                    documentos.append(
-                        make_documento(
-                            arquivo=pdf.name,
-                            esfera="federal",
-                            origem_label=label,
-                            status_doc="indeterminado",
-                            debitos=[],
-                        )
-                    )
-                    continue
-
-                if not text.strip():
-                    avisos.append(f"sem texto em {pdf.name}")
-
-                arquivos.append(pdf.name)
-                docs, found_tipos = extract_documentos_from_pdf(
-                    pdf_name=pdf.name,
-                    text=text,
-                    pasta_status=status,
-                    path=pdf,
-                )
-                for tipo in found_tipos:
-                    if tipo not in tipos:
-                        tipos.append(tipo)
-                documentos.extend(docs)
-                for doc in docs:
-                    debitos.extend(doc["debitos"])
-
-            if debitos:
-                avisos = [
-                    item
-                    for item in avisos
-                    if "OCR indisponível" not in item and "OCR sem texto" not in item
-                ]
-
-            if status == "pendencia" and not debitos and not tipos:
-                tipos = ["PENDENCIA_SEM_VALORES_EXTRAIDOS"]
-                avisos.append("valores não extraídos — abrir PDF")
-            elif status == "pendencia" and not debitos:
-                avisos.append("valores não extraídos — abrir PDF")
-            elif status == "indeterminado":
-                avisos.append("documento em revisar — conferir extração / layout")
-                if not tipos:
-                    tipos = ["REVISAR"]
-
-            # Débitos extraídos em pasta sem_pendencias → trata como pendência
-            empresa_status = status
-            if status == "indeterminado":
-                # Empresa.status só aceita pendencia|regular; revisar entra como pendência
-                # para aparecer no painel (com aviso), e eleva se houver débitos.
-                empresa_status = "pendencia"
-            elif debitos and status == "regular":
-                empresa_status = "pendencia"
-                avisos.append("status elevado a pendencia — débitos extraídos do PDF")
-            elif status == "regular":
-                tipos = []
-
-            esferas = build_esferas(documentos)
-            codigos_sorted = sort_codigos(codigos)
-            codigo_principal = (
-                codigo_ecac_matriz
-                or next(
-                    (codigo_from_filename(name) for name in arquivos if "ECAC" in name.upper()),
-                    None,
-                )
-                or (codigos_sorted[0] if codigos_sorted else "")
+            built = build_empresa_from_folder(
+                folder,
+                status=status,
+                competencia=competencia,
+                used_ids=used_ids,
             )
-            cnpj = cnpj_matriz or cnpj
-
-            folder_dig = re.sub(r"\D", "", folder.name)
-            cnpj_dig = re.sub(r"\D", "", cnpj or "")
-            pasta_so_cnpj = folder.name.isdigit() or (
-                bool(cnpj_dig) and folder_dig == cnpj_dig and len(folder_dig) == 14
-            )
-            if nome and not nome.strip().isdigit() and pasta_so_cnpj:
-                safe = re.sub(r'[<>:"/\\|?*]', "_", nome).strip(" .")[:120]
-                target = folder.parent / safe
-                if safe and safe != folder.name and not target.exists():
-                    try:
-                        folder.rename(target)
-                        folder = target
-                    except OSError:
-                        pass
-
-            base_id = slugify(f"{codigo_principal}-{nome}" if codigo_principal else nome)
-            empresa_id = base_id
-            idx = 2
-            while empresa_id in used_ids:
-                empresa_id = f"{base_id}-{idx}"
-                idx += 1
-            used_ids.add(empresa_id)
-
-            empresas.append(
-                {
-                    "id": empresa_id,
-                    "nome": nome,
-                    "cnpj": cnpj,
-                    "codigo": codigo_principal,
-                    "codigos": codigos_sorted,
-                    "status": empresa_status,
-                    "tipos": tipos,
-                    "totais": sum_totais(debitos),
-                    "debitos": debitos,
-                    "documentos": documentos,
-                    "esferas": esferas,
-                    "temFederal": esferas["federal"]["qtdDocs"] > 0,
-                    "temEstadual": esferas["estadual"]["qtdDocs"] > 0,
-                    "temMunicipal": esferas["municipal"]["qtdDocs"] > 0,
-                    "arquivos": arquivos,
-                    "pasta": str(folder),
-                    "avisos": avisos,
-                    "qtd_debitos": len(debitos),
-                    "competencia": competencia,
-                }
-            )
-            print(
-                f"[{competencia}] {empresa_status:10} [{codigo_principal:>4}] {nome[:36]:36} "
-                f"F={esferas['federal']['qtdDocs']} "
-                f"E={esferas['estadual']['qtdDocs']} "
-                f"M={esferas['municipal']['qtdDocs']} "
-                f"deb={len(debitos)}",
-                file=sys.stderr,
-            )
+            if built:
+                empresas.append(built)
 
     empresas.sort(key=lambda item: (0 if item["status"] == "pendencia" else 1, item["nome"].upper()))
 
@@ -2522,16 +2648,7 @@ def build_snapshot_for_month(month: Path) -> dict:
         "competencia": competencia,
         "gerado_em": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
         "pasta_mes": str(month),
-        "totais_gerais": {
-            "empresas": len(empresas),
-            "com_pendencia": sum(1 for item in empresas if item["status"] == "pendencia"),
-            "regulares": sum(1 for item in empresas if item["status"] == "regular"),
-            "saldo": round(sum(item["totais"]["saldo"] for item in empresas), 2),
-            "consolidado": round(sum(item["totais"]["consolidado"] for item in empresas), 2),
-            "docs_federal": sum(item["esferas"]["federal"]["qtdDocs"] for item in empresas),
-            "docs_estadual": sum(item["esferas"]["estadual"]["qtdDocs"] for item in empresas),
-            "docs_municipal": sum(item["esferas"]["municipal"]["qtdDocs"] for item in empresas),
-        },
+        "totais_gerais": compute_totais_gerais(empresas),
         "empresas": empresas,
     }
 
@@ -2558,11 +2675,16 @@ def rebuild_dashboard(
     *,
     include_empty: bool = True,
     only_competencias: list[str] | None = None,
+    touch_relpaths: list[str] | None = None,
+    emit_event: Any | None = None,
 ) -> dict:
     """Regenera dashboard/data/empresas.json de forma atômica.
 
     Se only_competencias for informado, reprocessa só esses meses e preserva
-    os demais snapshots já salvos no JSON (exclusão/upload ficam bem mais rápidos).
+    os demais snapshots já salvos no JSON.
+
+    Com touch_relpaths (ex.: pendencias/EMPRESA), só reprocessa essas pastas
+    no mês — upload/exclusão no servidor não relê 80+ empresas por PDF.
     """
     workspace = resolve_workspace_root()
     out_dir = workspace / "dashboard" / "data"
@@ -2581,15 +2703,31 @@ def rebuild_dashboard(
                 f"Competência(s) não encontrada(s) para rebuild: {sorted(only_set)}"
             )
 
+    touch_list = [
+        rel
+        for raw in (touch_relpaths or [])
+        if (rel := normalize_empresa_relpath(raw))
+    ]
+    touch_list = list(dict.fromkeys(touch_list))
+
     snapshots: dict[str, dict] = {}
-    if only_set:
-        existing = _load_existing_dashboard(out_json)
+    existing = _load_existing_dashboard(out_json)
+    if only_set or touch_list:
         if existing and isinstance(existing.get("snapshots"), dict):
             snapshots = dict(existing["snapshots"])
 
     for month in months:
         print(f"=== Competência {month.name} ===", file=sys.stderr)
-        snap = build_snapshot_for_month(month)
+        if touch_list:
+            base = snapshots.get(month.name) or build_snapshot_for_month(month)
+            snap = apply_touch_relpaths_to_snapshot(
+                month,
+                base,
+                touch_list,
+                emit_event=emit_event,
+            )
+        else:
+            snap = build_snapshot_for_month(month)
         if not include_empty and not snap["empresas"]:
             snapshots.pop(month.name, None)
             continue
