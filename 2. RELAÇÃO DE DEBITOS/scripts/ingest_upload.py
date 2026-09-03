@@ -67,6 +67,23 @@ ESFERA_UI_LABEL = {
 SAFE_NAME_RE = re.compile(r"[<>:\"/\\|?*\x00-\x1f]")
 
 
+def titulos_from_cadastro(cadastro: dict | None) -> list[str]:
+    """Rótulos de preview para CND/QSA (não são lançamentos)."""
+    if not cadastro:
+        return []
+    out: list[str] = []
+    tipo = str((cadastro.get("certidao") or {}).get("tipo") or "")
+    if tipo == "Negativa":
+        out.append("Certidão negativa")
+    elif tipo == "Positiva":
+        out.append("Certidão positiva")
+    elif tipo == "Positiva com Efeitos de Negativa":
+        out.append("CPEN")
+    if cadastro.get("qsa"):
+        out.append("QSA")
+    return out
+
+
 def esfera_ui_label(tipo: str, esfera: str | None = None) -> str:
     """Rótulo da esfera na UI (Agenci@Net = Estadual, não Federal)."""
     return (
@@ -674,6 +691,7 @@ def ingest_one(
     result["cnpj"] = cnpj
     result["empresa"] = nome
     result["classe"] = classe
+    cadastro = None
 
     if tipo == "MUNICIPAL":
         rows, layout, mun_avisos = parse_municipal_debitos(text, forced_name)
@@ -706,6 +724,8 @@ def ingest_one(
         rows = []
         for doc in docs:
             rows.extend(doc.get("debitos") or [])
+            if cadastro is None and doc.get("cadastro"):
+                cadastro = doc.get("cadastro")
 
     # Força esfera do tipo no preview
     for row in rows:
@@ -727,10 +747,13 @@ def ingest_one(
                 titulo = situacao
         if titulo and titulo not in titulos:
             titulos.append(titulo)
+    for extra in titulos_from_cadastro(cadastro):
+        if extra not in titulos:
+            titulos.append(extra)
     result["titulos"] = titulos
 
-    sem_layout = not rows
-    if sem_layout:
+    sem_layout = not rows and not cadastro
+    if not rows and not cadastro:
         result["avisos"].append(
             "conteúdo sem layout de débitos reconhecido — revisar PDF"
         )

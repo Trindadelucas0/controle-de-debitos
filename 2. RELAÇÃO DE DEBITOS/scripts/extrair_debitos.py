@@ -1014,6 +1014,225 @@ def is_legitimate_sem_pendencia(text: str) -> bool:
     return False
 
 
+# Relatório e-CAC "Informações de Apoio para Emissão de Certidão"
+SITUACAO_EMPRESA_OK = frozenset({"ATIVA", "INAPTA", "BAIXADA", "NULA"})
+CERTIDAO_NUMERO_RE = re.compile(
+    r"\b([0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})\b"
+)
+QSA_DOC_RE = re.compile(
+    r"^(?:\d{3}\.\d{3}\.\d{3}-\d{2}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})$"
+)
+QSA_PCT_RE = re.compile(r"^\d{1,3}(?:[.,]\d{1,2})?\s*%$")
+SITUACAO_EMPRESA_RE = re.compile(
+    r"Situa[cç][aã]o:\s*(ATIVA|INAPTA|BAIXADA|NULA)\b",
+    re.I,
+)
+EMISSAO_RE = re.compile(r"Emiss[aã]o:\s*(\d{2}/\d{2}/\d{4})", re.I)
+VALIDADE_RE = re.compile(
+    r"(?:Data de\s+)?Validade:\s*(\d{2}/\d{2}/\d{4})",
+    re.I,
+)
+QSA_HEADER_FOLDED = frozenset(
+    {
+        "cpf/cnpj",
+        "nome",
+        "qualificacao",
+        "situacao cadastral",
+        "cap. social",
+        "cap social",
+        "cap. votante",
+        "cap votante",
+    }
+)
+
+
+def _apoio_norm_lines(text: str) -> list[str]:
+    lines: list[str] = []
+    for raw in (text or "").replace("\r", "\n").split("\n"):
+        line = re.sub(r"[_]+", " ", raw)
+        line = re.sub(r"\s+", " ", line).strip(" -")
+        if line:
+            lines.append(line)
+    return lines
+
+
+def _apoio_first_idx(lines: list[str], *needles: str) -> int:
+    for i, line in enumerate(lines):
+        folded = fold(line)
+        if any(needle in folded for needle in needles):
+            return i
+    return -1
+
+
+def _apoio_slice(
+    lines: list[str],
+    start_needles: tuple[str, ...],
+    end_needles: tuple[str, ...],
+) -> list[str]:
+    start = _apoio_first_idx(lines, *start_needles)
+    if start < 0:
+        return []
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        folded = fold(lines[i])
+        if any(needle in folded for needle in end_needles):
+            end = i
+            break
+    return lines[start:end]
+
+
+def _tem_frase_limpa_receita(folded: str) -> bool:
+    """Frase limpa da RECEITA (não basta PGFN sozinha)."""
+    if "nao foram detectadas pend" not in folded:
+        return False
+    return "controles da receita federal" in folded
+
+
+def _is_qsa_noise(line: str) -> bool:
+    folded = fold(line)
+    if folded in QSA_HEADER_FOLDED:
+        return True
+    if folded.startswith("cpf representante legal"):
+        return True
+    if folded.startswith("qualif. resp"):
+        return True
+    if folded.startswith("socios e administradores"):
+        return True
+    return False
+
+
+def _parse_qsa_lines(lines: list[str]) -> list[dict]:
+    qsa: list[dict] = []
+    seen: set[str] = set()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if _is_qsa_noise(line) or not QSA_DOC_RE.match(line):
+            i += 1
+            continue
+        cpf_cnpj = line
+        i += 1
+        fields: list[str] = []
+        while i < len(lines) and len(fields) < 4:
+            nxt = lines[i]
+            folded = fold(nxt)
+            if _is_qsa_noise(nxt):
+                i += 1
+                continue
+            if QSA_DOC_RE.match(nxt):
+                break
+            if "certidao emitida" in folded or "diagnostico fiscal" in folded:
+                break
+            fields.append(nxt)
+            i += 1
+        if len(fields) < 3:
+            continue
+        if cpf_cnpj in seen:
+            continue
+        seen.add(cpf_cnpj)
+        item: dict[str, str] = {
+            "cpfCnpj": cpf_cnpj,
+            "nome": fields[0],
+            "qualificacao": fields[1],
+            "situacaoCadastral": fields[2],
+        }
+        if len(fields) > 3 and QSA_PCT_RE.match(fields[3].replace(" ", "")):
+            item["capSocial"] = fields[3]
+        qsa.append(item)
+    return qsa
+
+
+def _parse_certidao_bloco(lines: list[str]) -> dict:
+    blob = "\n".join(lines)
+    folded = fold(blob)
+    tipo: str | None = None
+    if "positiva com efeitos de negativa" in folded:
+        tipo = "Positiva com Efeitos de Negativa"
+    elif "certidao negativa" in folded:
+        tipo = "Negativa"
+    elif "certidao positiva" in folded:
+        tipo = "Positiva"
+    numero_m = CERTIDAO_NUMERO_RE.search(blob)
+    emissao_m = EMISSAO_RE.search(blob)
+    validade_m = VALIDADE_RE.search(blob)
+    out: dict[str, str] = {}
+    if tipo:
+        out["tipo"] = tipo
+    if numero_m:
+        out["numero"] = numero_m.group(1).upper()
+    if emissao_m:
+        out["emissao"] = emissao_m.group(1)
+    if validade_m:
+        out["validade"] = validade_m.group(1)
+    return out
+
+
+def parse_ecac_apoio_certidao(text: str) -> dict:
+    """Extrai cadastro CND/QSA do relatório Informações de Apoio (não vira lançamento).
+
+    Recorta pelas âncoras: dados cadastrais, sócios e administradores,
+    certidão emitida, diagnóstico fiscal. Devolve {} se o bloco não existir.
+    """
+    if not text or not str(text).strip():
+        return {}
+    folded = fold(text)
+    if not (
+        "informacoes de apoio" in folded
+        or "dados cadastrais" in folded
+        or "socios e administradores" in folded
+        or "certidao emitida" in folded
+    ):
+        return {}
+
+    lines = _apoio_norm_lines(text)
+    cadastral = _apoio_slice(
+        lines,
+        ("dados cadastrais",),
+        ("socios e administradores", "certidao emitida", "diagnostico fiscal"),
+    )
+    qsa_lines = _apoio_slice(
+        lines,
+        ("socios e administradores",),
+        ("certidao emitida", "diagnostico fiscal", "final do relatorio"),
+    )
+    cert_lines = _apoio_slice(
+        lines,
+        ("certidao emitida",),
+        ("diagnostico fiscal", "final do relatorio"),
+    )
+
+    out: dict = {}
+    cadastral_blob = "\n".join(cadastral)
+    sit_m = SITUACAO_EMPRESA_RE.search(cadastral_blob)
+    if sit_m:
+        situacao = sit_m.group(1).upper()
+        if situacao in SITUACAO_EMPRESA_OK:
+            out["situacaoEmpresa"] = situacao
+    for line in cadastral:
+        folded_line = fold(line)
+        if folded_line.startswith("responsavel:"):
+            responsavel = line.split(":", 1)[-1].strip()
+            if responsavel:
+                out["responsavel"] = re.sub(r"\s+", " ", responsavel)
+            break
+
+    qsa = _parse_qsa_lines(qsa_lines)
+    if qsa:
+        out["qsa"] = qsa
+
+    certidao = _parse_certidao_bloco(cert_lines)
+    if certidao:
+        out["certidao"] = certidao
+
+    if not out:
+        return {}
+
+    out["diagnosticoLimpo"] = bool(
+        _tem_frase_limpa_receita(folded) and not _has_receita_pendencia_signals(folded)
+    )
+    return out
+
+
 def classify_text(text: str) -> tuple[str, list[str]]:
     f = fold(text)
 

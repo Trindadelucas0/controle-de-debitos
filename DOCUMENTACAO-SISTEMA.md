@@ -2,8 +2,8 @@
 
 | Item | Valor |
 |------|--------|
-| Versão do sistema | 1.3.0 — Exportar débitos |
-| Última atualização | 01/09/2026 (botão Exportar débitos na home; Excel com valores monetários) |
+| Versão do sistema | 1.4.0 — Diagnóstico fiscal ECAC |
+| Última atualização | 03/09/2026 (CND/QSA do bloco Apoio na aba Federal; não são lançamento) |
 | Fonte oficial | Este arquivo |
 | Guia rápido | `2. RELAÇÃO DE DEBITOS/COMO_RODAR.txt` |
 | Deploy | `GIT.TXT` |
@@ -25,6 +25,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Versão | Nome | O que mudou | Onde |
 |--------|------|-------------|------|
+| 1.4.0 | Diagnóstico fiscal ECAC | Todo ECAC *Informações de Apoio* grava CND/QSA/situação no documento (`cadastro`); aba Federal mostra o card acima da grade; CND/QSA Regular **não** viram lançamento nem entram no Excel | `/empresas/[slug]` aba Federal, `extrair_debitos.py` (`parse_ecac_apoio_certidao`) |
 | 1.3.0 | Exportar débitos | Botão na home baixa Excel só com aba Detalhe (todos os débitos monetários / competências); exclui omissões, INAPTA e irregularidade cadastral | `/` e `GET /api/debitos/export` |
 | 1.2.4 | Exportar omissões | **Confirmar bloqueado** se 0 lançamentos e o PDF não for CND/consulta limpa de verdade (`is_legitimate_sem_pendencia`); coluna **SEÇÕES** do preview usa `receita`/`situação`; débito **A VENCER** sem BRL mostra texto explicativo no detalhe; identidade da empresa = **CNPJ** (códigos 14/75/79 na mesma linha = mesma matriz) | `ingest_upload.py`, `extrair_debitos.py`, `format.ts`, `EmpresaDetail.tsx` |
 | 1.2.3 | Exportar omissões | Confirmar e Excluir no servidor relê só a pasta da empresa (não o mês inteiro); overlay **Atualizando o painel (n/total)**; exclusão usa destino relativo `pendencias/EMPRESA/arquivo.pdf` | `/upload`, `build_dashboard_data.py` (`touch_relpaths`), `delete-destino.ts` |
@@ -62,7 +63,8 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 | Ingestão/gravação | — | `scripts/ingest_upload.py` |
 | Extração Agenci@Net | — | `scripts/build_dashboard_data.py` (`parse_agencianet_debitos`) |
 | Rebuild do painel | Mês inteiro ou só pastas tocadas | `scripts/build_dashboard_data.py` (`rebuild_dashboard`, `touch_relpaths`) |
-| Classificação / CND | — | `scripts/extrair_debitos.py` (`classify_text`, `is_legitimate_sem_pendencia`) |
+| Classificação / CND | — | `scripts/extrair_debitos.py` (`classify_text`, `is_legitimate_sem_pendencia`, `parse_ecac_apoio_certidao`) |
+| Detalhe da empresa | `/empresas/[slug]` | `dashboard/src/components/EmpresaDetail.tsx` |
 
 ## 6. Telas e fluxos
 
@@ -75,7 +77,15 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 Critério das linhas do Excel de omissões: `situacao = OMISSAO` ou `titulo` começa com `OMISSAO` (DCTFWEB, DCTF, ECF, DIRF, EFD, PGDAS, GFIP, etc.). Não inclui INAPTA nem irregularidade cadastral.
 
-Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Agenci@Net, municipal, A VENCER, parcelamento etc.; **não** entra o que `isOmissaoDebito` classifica (omissão, INAPTA, irregularidade cadastral). Colunas monetárias em BRL para somar no Excel.
+Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Agenci@Net, municipal, A VENCER, parcelamento etc.; **não** entra o que `isOmissaoDebito` classifica (omissão, INAPTA, irregularidade cadastral). Colunas monetárias em BRL para somar no Excel. CND/QSA do bloco Apoio **não** entram neste Excel.
+
+### Detalhe da empresa (`/empresas/[slug]`)
+
+| Seção | Campo / ação | Como funciona | Regra / bloqueio | Código |
+|-------|----------------|----------------|------------------|--------|
+| Federal | Diagnóstico fiscal | Card acima da grade (ou no lugar do vazio Regular): situação ATIVA/INAPTA/BAIXADA/NULA, responsável, certidão (tipo/número/emissão/validade), tabela de sócios | Só se o PDF ECAC tiver o bloco *Informações de Apoio*; `cadastro` omitido se vazio | `EmpresaDetail.tsx` + `parse_ecac_apoio_certidao` |
+| Federal | Frase limpa | Texto da Receita (“não foram detectadas pendências…”) | Só quando `diagnosticoLimpo` (frase da Receita, não só PGFN, e sem sinal de pendência) | `Documento.cadastro.diagnosticoLimpo` |
+| Federal | Lançamentos | Grade de débitos/omissões como antes | INAPTA e irregularidade cadastral continuam como lançamento; CND/QSA Regular não | `parse_ecac_debitos` |
 
 ### Importar relatórios (`/upload`)
 
@@ -83,9 +93,9 @@ Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Age
 |-------|----------------|----------------|------------------|--------|
 | Competência | MM-YYYY | Pasta do mês | Obrigatória | `UploadPanel.tsx` |
 | Zonas | ECAC / Agenci@Net / Municipal | Arrastar ou escolher PDF | Só PDF | `UploadPanel.tsx` |
-| Analisar | Preview dry-run | Extrai lançamentos no inbox | **0 lançamentos** só confirma se for CND/consulta limpa (`is_legitimate_sem_pendencia`); senão `REVISAR` e erro | `ingest_upload.py` |
-| Revisão | Checkbox Incluir | Marca o que vai ao painel | Precisa extração válida (débitos ou `SEM_PENDENCIA` legítimo) e arquivo no inbox | `hasRealExtract` |
-| Revisão | Coluna SEÇÕES | Títulos das pendências | Agenci@Net usa `receita` ou `situação` quando não há `titulo` federal | `ingest_upload.py` → `titulos` |
+| Analisar | Preview dry-run | Extrai lançamentos no inbox | **0 lançamentos** só confirma se for CND/consulta limpa (`is_legitimate_sem_pendencia`) ou se o bloco Apoio gerou `cadastro`; senão `REVISAR` e erro | `ingest_upload.py` |
+| Revisão | Checkbox Incluir | Marca o que vai ao painel | Precisa extração válida (débitos, `SEM_PENDENCIA` legítimo ou `cadastro` ECAC) e arquivo no inbox | `hasRealExtract` |
+| Revisão | Coluna SEÇÕES | Títulos das pendências | Agenci@Net usa `receita` ou `situação` quando não há `titulo` federal; ECAC com Apoio inclui **Certidão negativa/positiva/CPEN** e **QSA** mesmo com 0 lançamentos | `ingest_upload.py` → `titulos` |
 | Duplicado | Badge | PDF já existe na pasta (mesmo hash) | **Não bloqueia.** Confirmar reindexa **só essa empresa** | `apply_same_hash_skip` |
 | Confirmar | Gravar | Resolve o inbox, move ou reindexa, e atualiza **só a pasta da empresa** no JSON | Overlay passa de “Importando PDFs” para **Atualizando o painel (n/total)**; se o stream acabar sem `done`, avisa para atualizar a página | `inbox-file.ts` + `ingest_upload.py` + `touch_relpaths` |
 | Overlay | Progresso | 100% do PDF não fecha a tela: falta o rebuild | Texto honesto da fase (analisar / gravar / atualizar painel) | `UploadPanel.tsx` + evento NDJSON `rebuild` |
@@ -105,7 +115,8 @@ Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Age
 - Layouts Agenci@Net: Certidão Negativa GDF, Consulta (Certidão Positiva), DAR/Lançamento Administrativo.
 - Consulta (grade clássica): inscrição / ano / receita / tributo (descrição até **120** caracteres) / QPA opcional / valor BRL. Exemplos longos: “insc dat-ocupacao area publica propaganda”, “ocupacao area publica por meio de propaganda”.
 - Bloco **A VENCER**: só quando o chunk tem cabeçalho próprio (`Identificação` + `Código de Receita`) e **não** tem grade clássica (`Valor Débito` / `Tributo`). Se a mesma inscrição+ano já veio da grade clássica com valor > 0, não cria linha A VENCER zerada. Na consulta Agenci@Net o valor BRL pode não existir — o painel mostra **A vencer (sem valor na consulta)**.
-- CND sem débitos: `SEM_PENDENCIA`, 0 linhas — importação permitida **somente** se `is_legitimate_sem_pendencia` (CND GDF, consulta sem bloco “Consta(m)… débito(s)”, CND federal, ECAC “não foram detectadas pendências” sem sinais de Receita). PDF ilegível ou sem layout **não** grava como `sem_pendencias`.
+- CND sem débitos: `SEM_PENDENCIA`, 0 linhas — importação permitida **somente** se `is_legitimate_sem_pendencia` (CND GDF, consulta sem bloco “Consta(m)… débito(s)”, CND federal, ECAC “não foram detectadas pendências” sem sinais de Receita) **ou** se o bloco Apoio foi extraído (`cadastro`). PDF ilegível ou sem layout **não** grava como `sem_pendencias`.
+- **ECAC Informações de Apoio:** CND (Negativa / Positiva / CPEN), QSA e situação cadastral (ATIVA/INAPTA/BAIXADA/NULA) vão em `documento.cadastro` de **todo** ECAC com esse bloco. **Não** são lançamento monetário e **não** entram no Excel de débitos. `CPF Representante Legal` / `Qualif. Resp.` não entram como sócio. INAPTA e irregularidade cadastral no diagnóstico fiscal **continuam** no parser de débitos.
 - **Identidade da empresa = CNPJ** (14 dígitos). Vários códigos do escritório na mesma linha (ex. **14, 75, 79** da DT Tintas) = mesma matriz `/0001`, não filiais da Receita. Novo PDF com o mesmo CNPJ anexa na pasta existente (`match_empresa`). Filial federal (`/0002`, `/0003`) não entra nos totais se já houver ECAC da matriz na pasta.
 - Mesmo hash na pasta da empresa + commit: `ok`, não `duplicado` bloqueante; aviso `PDF já existia — painel reindexado`.
 - Preview de mesmo hash: `duplicado: true` só para o badge; confirmação continua habilitada.
@@ -144,6 +155,14 @@ Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Age
 6. Deixe marcados os PDFs com extração ok — inclusive os com badge **Duplicado**.
 7. Clique **Confirmar e gravar no painel**. A tela mostra **Atualizando o painel (1/1)** só da empresa do lote — não fica em 100% relendo o mês.
 8. Abra o link da competência e confira a aba **Estadual** (Agenci@Net) ou **Federal** (ECAC) da empresa.
+
+### Diagnóstico fiscal (ECAC)
+
+1. Importe o PDF ECAC em **Importar relatórios** (zona Federal) e confirme.
+2. Abra a empresa na competência.
+3. Na aba **Federal**, o card **Diagnóstico fiscal** mostra situação, responsável, certidão e sócios — inclusive quando não há lançamento (CND limpa).
+4. A frase “não foram detectadas pendências…” só aparece quando a Receita (não só a PGFN) está limpa.
+5. CND/QSA Regular não saem no **Exportar débitos**. INAPTA e omissões continuam na grade e no Excel de omissões.
 
 **Agenci@Net 149 (A VENCER):** pode ter **1 lançamento** e saldo **R$ 0,00** — é normal; a SEFAZ não informa valor BRL nessa tela. No detalhe aparece *A vencer (sem valor na consulta)*.
 

@@ -21,6 +21,29 @@ export type CadastroConsultasData = {
 
 export type StatusEsfera = "pendencia" | "regular" | "sem_documento" | "indeterminado";
 
+export type CadastroSocio = {
+  cpfCnpj: string;
+  nome: string;
+  qualificacao?: string;
+  situacaoCadastral?: string;
+  capSocial?: string;
+};
+
+export type CadastroCertidao = {
+  tipo?: "Negativa" | "Positiva" | "Positiva com Efeitos de Negativa";
+  numero?: string;
+  emissao?: string;
+  validade?: string;
+};
+
+export type DocumentoCadastro = {
+  situacaoEmpresa?: "ATIVA" | "INAPTA" | "BAIXADA" | "NULA";
+  responsavel?: string;
+  qsa?: CadastroSocio[];
+  certidao?: CadastroCertidao;
+  diagnosticoLimpo?: boolean;
+};
+
 export type DebitoLinha = {
   receita: string;
   pa: string;
@@ -57,6 +80,7 @@ export type Documento = {
   statusDoc: "pendencia" | "regular" | "indeterminado";
   debitos: DebitoLinha[];
   totais: Totais;
+  cadastro?: DocumentoCadastro;
 };
 
 export type EsferaResumo = {

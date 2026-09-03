@@ -33,7 +33,7 @@ import { SiteEmissaoButton } from "@/components/SiteEmissaoButton";
 import { EsferaBadge, StatusBadge } from "@/components/StatusBadges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   buildEmpresaAnalytics,
@@ -45,7 +45,14 @@ import { formatCompetencia } from "@/lib/competencia";
 import { collapseCodigos, formatBRL, formatCnpj, formatDebitoValor, formatItensETotal, isOmissaoDebito } from "@/lib/format";
 import { TituloConsolChart } from "@/components/TituloConsolList";
 import type { SiteEmissaoRef } from "@/lib/parcelamentos-utils";
-import type { DebitoLinha, Empresa, Esfera, StatusEsfera } from "@/lib/types";
+import type {
+  CadastroSocio,
+  DebitoLinha,
+  DocumentoCadastro,
+  Empresa,
+  Esfera,
+  StatusEsfera,
+} from "@/lib/types";
 
 const columnHelper = createColumnHelper<DebitoLinha>();
 
@@ -216,6 +223,10 @@ function EsferaPanel({
   const grupos = useMemo(() => groupDebitosByTitulo(debitos), [debitos]);
   const agruparPorTitulo =
     esfera === "federal" && (grupos.length > 1 || grupos.some((grupo) => Boolean(grupo.titulo)));
+  const cadastro = useMemo(
+    () => (esfera === "federal" ? pickCadastroFederal(empresa) : undefined),
+    [empresa, esfera],
+  );
   const [removedFiles, setRemovedFiles] = useState<string[]>([]);
   const [deletingFile, setDeletingFile] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -331,36 +342,42 @@ function EsferaPanel({
         <EsferaBadge esfera={esfera} label={ESFERA_LABELS[esfera]} />
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="border-b border-border px-4 py-3">
-          <h3 className="text-sm font-semibold">Lançamentos · {ESFERA_LABELS[esfera]}</h3>
-        </div>
+      {cadastro ? <DiagnosticoFiscalCard cadastro={cadastro} /> : null}
 
-        {empresa.status === "regular" && debitos.length === 0 ? (
+      <Card className="overflow-hidden">
+        {debitos.length > 0 || !cadastro ? (
+          <div className="border-b border-border px-4 py-3">
+            <h3 className="text-sm font-semibold">Lançamentos · {ESFERA_LABELS[esfera]}</h3>
+          </div>
+        ) : null}
+
+        {debitos.length > 0 ? (
+          agruparPorTitulo ? (
+            <div className="divide-y divide-border">
+              {grupos.map((grupo) => (
+                <DebitosTableBlock
+                  key={grupo.titulo || "__sem_titulo__"}
+                  debitos={grupo.debitos}
+                  codigoEmpresa={empresa.codigo}
+                  heading={grupo.label}
+                  subtotal={grupo.consolidado}
+                />
+              ))}
+            </div>
+          ) : (
+            <DebitosTableBlock debitos={debitos} codigoEmpresa={empresa.codigo} />
+          )
+        ) : cadastro ? null : empresa.status === "regular" ? (
           <div className="px-4 py-6 text-sm text-muted-foreground">
             Nenhuma pendência detectada nesta esfera.
           </div>
-        ) : debitos.length === 0 ? (
+        ) : (
           <div className="px-4 py-6 text-sm text-muted-foreground">
             Valores não extraídos automaticamente. Baixe o PDF abaixo para conferência.
           </div>
-        ) : agruparPorTitulo ? (
-          <div className="divide-y divide-border">
-            {grupos.map((grupo) => (
-              <DebitosTableBlock
-                key={grupo.titulo || "__sem_titulo__"}
-                debitos={grupo.debitos}
-                codigoEmpresa={empresa.codigo}
-                heading={grupo.label}
-                subtotal={grupo.consolidado}
-              />
-            ))}
-          </div>
-        ) : (
-          <DebitosTableBlock debitos={debitos} codigoEmpresa={empresa.codigo} />
         )}
 
-        <div className="border-t border-border">
+        <div className={debitos.length > 0 || !cadastro ? "border-t border-border" : ""}>
           <div className="border-b border-border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
             Arquivos · {ESFERA_LABELS[esfera]}
           </div>
@@ -419,6 +436,162 @@ function EsferaPanel({
         </div>
       </Card>
     </div>
+  );
+}
+
+function pickCadastroFederal(empresa: Empresa): DocumentoCadastro | undefined {
+  const docs = (empresa.documentos ?? []).filter(
+    (doc) => doc.esfera === "federal" && doc.cadastro,
+  );
+  if (docs.length === 0) return undefined;
+  const preferred =
+    docs.find((doc) => doc.statusDoc !== "indeterminado" && doc.cadastro) ?? docs[0];
+  return preferred.cadastro;
+}
+
+function situacaoEmpresaBadge(situacao: DocumentoCadastro["situacaoEmpresa"]) {
+  if (situacao === "ATIVA") return "success" as const;
+  if (situacao === "INAPTA") return "danger" as const;
+  return "muted" as const;
+}
+
+function certidaoTipoBadge(tipo: string | undefined) {
+  if (tipo === "Negativa") return "success" as const;
+  if (tipo === "Positiva") return "danger" as const;
+  return "outline" as const;
+}
+
+function DiagnosticoFiscalCard({ cadastro }: { cadastro: DocumentoCadastro }) {
+  const certidao = cadastro.certidao;
+  const qsa = cadastro.qsa ?? [];
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Diagnóstico fiscal</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {cadastro.situacaoEmpresa ? (
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Situação
+              </dt>
+              <dd className="mt-1">
+                <Badge
+                  variant={situacaoEmpresaBadge(cadastro.situacaoEmpresa)}
+                  className="normal-case tracking-normal"
+                >
+                  {cadastro.situacaoEmpresa}
+                </Badge>
+              </dd>
+            </div>
+          ) : null}
+          {cadastro.responsavel ? (
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Responsável
+              </dt>
+              <dd className="mt-1 text-sm text-slate-800">{cadastro.responsavel}</dd>
+            </div>
+          ) : null}
+          {certidao?.tipo ? (
+            <div className="sm:col-span-2">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Certidão
+              </dt>
+              <dd className="mt-1 flex flex-col gap-1 text-sm text-slate-800 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
+                <Badge
+                  variant={certidaoTipoBadge(certidao.tipo)}
+                  className="w-fit normal-case tracking-normal"
+                >
+                  {certidao.tipo}
+                </Badge>
+                {certidao.numero ? (
+                  <span className="tabular">
+                    Nº {certidao.numero}
+                  </span>
+                ) : null}
+                {certidao.emissao ? (
+                  <span className="tabular text-muted-foreground">
+                    Emissão {certidao.emissao}
+                  </span>
+                ) : null}
+                {certidao.validade ? (
+                  <span className="tabular text-muted-foreground">
+                    Validade {certidao.validade}
+                  </span>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+
+        {cadastro.diagnosticoLimpo ? (
+          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+            Não foram detectadas pendências/exigibilidades suspensas nos controles da
+            Receita Federal e da Procuradoria-Geral da Fazenda Nacional.
+          </p>
+        ) : null}
+
+        {qsa.length > 0 ? (
+          <div>
+            <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              Sócios e administradores
+            </h4>
+            <QsaTable socios={qsa} />
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function QsaTable({ socios }: { socios: CadastroSocio[] }) {
+  return (
+    <>
+      <div className="hidden overflow-auto sm:block">
+        <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+          <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 font-semibold">CPF/CNPJ</th>
+              <th className="px-3 py-2 font-semibold">Nome</th>
+              <th className="px-3 py-2 font-semibold">Qualificação</th>
+              <th className="px-3 py-2 font-semibold">Situação</th>
+              <th className="px-3 py-2 font-semibold">Cap. social</th>
+            </tr>
+          </thead>
+          <tbody>
+            {socios.map((socio) => (
+              <tr
+                key={socio.cpfCnpj}
+                className="border-b border-border/70 last:border-b-0"
+              >
+                <td className="px-3 py-2 align-top tabular">{socio.cpfCnpj}</td>
+                <td className="px-3 py-2 align-top font-semibold">{socio.nome}</td>
+                <td className="px-3 py-2 align-top">{socio.qualificacao || "—"}</td>
+                <td className="px-3 py-2 align-top text-[10px] font-bold uppercase tracking-[0.08em]">
+                  {socio.situacaoCadastral || "—"}
+                </td>
+                <td className="px-3 py-2 align-top tabular">{socio.capSocial || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ul className="divide-y divide-border rounded-md border border-border sm:hidden">
+        {socios.map((socio) => (
+          <li key={socio.cpfCnpj} className="space-y-1 px-3 py-3">
+            <p className="text-sm font-semibold text-slate-800">{socio.nome}</p>
+            <p className="tabular text-xs text-muted-foreground">{socio.cpfCnpj}</p>
+            <p className="text-xs text-slate-700">
+              {[socio.qualificacao, socio.situacaoCadastral, socio.capSocial]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

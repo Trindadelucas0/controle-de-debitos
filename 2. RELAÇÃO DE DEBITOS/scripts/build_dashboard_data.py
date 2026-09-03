@@ -29,6 +29,7 @@ from extrair_debitos import (  # noqa: E402
     fold,
     has_fiscal_markers,
     list_competencia_dirs,
+    parse_ecac_apoio_certidao,
     pdf_string_literals,
     resolve_month_dir,
     resolve_workspace_root,
@@ -2190,8 +2191,9 @@ def make_documento(
     origem_label: str,
     status_doc: str,
     debitos: list[dict],
+    cadastro: dict | None = None,
 ) -> dict:
-    return {
+    doc = {
         "arquivo": arquivo,
         "codigo": codigo_from_filename(arquivo),
         "esfera": esfera,
@@ -2200,6 +2202,9 @@ def make_documento(
         "debitos": debitos,
         "totais": sum_totais(debitos),
     }
+    if cadastro:
+        doc["cadastro"] = cadastro
+    return doc
 
 
 def extract_documentos_from_pdf(
@@ -2238,6 +2243,8 @@ def extract_documentos_from_pdf(
         rows = parse_ecac_debitos(text, label if label != "OUTRO" else "ECAC", pdf_name, "federal", path=path)
         origem = "ECAC" if label == "OUTRO" else label
 
+    cadastro = parse_ecac_apoio_certidao(text) if esfera == "federal" else {}
+
     return (
         [
             make_documento(
@@ -2246,6 +2253,7 @@ def extract_documentos_from_pdf(
                 origem_label=origem,
                 status_doc=status_doc_from_classe(pasta_status, classe, bool(rows)),
                 debitos=rows,
+                cadastro=cadastro or None,
             )
         ],
         found_tipos,
@@ -2450,6 +2458,7 @@ def build_empresa_from_folder(
                     origem_label=label,
                     status_doc="indeterminado",
                     debitos=[],
+                    cadastro=parse_ecac_apoio_certidao(text) or None,
                 )
             )
             continue
