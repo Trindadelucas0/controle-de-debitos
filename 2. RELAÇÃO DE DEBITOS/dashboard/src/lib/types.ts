@@ -164,14 +164,14 @@ export type ParcelamentoTipo =
   | "sn_pert"
   | "outro";
 
-/** Empresa no catálogo de parcelamentos (identidade fixa). */
+/** Cada item do catálogo é um acordo; o mesmo CNPJ pode repetir (vários ids). */
 export type EmpresaParcelamento = {
   id: string;
   cod?: string;
   empresa: string;
   grupo?: string;
   cnpj: string;
-  /** Nº do acordo — fixo no cadastro da empresa. */
+  /** Nº do acordo — fixo neste item do catálogo (vazio em clones novos). */
   numeroParcelamento?: string;
   /** URL http(s) do portal de emissão (SITE EMISSÃO). */
   siteEmissao?: string;

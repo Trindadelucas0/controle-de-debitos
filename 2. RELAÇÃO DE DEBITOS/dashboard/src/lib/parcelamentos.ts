@@ -225,6 +225,111 @@ export function getRegistrosCompetencia(
   return data.porCompetencia[competencia] ?? {};
 }
 
+/** Unicidade: mesmo CNPJ + mesmo nº de parcelamento (quando o nº não é vazio). */
+function assertNumeroParcelamentoUnico(
+  empresas: EmpresaParcelamento[],
+  cnpj: string,
+  numeroParcelamento: string | undefined,
+  exceptId?: string,
+): void {
+  const num = String(numeroParcelamento ?? "").trim();
+  if (!num) return;
+  const dig = padCnpj14(cnpj);
+  const duplicado = empresas.some(
+    (e) =>
+      e.id !== exceptId &&
+      padCnpj14(e.cnpj) === dig &&
+      String(e.numeroParcelamento ?? "").trim() === num,
+  );
+  if (duplicado) {
+    throw new Error("Já existe este nº de parcelamento para o CNPJ.");
+  }
+}
+
+function cnpjTemLinhaNoMes(
+  empresas: EmpresaParcelamento[],
+  month: Record<string, CompetenciaRegistro>,
+  cnpj: string,
+): boolean {
+  const dig = padCnpj14(cnpj);
+  return empresas.some(
+    (e) => padCnpj14(e.cnpj) === dig && Object.prototype.hasOwnProperty.call(month, e.id),
+  );
+}
+
+function clonarAcordoCatalogo(origem: EmpresaParcelamento): EmpresaParcelamento {
+  return {
+    id: crypto.randomUUID(),
+    ...(origem.cod ? { cod: origem.cod } : {}),
+    empresa: origem.empresa,
+    ...(origem.grupo ? { grupo: origem.grupo } : {}),
+    cnpj: origem.cnpj,
+    ...(origem.siteEmissao ? { siteEmissao: origem.siteEmissao } : {}),
+  };
+}
+
+type UpdateRegistroResult = {
+  registro: CompetenciaRegistro;
+  competencias: string[];
+  ultimaCompetencia: string | null;
+  mesesCronograma: string[];
+};
+
+/**
+ * Inclui ou atualiza um acordo na grade do mês.
+ * O mesmo PATCH serve para salvar a linha existente (não clona) e para
+ * incluir um novo acordo (clona o catálogo quando o CNPJ já tem linha).
+ */
+export function addParcelamentoNaGrade(
+  competencia: string,
+  empresaId: string,
+  registro: RegistroInput,
+  opts?: { novoAcordo?: boolean },
+): UpdateRegistroResult & { empresa?: EmpresaParcelamento } {
+  const comp = (competencia || "").trim();
+  const empId = (empresaId || "").trim();
+  if (!isValidCompetencia(comp)) throw new Error("Competência inválida.");
+  if (!empId) throw new Error("Id da empresa é obrigatório.");
+
+  const data = loadParcelamentos();
+  if (data.error) throw new Error(data.error);
+
+  const origem = data.empresas.find((e) => e.id === empId);
+  if (!origem) throw new Error("Empresa não encontrada.");
+
+  const month = data.porCompetencia[comp] ?? {};
+  const jaTemRegistro = Object.prototype.hasOwnProperty.call(month, empId);
+  const cnpjJaTemLinha = cnpjTemLinhaNoMes(data.empresas, month, origem.cnpj);
+
+  // Salvar a grade: id já tem registro → só edita.
+  // Incluir pelo total (novoAcordo) com id já na grade → clona.
+  // Id livre + CNPJ já na grade (sem novoAcordo) → clona (plano).
+  const deveClonar =
+    (Boolean(opts?.novoAcordo) && jaTemRegistro) ||
+    (!jaTemRegistro && cnpjJaTemLinha && !opts?.novoAcordo);
+
+  if (!deveClonar) {
+    return updateRegistro(comp, empId, registro);
+  }
+
+  const clone = clonarAcordoCatalogo(origem);
+  persist({
+    ...data,
+    empresas: [...data.empresas, clone],
+  });
+  try {
+    const result = updateRegistro(comp, clone.id, registro);
+    return { ...result, empresa: clone };
+  } catch (err) {
+    try {
+      deleteEmpresa(clone.id);
+    } catch {
+      // rollback best-effort
+    }
+    throw err;
+  }
+}
+
 export function createEmpresa(
   input: EmpresaInput,
   competencia: string,
@@ -239,10 +344,7 @@ export function createEmpresa(
   }
 
   const empresa = normalizeEmpresa(input);
-  const dig = padCnpj14(empresa.cnpj);
-  if (data.empresas.some((e) => e.cnpj === dig)) {
-    throw new Error("Já existe empresa com este CNPJ.");
-  }
+  assertNumeroParcelamentoUnico(data.empresas, empresa.cnpj, empresa.numeroParcelamento);
 
   const registro = normalizeRegistro(
     registroInicial ?? { status: PARCELAMENTO_STATUS_DEFAULT },
@@ -291,10 +393,12 @@ export function updateEmpresa(
   ) {
     delete (empresa as { siteEmissao?: string }).siteEmissao;
   }
-  const dig = empresa.cnpj;
-  if (data.empresas.some((e) => e.id !== key && e.cnpj === dig)) {
-    throw new Error("Já existe empresa com este CNPJ.");
-  }
+  assertNumeroParcelamentoUnico(
+    data.empresas,
+    empresa.cnpj,
+    empresa.numeroParcelamento,
+    key,
+  );
 
   const empresas = [...data.empresas];
   empresas[idx] = empresa;

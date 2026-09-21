@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { formatCompetencia, sortCompetencias } from "@/lib/competencia";
 import { formatCnpj } from "@/lib/format";
 import {
+  MAX_TOTAL_PARCELAS,
   PARCELAMENTO_STATUS_DEFAULT,
   PARCELAMENTO_STATUS_LABELS,
   PARCELAMENTO_STATUS_OPTIONS,
@@ -34,8 +35,10 @@ import {
   empresaTemParcelamentoNoMes,
   isTipoVencimentoAutomatico,
   isValidCompetencia,
+  padCnpj14,
   parseParcelaPositiva,
   parseParcelamentoStatus,
+  sortEmpresasParcelamento,
   vencimentoAutomaticoPorTipo,
 } from "@/lib/parcelamentos-utils";
 import type {
@@ -236,10 +239,22 @@ export function ParcelamentosPanel({
       });
   }, [empresas, registros, competencia, drafts]);
 
-  const empresasSemParcelamentoNoMes = useMemo(() => {
-    const visible = new Set(cards.map((c) => c.empresa.id));
-    return empresas.filter((e) => !visible.has(e.id));
-  }, [empresas, cards]);
+  /** Um item por CNPJ; prefere id ainda sem linha neste mês (não some quem já está na grade). */
+  const empresasCatalogoUnicoCnpj = useMemo(() => {
+    const groups = new Map<string, EmpresaParcelamento[]>();
+    for (const e of empresas) {
+      const dig = padCnpj14(e.cnpj) || e.cnpj;
+      const list = groups.get(dig) ?? [];
+      list.push(e);
+      groups.set(dig, list);
+    }
+    const out: EmpresaParcelamento[] = [];
+    for (const group of groups.values()) {
+      const livre = group.find((e) => !(e.id in registros));
+      out.push(livre ?? group[0]);
+    }
+    return sortEmpresasParcelamento(out);
+  }, [empresas, registros]);
 
   const kpis = useMemo(() => {
     const counts: Record<ParcelamentoStatus, number> = {
@@ -317,6 +332,10 @@ export function ParcelamentosPanel({
         setError("Parcela atual não pode ser maior que o total.");
         return;
       }
+      if (totalN != null && totalN > MAX_TOTAL_PARCELAS) {
+        setError(`Total de parcelas não pode passar de ${MAX_TOTAL_PARCELAS}.`);
+        return;
+      }
       setSavingId(id);
       setError(null);
       try {
@@ -379,6 +398,10 @@ export function ParcelamentosPanel({
     if (parcelaN == null) parcelaN = 1;
     if (parcelaN > totalN) {
       setError("Parcela atual não pode ser maior que o total.");
+      return;
+    }
+    if (totalN > MAX_TOTAL_PARCELAS) {
+      setError(`Total de parcelas não pode passar de ${MAX_TOTAL_PARCELAS}.`);
       return;
     }
 
@@ -489,6 +512,10 @@ export function ParcelamentosPanel({
       setError("Parcela atual não pode ser maior que o total.");
       return;
     }
+    if (totalN > MAX_TOTAL_PARCELAS) {
+      setError(`Total de parcelas não pode passar de ${MAX_TOTAL_PARCELAS}.`);
+      return;
+    }
     if (!competenciaExiste) {
       setError("Gere a competência atual antes de adicionar parcelamento.");
       return;
@@ -504,6 +531,7 @@ export function ParcelamentosPanel({
         body: JSON.stringify({
           empresaId: addParcId,
           competencia,
+          novoAcordo: true,
           registro: {
             status: PARCELAMENTO_STATUS_DEFAULT,
             totalParcelas: totalN,
@@ -513,6 +541,7 @@ export function ParcelamentosPanel({
       });
       const data = (await res.json()) as {
         ok?: boolean;
+        empresa?: EmpresaParcelamento;
         registro?: CompetenciaRegistro;
         competencias?: string[];
         mesesCronograma?: string[];
@@ -521,10 +550,17 @@ export function ParcelamentosPanel({
       if (!res.ok || !data.registro) {
         throw new Error(data.error || "Falha ao adicionar parcelamento.");
       }
-      setRegistros((prev) => ({ ...prev, [addParcId]: data.registro! }));
+      const idEfetivo = data.empresa?.id ?? addParcId;
+      if (data.empresa) {
+        setEmpresas((prev) => {
+          if (prev.some((e) => e.id === data.empresa!.id)) return prev;
+          return sortEmpresasParcelamento([...prev, data.empresa!]);
+        });
+      }
+      setRegistros((prev) => ({ ...prev, [idEfetivo]: data.registro! }));
       setDrafts((prev) => ({
         ...prev,
-        [addParcId]: toDraft(data.registro, competencia),
+        [idEfetivo]: toDraft(data.registro, competencia),
       }));
       if (data.competencias?.length) {
         setComps(sortCompetencias(data.competencias));
@@ -1171,7 +1207,7 @@ export function ParcelamentosPanel({
             </option>
           ))}
         </select>
-        {empresasSemParcelamentoNoMes.length > 0 ? (
+        {empresas.length > 0 ? (
           <div className="flex w-full flex-wrap items-end gap-2 border-t border-border pt-3 sm:w-auto sm:border-t-0 sm:pt-0">
             <label className="grid gap-1 text-xs font-medium">
               Adicionar parcelamento
@@ -1182,7 +1218,7 @@ export function ParcelamentosPanel({
                 aria-label="Empresa do cadastro"
               >
                 <option value="">Empresa do cadastro…</option>
-                {empresasSemParcelamentoNoMes.map((e) => (
+                {empresasCatalogoUnicoCnpj.map((e) => (
                   <option key={e.id} value={e.id}>
                     {e.empresa}
                   </option>

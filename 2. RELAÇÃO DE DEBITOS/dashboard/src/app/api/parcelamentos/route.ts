@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import {
+  addParcelamentoNaGrade,
   createEmpresa,
   deleteEmpresa,
   gerarCompetencia,
   loadParcelamentos,
   removeRegistroDaGrade,
   updateEmpresa,
-  updateRegistro,
 } from "@/lib/parcelamentos";
 import type { EmpresaInput, RegistroInput } from "@/lib/parcelamentos-utils";
 
@@ -90,6 +90,8 @@ type PatchBody = {
   competencia?: string;
   empresa?: EmpresaInput;
   registro?: RegistroInput;
+  /** true = Incluir pelo total (clona se o id já tem linha no mês). */
+  novoAcordo?: boolean;
 };
 
 export async function PATCH(request: Request) {
@@ -119,10 +121,15 @@ export async function PATCH(request: Request) {
           { status: 400 },
         );
       }
-      const result = updateRegistro(competencia, empresaId, body.registro);
+      const result = addParcelamentoNaGrade(
+        competencia,
+        empresaId,
+        body.registro,
+        { novoAcordo: body.novoAcordo === true },
+      );
       return NextResponse.json({
         ok: true,
-        empresa,
+        empresa: result.empresa ?? empresa,
         registro: result.registro,
         competencias: result.competencias,
         ultimaCompetencia: result.ultimaCompetencia,

@@ -2,8 +2,8 @@
 
 | Item | Valor |
 |------|--------|
-| Versão do sistema | 1.4.0 — Diagnóstico fiscal ECAC |
-| Última atualização | 03/09/2026 (CND/QSA do bloco Apoio na aba Federal; não são lançamento) |
+| Versão do sistema | 1.4.1 — Diagnóstico fiscal ECAC |
+| Última atualização | 21/09/2026 (teto 240 parcelas; vários acordos por CNPJ em `/parcelamentos`) |
 | Fonte oficial | Este arquivo |
 | Guia rápido | `2. RELAÇÃO DE DEBITOS/COMO_RODAR.txt` |
 | Deploy | `GIT.TXT` |
@@ -25,6 +25,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Versão | Nome | O que mudou | Onde |
 |--------|------|-------------|------|
+| 1.4.1 | Diagnóstico fiscal ECAC | Teto de parcelas **240**; vários acordos no mesmo CNPJ (clonar linha; unicidade CNPJ + nº de parcelamento não vazio); seletor **Incluir pelo total** não esconde quem já está na grade | `/parcelamentos` |
 | 1.4.0 | Diagnóstico fiscal ECAC | Todo ECAC *Informações de Apoio* grava CND/QSA/situação no documento (`cadastro`); aba Federal mostra o card acima da grade; CND/QSA Regular **não** viram lançamento nem entram no Excel | `/empresas/[slug]` aba Federal, `extrair_debitos.py` (`parse_ecac_apoio_certidao`) |
 | 1.3.0 | Exportar débitos | Botão na home baixa Excel só com aba Detalhe (todos os débitos monetários / competências); exclui omissões, INAPTA e irregularidade cadastral | `/` e `GET /api/debitos/export` |
 | 1.2.4 | Exportar omissões | **Confirmar bloqueado** se 0 lançamentos e o PDF não for CND/consulta limpa de verdade (`is_legitimate_sem_pendencia`); coluna **SEÇÕES** do preview usa `receita`/`situação`; débito **A VENCER** sem BRL mostra texto explicativo no detalhe; identidade da empresa = **CNPJ** (códigos 14/75/79 na mesma linha = mesma matriz) | `ingest_upload.py`, `extrair_debitos.py`, `format.ts`, `EmpresaDetail.tsx` |
@@ -39,6 +40,8 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Origem | Ação | Destino |
 |--------|------|---------|
+| Home `/` | Menu Parcelamentos | `/parcelamentos` |
+| `/parcelamentos` | Incluir pelo total / Nova empresa | Grade do mês (`porCompetencia[MM-YYYY][id]`) |
 | Home `/` | Exportar omissões | Download Excel (`omissoes_detalhe_….xlsx`) |
 | Home `/` | Exportar débitos | Download Excel (`debitos_detalhe_….xlsx`) |
 | Home `/` | Importar relatórios | `/upload` |
@@ -65,6 +68,10 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 | Rebuild do painel | Mês inteiro ou só pastas tocadas | `scripts/build_dashboard_data.py` (`rebuild_dashboard`, `touch_relpaths`) |
 | Classificação / CND | — | `scripts/extrair_debitos.py` (`classify_text`, `is_legitimate_sem_pendencia`, `parse_ecac_apoio_certidao`) |
 | Detalhe da empresa | `/empresas/[slug]` | `dashboard/src/components/EmpresaDetail.tsx` |
+| Parcelamentos | `/parcelamentos` | `dashboard/src/components/ParcelamentosPanel.tsx` |
+| API parcelamentos | `GET/POST/PATCH/DELETE /api/parcelamentos` | `dashboard/src/app/api/parcelamentos/route.ts` |
+| Regras parcelamentos | — | `dashboard/src/lib/parcelamentos.ts`, `dashboard/src/lib/parcelamentos-utils.ts` |
+| API exportar parcelamentos | `GET /api/parcelamentos/export` | `dashboard/src/app/api/parcelamentos/export/route.ts` |
 
 ## 6. Telas e fluxos
 
@@ -109,6 +116,28 @@ Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Age
    - Mesmo hash já na pasta: **não move de novo**; apaga a cópia do inbox; regenera o JSON **só da empresa tocada** (`touch_relpaths`). Rebuild do mês inteiro continua em `npm run data` (reaplica o parser calibrado em tudo).
 4. Após commit ok, o inbox do lote é limpo (confirmados e desmarcados).
 
+### Parcelamentos (`/parcelamentos`)
+
+Menu **Parcelamentos**. Controle operacional mensal (não é a extração de PDF). Cada item do catálogo (`empresas[]`) é **um acordo**; o mesmo CNPJ pode ter várias linhas. A grade do mês é `porCompetencia[MM-YYYY][id]` — um slot por `id`, não por CNPJ.
+
+| Seção | Campo / ação | Como funciona | Regra / bloqueio | Código |
+|-------|----------------|----------------|------------------|--------|
+| Competência | MM-YYYY (URL) | Mês aberto da grade | Precisa existir no JSON; senão **Gerar competência** | `page.tsx` + `ParcelamentosPanel.tsx` |
+| Incluir pelo total | Empresa do cadastro | Lista **um item por CNPJ** (não some quem já está na grade) | Bloco visível se houver alguma empresa no catálogo | `empresasCatalogoUnicoCnpj` |
+| Incluir pelo total | Total * / Parcela | PATCH com `novoAcordo: true`; se o `id` já tem linha no mês, **clona** o catálogo (nome, CNPJ, grupo, cód., site; nº vazio; id UUID) e grava no id novo | Total 1–240; parcela ≤ total; competência existente | `addParcelamentoNaGrade` + `PATCH /api/parcelamentos` |
+| Nova empresa | Empresa *, CNPJ *, nº, site, cód., grupo, tipo, vencimento, total *, parcela | POST cria o acordo; PATCH monta o cronograma | CNPJ 14 dígitos; total 1–240; **não** bloqueia CNPJ repetido | `createEmpresa` |
+| Grade | Situação | Ativo / Encerrado / Saiu / Erro na emissão / Cancelado | Cores de linha | `PARCELAMENTO_STATUS_*` |
+| Grade | COD, Empresa, Site, Grupo, CNPJ | Identidade do acordo | Site: URL http(s) ou portal padrão do tipo (PGFN/e-CAC) | `EmpresaParcelamento` |
+| Grade | Tipo | Municipal, Estadual, PGFN, SN, SN PERT, Outro | PGFN/SN/SN PERT preenchem vencimento (último dia útil) | `vencimentoAutomaticoPorTipo` |
+| Grade | Nº parcelamento | Nº do acordo neste `id` | Unicidade **CNPJ + nº não vazio**; nº vazio pode repetir | `assertNumeroParcelamentoUnico` |
+| Grade | Parcela atual / Total | Total informa o cronograma; parcela default 1 | Total **não pode passar de 240** (UI + servidor) | `MAX_TOTAL_PARCELAS`, `updateRegistro` |
+| Grade | Em aberto / Último mês | Calculados | Encerrado/saiu/cancelado → em aberto 0 | `buildCardView` |
+| Grade | Salvar linha | PATCH **sem** `novoAcordo` | Se o `id` já tem registro no mês, só edita — **não clona** | `saveCard` → `addParcelamentoNaGrade` |
+| Grade | Remover da grade | DELETE com competência | Some só deste mês; catálogo permanece | `removeRegistroDaGrade` |
+| Exportar | Excel / PDF | Baixa a grade do mês | — | `/api/parcelamentos/export`, `ParcelamentosPdfDocument.tsx` |
+
+**Incluir segundo acordo da mesma empresa:** selecione de novo no **Incluir pelo total** (a empresa continua no seletor) → Total + Parcela → Incluir. Surge uma segunda linha. Salvar a linha antiga não duplica.
+
 ## 7. Regras de negócio
 
 - Tipo `AGENCIANET` = esfera **Estadual** (não Federal).
@@ -127,6 +156,9 @@ Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Age
 - pymupdf é obrigatório (`scripts/requirements-debitos.txt`).
 - Exportar omissões: Excel com uma aba Detalhe; todas as competências; só linhas `OMISSAO` / título `OMISSAO…`.
 - Exportar débitos: Excel com uma aba Detalhe; todas as competências; só lançamentos monetários (exclui omissão/INAPTA/irregularidade cadastral).
+- **Parcelamentos — teto:** `totalParcelas` no máximo **240** (`MAX_TOTAL_PARCELAS`). Validado na UI (Incluir pelo total, Nova empresa, salvar linha) e no servidor (`normalizeRegistro` / `updateRegistro`).
+- **Parcelamentos — vários acordos:** CNPJ pode repetir no catálogo. Cada `id` é um acordo. Unicidade: mesmo CNPJ + mesmo `numeroParcelamento` **não vazio** → erro `Já existe este nº de parcelamento para o CNPJ.` Nº vazio pode repetir (clones novos).
+- **Parcelamentos — PATCH da grade:** `addParcelamentoNaGrade`. Se o `empresaId` já tem registro no mês e **não** veio `novoAcordo` → só `updateRegistro` (edição). Se **Incluir pelo total** (`novoAcordo`) e o id já tem linha → clona catálogo e grava no id novo. Se o id **não** tem registro e o CNPJ já tem outra linha (sem `novoAcordo`) → clona. Se o id não tem registro e o CNPJ não tem linha → `updateRegistro` no id original.
 
 ## 8. Como usar o sistema (guia do dia a dia)
 
@@ -176,10 +208,22 @@ Badge **Duplicado**: o PDF já está na pasta. Confirmar reindexa a empresa (rá
 
 Excluir no detalhe da empresa ou na revisão usa o mesmo rebuild curto. Se a exclusão “não termina”, atualize a página depois do deploy desta versão.
 
+### Parcelamentos
+
+1. Abra **Parcelamentos** no menu (`/parcelamentos`).
+2. Confira a competência (MM-YYYY). Se o mês ainda não existir, use **Gerar competência**.
+3. **Primeiro acordo:** em **Adicionar parcelamento**, escolha a empresa, informe **Total** (ex. 150) e **Parcela** (ex. 100) e clique **Incluir pelo total**. Até 240 parcelas.
+4. **Segundo acordo da mesma empresa:** o seletor continua mostrando a empresa. Repita Total + Parcela → **Incluir pelo total**. Aparece uma **segunda linha** (nº de parcelamento vazio até você editar).
+5. Preencha tipo, vencimento e nº na linha nova e **salve**. Salvar a linha antiga **não** cria outra linha.
+6. Total **241** ou mais é recusado (mensagem na tela e no servidor).
+7. **Nova empresa** cadastra um acordo novo (CNPJ pode ser o mesmo de outro acordo; o que não pode repetir é CNPJ + nº de parcelamento preenchido).
+8. Exportar Excel/PDF baixa a grade do mês aberto.
+
 ## 10. Segurança
 
 - Inbox só aceita caminhos dentro de `resultados/inbox_upload/{competencia}/`.
 - Lock de arquivo impede duas ingestões ao mesmo tempo.
+- Parcelamentos: teto 240 e unicidade CNPJ+nº validados **no servidor** (não só na UI).
 - Sem secrets neste documento.
 
 ## 11. Deploy / ambiente

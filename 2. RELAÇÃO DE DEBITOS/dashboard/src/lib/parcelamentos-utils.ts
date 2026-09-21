@@ -86,7 +86,7 @@ export function isValidCompetencia(value: string): boolean {
 }
 
 /** Limite de segurança para total de parcelas / geração de meses. */
-export const MAX_TOTAL_PARCELAS = 120;
+export const MAX_TOTAL_PARCELAS = 240;
 
 /**
  * Soma (ou subtrai) meses a uma competência MM-YYYY.
@@ -382,7 +382,14 @@ export function sortEmpresasParcelamento(
   return [...items].sort((a, b) => {
     const byName = a.empresa.localeCompare(b.empresa, "pt-BR");
     if (byName !== 0) return byName;
-    return a.cnpj.localeCompare(b.cnpj);
+    const byCnpj = a.cnpj.localeCompare(b.cnpj);
+    if (byCnpj !== 0) return byCnpj;
+    const byNumero = (a.numeroParcelamento || "").localeCompare(
+      b.numeroParcelamento || "",
+      "pt-BR",
+    );
+    if (byNumero !== 0) return byNumero;
+    return a.id.localeCompare(b.id);
   });
 }
 
@@ -542,7 +549,11 @@ export function normalizeRegistro(
     if (!Number.isFinite(n) || n < 1) {
       throw new Error("Total de parcelas deve ser no mínimo 1.");
     }
-    totalParcelas = Math.floor(n);
+    const total = Math.floor(n);
+    if (total > MAX_TOTAL_PARCELAS) {
+      throw new Error(`Total de parcelas não pode passar de ${MAX_TOTAL_PARCELAS}.`);
+    }
+    totalParcelas = total;
   }
 
   let vencimento: string | null | undefined = undefined;
