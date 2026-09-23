@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 
 type Props = {
   open: boolean;
@@ -20,7 +20,7 @@ export function BlockingOverlay({ open, title, description, progress }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--overlay)] px-4"
       role="alertdialog"
       aria-modal="true"
       aria-busy="true"
@@ -28,25 +28,25 @@ export function BlockingOverlay({ open, title, description, progress }: Props) {
       aria-labelledby="blocking-overlay-title"
       aria-describedby={description ? "blocking-overlay-desc" : undefined}
     >
-      <div className="w-full max-w-sm rounded-lg border border-white/10 bg-white px-6 py-7 text-center shadow-xl">
-        <Loader2 className="mx-auto size-8 animate-spin text-teal-700" aria-hidden />
-        <p id="blocking-overlay-title" className="mt-4 text-base font-semibold text-slate-900">
+      <div className="w-full max-w-sm rounded-card border border-line bg-card px-6 py-7 text-center shadow-[var(--shadow-md)]">
+        <Icon name="progress_activity" className="mx-auto animate-spin text-green" size={32} />
+        <p id="blocking-overlay-title" className="mt-4 t-title-sm text-ink">
           {title}
         </p>
         {description ? (
-          <p id="blocking-overlay-desc" className="mt-2 text-sm text-slate-600">
+          <p id="blocking-overlay-desc" className="mt-2 text-sm text-exito-muted">
             {description}
           </p>
         ) : null}
         {progress && progress.total > 0 ? (
           <div className="mt-4 space-y-2">
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-2 overflow-hidden rounded-full bg-surface-low">
               <div
-                className="h-full rounded-full bg-teal-600 transition-[width] duration-300"
+                className="h-full rounded-full bg-green transition-[width] duration-300"
                 style={{ width: `${pct ?? 0}%` }}
               />
             </div>
-            <p className="text-xs tabular-nums text-slate-500">
+            <p className="text-xs tabular-nums text-exito-muted">
               {progress.current}/{progress.total}
               {pct != null ? ` · ${pct}%` : ""}
             </p>

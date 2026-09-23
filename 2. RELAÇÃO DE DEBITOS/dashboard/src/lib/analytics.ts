@@ -1,11 +1,14 @@
 import { formatTituloPendencia, normalizeTituloKey } from "@/lib/format";
+import {
+  CHART_COMPOSICAO,
+  CHART_RISCO,
+  ESFERA_COLORS_HEX,
+  TITULO_COLORS,
+  TITULO_FALLBACK_COLORS,
+} from "@/lib/exito-palette";
 import type { DebitoLinha, Empresa, Esfera, Totais, TotaisGerais } from "@/lib/types";
 
-export const ESFERA_COLORS: Record<Esfera, string> = {
-  federal: "#2563eb",
-  estadual: "#0d9488",
-  municipal: "#ea580c",
-};
+export const ESFERA_COLORS: Record<Esfera, string> = { ...ESFERA_COLORS_HEX };
 
 export const ESFERA_LABELS: Record<Esfera, string> = {
   federal: "Federal",
@@ -19,29 +22,6 @@ export const ESFERA_FONTES: Record<Esfera, string> = {
   estadual: "Agenci@Net",
   municipal: "Relatório da Prefeitura",
 };
-
-const TITULO_COLORS: Record<string, string> = {
-  "DEBITO (SIEF)": "#d97706",
-  "DEBITO SUSPENSO": "#0d9488",
-  "OMISSAO DE DCTFWEB": "#dc2626",
-  "OMISSAO DE DCTF": "#b91c1c",
-  "OMISSAO DE DIRF": "#9f1239",
-  "OMISSAO DE EFD-CONTRIB": "#be123c",
-  "OMISSAO DE PGDAS-D": "#9f1239",
-  "IRREGULARIDADE CADASTRAL": "#7f1d1d",
-  "DEBITO (SIDA)": "#c2410c",
-  "INSCRICAO SUSPENSA": "#0891b2",
-  "PARCELAMENTO SUSPENSO": "#7c3aed",
-  "PARCELAMENTO (PARCSN/PARCMEI)": "#6366f1",
-  PARCELAMENTO: "#4f46e5",
-  "PROCESSO FISCAL (SIEF)": "#2563eb",
-  "INSCRICAO (SIDA)": "#ea580c",
-  "DIVERGENCIA GFIP X GPS": "#ca8a04",
-  "INSCRICAO (SISTEMA DIVIDA)": "#64748b",
-};
-
-const TITULO_FALLBACK_COLORS = ["#2563eb", "#0d9488", "#ea580c", "#7c3aed", "#db2777", "#0891b2"];
-
 const EMPTY: Totais = {
   original: 0,
   saldo: 0,
@@ -147,9 +127,9 @@ export function buildPortfolioAnalytics(empresas: Empresa[], esfera?: Esfera | n
       { saldo: 0, multa: 0, juros: 0 },
     );
     return [
-      { name: "Saldo", value: round2(totals.saldo), fill: "#2563eb" },
-      { name: "Multa", value: round2(totals.multa), fill: "#d97706" },
-      { name: "Juros", value: round2(totals.juros), fill: "#dc2626" },
+      { name: "Saldo", value: round2(totals.saldo), fill: CHART_COMPOSICAO.saldo },
+      { name: "Multa", value: round2(totals.multa), fill: CHART_COMPOSICAO.multa },
+      { name: "Juros", value: round2(totals.juros), fill: CHART_COMPOSICAO.juros },
     ].filter((item) => item.value > 0);
   })();
 
@@ -164,14 +144,14 @@ export function buildPortfolioAnalytics(empresas: Empresa[], esfera?: Esfera | n
       consolidado: round2(
         pendentes.reduce((s, e) => s + totaisDaEmpresa(e, esfera).consolidado, 0),
       ),
-      fill: "#d97706",
+      fill: CHART_RISCO.pendencia,
     },
     {
       name: "Regular",
       value: regulares.length,
       saldo: 0,
       consolidado: 0,
-      fill: "#059669",
+      fill: CHART_RISCO.regular,
     },
   ];
 
@@ -214,9 +194,9 @@ export type ComposicaoSlice = {
 
 function composicaoFromTotais(totais: Totais): ComposicaoSlice[] {
   return [
-    { name: "Saldo", value: round2(totais.saldo), fill: "#2563eb" },
-    { name: "Multa", value: round2(totais.multa), fill: "#d97706" },
-    { name: "Juros", value: round2(totais.juros), fill: "#dc2626" },
+    { name: "Saldo", value: round2(totais.saldo), fill: CHART_COMPOSICAO.saldo },
+    { name: "Multa", value: round2(totais.multa), fill: CHART_COMPOSICAO.multa },
+    { name: "Juros", value: round2(totais.juros), fill: CHART_COMPOSICAO.juros },
   ].filter((item) => item.value > 0);
 }
 

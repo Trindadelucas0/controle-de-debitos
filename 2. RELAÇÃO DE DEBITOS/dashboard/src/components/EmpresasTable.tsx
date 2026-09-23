@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -36,19 +37,6 @@ import {
 } from "@/lib/parcelamentos-utils";
 import type { Empresa, Esfera, StatusEsfera } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  AlertTriangle,
-  Building2,
-  CheckCircle2,
-  FileSpreadsheet,
-  Landmark,
-  LayoutDashboard,
-  ListFilter,
-  MapPin,
-  Search,
-  X,
-} from "lucide-react";
-
 type Props = {
   empresas: Empresa[];
   totais: {
@@ -199,7 +187,7 @@ export function EmpresasTable({
             empresa.codigos?.length ? empresa.codigos : empresa.codigo ? [empresa.codigo] : [],
           );
           return (
-            <span className="tabular font-semibold text-slate-800">
+            <span className="tabular font-semibold text-ink">
               {labels.join(", ") || "—"}
             </span>
           );
@@ -215,10 +203,10 @@ export function EmpresasTable({
           return (
             <div className="flex flex-wrap items-start gap-2">
               <Link href={href} className="min-w-0 flex-1 hover:underline">
-                <div className="font-semibold tracking-tight text-slate-900">
+                <div className="font-semibold tracking-tight text-ink">
                   {info.getValue()}
                 </div>
-                <div className="tabular text-[11px] text-muted-foreground">
+                <div className="tabular text-[11px] text-exito-muted">
                   {formatCnpj(row.cnpj)}
                 </div>
               </Link>
@@ -260,7 +248,7 @@ export function EmpresasTable({
           id: "totais_saldo",
           header: "Saldo",
           cell: (info) => (
-            <span className="tabular font-semibold text-slate-800">
+            <span className="tabular font-semibold text-ink">
               {formatBRL(info.getValue())}
             </span>
           ),
@@ -269,7 +257,7 @@ export function EmpresasTable({
       columnHelper.accessor("tipos", {
         header: "Tipos",
         cell: (info) => (
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-[11px] text-exito-muted">
             {info.getValue().slice(0, 2).join(" / ") || "—"}
           </span>
         ),
@@ -302,7 +290,15 @@ export function EmpresasTable({
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
       <PageHeader
-        icon={esferaFiltro ? Landmark : LayoutDashboard}
+        icon={
+          esferaFiltro === "federal"
+            ? "account_balance"
+            : esferaFiltro === "estadual"
+              ? "apartment"
+              : esferaFiltro === "municipal"
+                ? "location_on"
+                : "dashboard"
+        }
         title={
           esferaFiltro
             ? ESFERA_LABELS[esferaFiltro].toUpperCase()
@@ -318,7 +314,7 @@ export function EmpresasTable({
                 window.location.href = "/api/omissoes/export?formato=xlsx";
               }}
             >
-              <FileSpreadsheet className="size-3.5" aria-hidden />
+              <Icon name="table_view" size={14} />
               Exportar omissões
             </Button>
             <Button
@@ -329,10 +325,10 @@ export function EmpresasTable({
                 window.location.href = "/api/debitos/export?formato=xlsx";
               }}
             >
-              <FileSpreadsheet className="size-3.5" aria-hidden />
+              <Icon name="table_view" size={14} />
               Exportar débitos
             </Button>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-exito-muted">
               Gerado em {new Date(geradoEm).toLocaleString("pt-BR")}
             </p>
           </div>
@@ -351,22 +347,19 @@ export function EmpresasTable({
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div className="flex items-start gap-2.5">
-            <span className="mt-0.5 flex size-8 items-center justify-center rounded-md bg-slate-100 text-slate-700">
-              <ListFilter className="size-4" aria-hidden />
+            <span className="mt-0.5 flex size-8 items-center justify-center rounded-md bg-surface-low text-on-surface-variant">
+              <Icon name="filter_list" size={16} />
             </span>
             <div>
               <h3 className="text-lg font-bold tracking-tight">Empresas</h3>
-              <p className="text-sm text-muted-foreground">{subtitulo}</p>
+              <p className="text-sm text-exito-muted">{subtitulo}</p>
             </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[240px] flex-1">
-            <Search
-              className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
+            <Icon name="search" size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-exito-muted" />
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -376,18 +369,18 @@ export function EmpresasTable({
           </div>
           {tituloFiltro ? (
             <Button type="button" size="sm" variant="outline" onClick={clearTituloFiltro}>
-              <X className="size-3.5" aria-hidden />
+              <Icon name="close" size={14} />
               Limpar título
             </Button>
           ) : null}
-          <div className="flex gap-1 rounded-md bg-muted/70 p-1">
+          <div className="flex gap-1 rounded-ctl bg-surface-low p-1">
             {(
               [
                 ["todas", "Todas", null],
-                ["pendencia", "Pendência", AlertTriangle],
-                ["regular", "Regulares", CheckCircle2],
+                ["pendencia", "Pendência", "warning"],
+                ["regular", "Regulares", "check_circle"],
               ] as const
-            ).map(([value, label, Icon]) => (
+            ).map(([value, label, iconName]) => (
               <Button
                 key={value}
                 type="button"
@@ -395,17 +388,17 @@ export function EmpresasTable({
                 variant={filtro === value ? "default" : "ghost"}
                 onClick={() => setStatusFiltro(value)}
               >
-                {Icon ? <Icon className="size-3.5" aria-hidden /> : null}
+                {iconName ? <Icon name={iconName} size={14} /> : null}
                 {label}
               </Button>
             ))}
           </div>
         </div>
 
-        <Card className="overflow-hidden shadow-none">
+        <Card className="overflow-hidden shadow-[var(--shadow)]">
           <div className="overflow-auto">
             <table className="w-full min-w-[980px] border-collapse text-left text-sm">
-              <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+              <thead className="border-b border-line bg-surface-low text-[11px] font-semibold uppercase tracking-[0.06em] text-exito-muted">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
@@ -428,7 +421,7 @@ export function EmpresasTable({
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-border/70 transition-colors duration-200 hover:bg-slate-50"
+                    className="border-b border-border/70 transition-colors duration-200 hover:bg-surface-low"
                   >
                     {row.getVisibleCells().map((cell) => {
                       const isEmpresa = cell.column.id === "nome";
@@ -451,7 +444,7 @@ export function EmpresasTable({
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-3 py-8 text-center text-exito-muted">
                       Nenhuma empresa encontrada.
                     </td>
                   </tr>
@@ -479,25 +472,25 @@ export function EmpresasTable({
 function EsferasMarks({ empresa }: { empresa: Empresa }) {
   const items: {
     key: Esfera;
-    Icon: typeof Landmark;
+    icon: IconName;
     on: boolean;
     status: StatusEsfera;
   }[] = [
     {
       key: "federal",
-      Icon: Landmark,
+      icon: "account_balance",
       on: (empresa.esferas?.federal?.qtdDocs ?? 0) > 0 || !!empresa.temFederal,
       status: empresa.esferas?.federal?.status ?? "sem_documento",
     },
     {
       key: "estadual",
-      Icon: Building2,
+      icon: "apartment",
       on: (empresa.esferas?.estadual?.qtdDocs ?? 0) > 0 || !!empresa.temEstadual,
       status: empresa.esferas?.estadual?.status ?? "sem_documento",
     },
     {
       key: "municipal",
-      Icon: MapPin,
+      icon: "location_on",
       on: (empresa.esferas?.municipal?.qtdDocs ?? 0) > 0 || !!empresa.temMunicipal,
       status: empresa.esferas?.municipal?.status ?? "sem_documento",
     },
@@ -506,40 +499,37 @@ function EsferasMarks({ empresa }: { empresa: Empresa }) {
   const ativos = items.filter((item) => item.on);
 
   if (ativos.length === 0) {
-    return <span className="text-[11px] text-muted-foreground">—</span>;
+    return <span className="text-[11px] text-exito-muted">—</span>;
   }
 
   return (
     <div className="flex gap-1.5">
-      {ativos.map((item) => {
-        const Icon = item.Icon;
-        return (
+      {ativos.map((item) => (
+        <span
+          key={item.key}
+          title={`${ESFERA_LABELS[item.key]} · ${ESFERA_FONTES[item.key]}: ${item.status}`}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-bold transition-colors",
+            item.key === "federal"
+              ? "bg-success-bg text-green"
+              : item.key === "estadual"
+                ? "bg-green-fixed/40 text-green"
+                : "bg-surface-container text-on-surface-variant",
+          )}
+        >
+          <Icon name={item.icon} size={12} />
           <span
-            key={item.key}
-            title={`${ESFERA_LABELS[item.key]} · ${ESFERA_FONTES[item.key]}: ${item.status}`}
             className={cn(
-              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-bold transition-colors",
-              item.key === "federal"
-                ? "bg-blue-100 text-blue-800"
-                : item.key === "estadual"
-                  ? "bg-teal-100 text-teal-800"
-                  : "bg-orange-100 text-orange-800",
+              "inline-block size-1.5 rounded-full",
+              item.status === "pendencia"
+                ? "bg-danger"
+                : item.status === "regular"
+                  ? "bg-green"
+                  : "bg-outline",
             )}
-          >
-            <Icon className="size-3" aria-hidden />
-            <span
-              className={cn(
-                "inline-block size-1.5 rounded-full",
-                item.status === "pendencia"
-                  ? "bg-amber-500"
-                  : item.status === "regular"
-                    ? "bg-emerald-500"
-                    : "bg-slate-400",
-              )}
-            />
-          </span>
-        );
-      })}
+          />
+        </span>
+      ))}
     </div>
   );
 }

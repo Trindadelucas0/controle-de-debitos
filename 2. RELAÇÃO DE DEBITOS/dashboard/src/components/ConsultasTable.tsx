@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Icon, type IconName } from "@/components/ui/icon";
 import {
   createColumnHelper,
   flexRender,
@@ -20,8 +21,6 @@ import { resolveMunicipal } from "@/lib/cadastro-utils";
 import { formatCnpj } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CadastroConsulta } from "@/lib/types";
-import { ClipboardList, Plus, Search, Trash2, X } from "lucide-react";
-
 type Props = {
   empresas: CadastroConsulta[];
 };
@@ -39,7 +38,7 @@ type FieldKey = keyof CadastroConsulta;
 const columnHelper = createColumnHelper<EditableRow>();
 
 const cellInputClass =
-  "h-8 min-w-0 border-transparent bg-transparent px-1.5 shadow-none hover:border-border focus-visible:border-input focus-visible:bg-card focus-visible:ring-1";
+  "h-8 min-w-0 border-transparent bg-transparent px-1.5 shadow-none hover:bg-surface-low focus-visible:bg-surface-low focus-visible:ring-2 focus-visible:ring-green focus-visible:ring-offset-2";
 
 function digits(value: string | null | undefined): string {
   return (value || "").replace(/\D/g, "");
@@ -468,7 +467,7 @@ export function ConsultasTable({ empresas }: Props) {
           <CellInput
             value={info.getValue() === "—" ? "" : info.getValue()}
             ariaLabel="Número"
-            className="w-14 tabular font-semibold text-slate-800"
+            className="w-14 tabular font-semibold text-ink"
             onCommit={(value) => commitField(info.row.original, "numero", value)}
           />
         ),
@@ -479,7 +478,7 @@ export function ConsultasTable({ empresas }: Props) {
           <CellInput
             value={info.getValue() === "—" ? "" : info.getValue()}
             ariaLabel="Empresa"
-            className="min-w-[180px] font-semibold tracking-tight text-slate-900"
+            className="min-w-[180px] font-semibold tracking-tight text-ink"
             onCommit={(value) => commitField(info.row.original, "empresa", value)}
           />
         ),
@@ -490,7 +489,7 @@ export function ConsultasTable({ empresas }: Props) {
           <CellInput
             value={info.getValue() ? formatCnpj(info.getValue()) : ""}
             ariaLabel="CNPJ"
-            className="min-w-[150px] tabular text-sm text-slate-800"
+            className="min-w-[150px] tabular text-sm text-ink"
             onCommit={(value) => commitField(info.row.original, "cnpj", value)}
           />
         ),
@@ -512,7 +511,7 @@ export function ConsultasTable({ empresas }: Props) {
           <CellInput
             value={info.getValue()}
             ariaLabel="Portal federal"
-            className="min-w-[90px] text-sm text-slate-800"
+            className="min-w-[90px] text-sm text-ink"
             onCommit={(value) => commitField(info.row.original, "federal", value)}
           />
         ),
@@ -523,7 +522,7 @@ export function ConsultasTable({ empresas }: Props) {
           <CellInput
             value={info.getValue()}
             ariaLabel="Portal estadual"
-            className="min-w-[110px] text-sm text-slate-800"
+            className="min-w-[110px] text-sm text-ink"
             onCommit={(value) => commitField(info.row.original, "estadual", value)}
           />
         ),
@@ -540,8 +539,8 @@ export function ConsultasTable({ empresas }: Props) {
               ariaLabel="Portal municipal"
               disabled={isDf}
               className={cn(
-                "min-w-[100px] text-sm text-slate-800",
-                isDf && "text-amber-900",
+                "min-w-[100px] text-sm text-ink",
+                isDf && "text-danger",
               )}
               onCommit={(value) => commitField(row, "municipal", value)}
             />
@@ -559,12 +558,12 @@ export function ConsultasTable({ empresas }: Props) {
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="h-8 px-2 text-danger hover:bg-error-container hover:text-danger"
               disabled={busy}
               aria-label={`Excluir ${row.empresa || row.numero}`}
               onClick={() => void excluirEmpresa(row)}
             >
-              <Trash2 className="size-4" aria-hidden />
+              <Icon name="delete" size={16} />
             </Button>
           );
         },
@@ -588,7 +587,7 @@ export function ConsultasTable({ empresas }: Props) {
   return (
     <div className="space-y-6 px-4 py-5 lg:px-6">
       <PageHeader
-        icon={ClipboardList}
+        icon="assignment"
         title="EMPRESAS DE CONSULTA"
       />
 
@@ -596,7 +595,7 @@ export function ConsultasTable({ empresas }: Props) {
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h3 className="text-lg font-bold tracking-tight">Cadastro</h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-exito-muted">
               {filtered.length} empresa{filtered.length === 1 ? "" : "s"}
               {rows.length !== filtered.length ? ` de ${rows.length}` : ""}
               {" · "}edite a célula e saia do campo para salvar
@@ -607,9 +606,9 @@ export function ConsultasTable({ empresas }: Props) {
               <p
                 className={cn(
                   "text-xs font-medium",
-                  saveState.status === "saving" && "text-slate-500",
+                  saveState.status === "saving" && "text-exito-muted",
                   saveState.status === "saved" && "text-primary",
-                  saveState.status === "error" && "text-red-600",
+                  saveState.status === "error" && "text-danger",
                 )}
                 role="status"
               >
@@ -619,17 +618,14 @@ export function ConsultasTable({ empresas }: Props) {
               </p>
             )}
             <Button type="button" size="sm" onClick={openNovaEmpresa}>
-              <Plus className="size-4" aria-hidden />
+              <Icon name="add" size={16} />
               Nova empresa
             </Button>
           </div>
         </div>
 
         <div className="relative min-w-[240px] max-w-xl">
-          <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
+          <Icon name="search" size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-exito-muted" />
           <Input
             type="search"
             value={query}
@@ -641,10 +637,10 @@ export function ConsultasTable({ empresas }: Props) {
           />
         </div>
 
-        <Card className="overflow-hidden shadow-none">
+        <Card className="overflow-hidden shadow-[var(--shadow)]">
           <div className="overflow-auto">
             <table className="w-full min-w-[860px] border-collapse text-left text-sm">
-              <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+              <thead className="border-b border-line bg-surface-low text-[11px] font-semibold uppercase tracking-[0.06em] text-exito-muted">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
@@ -667,7 +663,7 @@ export function ConsultasTable({ empresas }: Props) {
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-border/70 transition-colors duration-200 hover:bg-slate-50"
+                    className="border-b border-border/70 transition-colors duration-200 hover:bg-surface-low"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-2 py-2 align-middle">
@@ -678,7 +674,7 @@ export function ConsultasTable({ empresas }: Props) {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-3 py-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="px-3 py-8 text-center text-exito-muted">
                       {query.trim()
                         ? "Nenhuma empresa encontrada para essa busca."
                         : "Nenhuma empresa no cadastro de consultas."}
@@ -706,7 +702,7 @@ export function ConsultasTable({ empresas }: Props) {
         <div className="fixed inset-0 z-50 flex justify-end">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-900/40"
+            className="absolute inset-0 bg-[var(--overlay)]"
             aria-label="Fechar painel"
             disabled={creating}
             onClick={closeNovaEmpresa}
@@ -719,13 +715,13 @@ export function ConsultasTable({ empresas }: Props) {
           >
             <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-exito-muted">
                   Cadastro
                 </p>
-                <h3 id="nova-empresa-title" className="mt-1 text-lg font-bold text-slate-900">
+                <h3 id="nova-empresa-title" className="mt-1 text-lg font-bold text-ink">
                   Nova empresa
                 </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-exito-muted">
                   Preencha os dados e confirme para incluir na lista.
                 </p>
               </div>
@@ -737,7 +733,7 @@ export function ConsultasTable({ empresas }: Props) {
                 onClick={closeNovaEmpresa}
                 aria-label="Fechar"
               >
-                <X className="size-4" />
+                <Icon name="close" size={16} />
               </Button>
             </div>
 
@@ -749,7 +745,7 @@ export function ConsultasTable({ empresas }: Props) {
               }}
             >
               <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
-                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                <label className="grid gap-1.5 text-xs font-medium text-on-surface-variant">
                   N°
                   <Input
                     value={novaForm.numero}
@@ -762,7 +758,7 @@ export function ConsultasTable({ empresas }: Props) {
                   />
                 </label>
 
-                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                <label className="grid gap-1.5 text-xs font-medium text-on-surface-variant">
                   Empresa
                   <Input
                     ref={empresaInputRef}
@@ -776,7 +772,7 @@ export function ConsultasTable({ empresas }: Props) {
                   />
                 </label>
 
-                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                <label className="grid gap-1.5 text-xs font-medium text-on-surface-variant">
                   CNPJ
                   <Input
                     value={novaForm.cnpj}
@@ -796,7 +792,7 @@ export function ConsultasTable({ empresas }: Props) {
                 </label>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                  <label className="grid gap-1.5 text-xs font-medium text-on-surface-variant">
                     UF
                     <Input
                       value={novaForm.uf}
@@ -819,7 +815,7 @@ export function ConsultasTable({ empresas }: Props) {
                       disabled={creating}
                     />
                   </label>
-                  <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                  <label className="grid gap-1.5 text-xs font-medium text-on-surface-variant">
                     Municipal
                     <Input
                       value={novaForm.municipal}
@@ -832,7 +828,7 @@ export function ConsultasTable({ empresas }: Props) {
                   </label>
                 </div>
 
-                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                <label className="grid gap-1.5 text-xs font-medium text-on-surface-variant">
                   Federal
                   <Input
                     value={novaForm.federal}
@@ -843,7 +839,7 @@ export function ConsultasTable({ empresas }: Props) {
                   />
                 </label>
 
-                <label className="grid gap-1.5 text-xs font-medium text-slate-700">
+                <label className="grid gap-1.5 text-xs font-medium text-on-surface-variant">
                   Estadual
                   <Input
                     value={novaForm.estadual}
@@ -857,7 +853,7 @@ export function ConsultasTable({ empresas }: Props) {
                 {createError ? (
                   <p
                     role="alert"
-                    className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+                    className="rounded-md border border-danger-border bg-error-container px-3 py-2 text-sm text-on-error-container"
                   >
                     {createError}
                   </p>
@@ -874,7 +870,7 @@ export function ConsultasTable({ empresas }: Props) {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={creating}>
-                  <Plus className="size-4" aria-hidden />
+                  <Icon name="add" size={16} />
                   {creating ? "Salvando…" : "Adicionar"}
                 </Button>
               </div>

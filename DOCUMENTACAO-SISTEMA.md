@@ -2,21 +2,25 @@
 
 | Item | Valor |
 |------|--------|
-| Versão do sistema | 1.4.1 — Diagnóstico fiscal ECAC |
-| Última atualização | 21/09/2026 (teto 240 parcelas; vários acordos por CNPJ em `/parcelamentos`) |
+| Versão do sistema | 1.5.0 — Layout Êxito |
+| Última atualização | 23/09/2026 (identidade visual Êxito: verde #006b2b, Inter, Material Symbols, sidebar clara) |
 | Fonte oficial | Este arquivo |
 | Guia rápido | `2. RELAÇÃO DE DEBITOS/COMO_RODAR.txt` |
 | Deploy | `GIT.TXT` |
+| Catálogo visual (wireframes + botões) | [WIREFRAMES-TELAS.md](WIREFRAMES-TELAS.md) |
 
 ## 1. Como usar este documento
 
 Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da tela e a regra correspondente.
+
+Para ver o desenho de cada tela e o que cada botão faz, use [WIREFRAMES-TELAS.md](WIREFRAMES-TELAS.md). Este arquivo continua sendo a fonte oficial de regras.
 
 ## 2. Tecnologias utilizadas
 
 | Camada | Tecnologia | Função |
 |--------|------------|--------|
 | UI | Next.js (App Router) em `2. RELAÇÃO DE DEBITOS/dashboard` | Painel e upload |
+| Design | Inter, Material Symbols Outlined, paleta Êxito (`globals.css`, `lib/exito-palette.ts`) | Identidade visual do hub |
 | API | Rotas Next (`/api/ingest`, `/api/delete-imported`) | Preview, commit, exclusão |
 | Extração | Python (`scripts/ingest_upload.py`, `build_dashboard_data.py`) | Lê PDFs e gera `empresas.json` |
 | Processo | PM2 `dashboard-debitos` no servidor Êxito | App em produção |
@@ -25,6 +29,7 @@ Mapa tela → regra → código. Antes de alterar comportamento, leia a ficha da
 
 | Versão | Nome | O que mudou | Onde |
 |--------|------|-------------|------|
+| 1.5.0 | Layout Êxito | Chrome claro (fundo `#f9f9ff`, verde `#006b2b`); Inter + Material Symbols; sidebar 288px com gaveta abaixo de 1024px; gráficos e PDFs na paleta Êxito | `globals.css`, `ShellFrame`, todas as telas |
 | 1.4.1 | Diagnóstico fiscal ECAC | Teto de parcelas **240**; vários acordos no mesmo CNPJ (clonar linha; unicidade CNPJ + nº de parcelamento não vazio); seletor **Incluir pelo total** não esconde quem já está na grade | `/parcelamentos` |
 | 1.4.0 | Diagnóstico fiscal ECAC | Todo ECAC *Informações de Apoio* grava CND/QSA/situação no documento (`cadastro`); aba Federal mostra o card acima da grade; CND/QSA Regular **não** viram lançamento nem entram no Excel | `/empresas/[slug]` aba Federal, `extrair_debitos.py` (`parse_ecac_apoio_certidao`) |
 | 1.3.0 | Exportar débitos | Botão na home baixa Excel só com aba Detalhe (todos os débitos monetários / competências); exclui omissões, INAPTA e irregularidade cadastral | `/` e `GET /api/debitos/export` |

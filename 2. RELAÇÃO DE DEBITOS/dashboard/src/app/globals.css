@@ -1,46 +1,77 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
 :root {
-  --background: #f4f6f8;
-  --foreground: #0f172a;
+  /* Paleta Êxito */
+  --surface: #f9f9ff;
+  --surface-low: #f0f3ff;
+  --surface-container: #e7eeff;
+  --surface-container-high: #dfe8ff;
+  --surface-highest: #d7e3fd;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --ink: #101c2f;
+  --muted: #536259;
+  --line: #d7e3fd;
+  --green: #006b2b;
+  --green-hover: #008738;
+  --green-soft: #d6e7db;
+  --green-fixed: #88fb9a;
+  --danger: #b42318;
+  --danger-bg: #fef3f2;
+  --danger-border: #fecdca;
+  --on-primary: #ffffff;
+  --success-bg: #d6e7db;
+  --success-border: #b7dfc4;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --on-surface-variant: #3e4a3e;
+  --outline: #6e7a6c;
+  --outline-variant: #bdcaba;
+  --neutral-pill: #eef2f6;
+  --placeholder: #9ca3af;
+  --overlay: rgba(16, 28, 47, 0.4);
+  --secondary-border: #d1d5db;
+
+  --radius-card: 0.5rem;
+  --radius-ctl: 0.25rem;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --sidebar-w: 18rem;
+  --topbar-h: 4rem;
+
+  /* Tokens shadcn (compatibilidade) */
+  --background: #f9f9ff;
+  --foreground: #101c2f;
+  --card-foreground: #101c2f;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #0891b2;
-  --primary-foreground: #f0f9ff;
-  --secondary: #e8eef2;
-  --secondary-foreground: #0f172a;
-  --muted: #f0f3f6;
-  --muted-foreground: #64748b;
-  --accent: #e0f2fe;
-  --accent-foreground: #0c4a6e;
-  --destructive: #dc2626;
-  --border: #d5dde5;
-  --input: #d5dde5;
-  --ring: #0891b2;
+  --popover-foreground: #101c2f;
+  --primary: #006b2b;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f3ff;
+  --secondary-foreground: #101c2f;
+  --muted-foreground: #536259;
+  --accent: #f0f3ff;
+  --accent-foreground: #101c2f;
+  --destructive: #b42318;
+  --border: #d7e3fd;
+  --input: #d7e3fd;
+  --ring: #006b2b;
   --radius: 0.5rem;
 
-  --shell: #0a3a48;
-  --shell-deep: #072d38;
-  --shell-foreground: #f1f5f9;
-  --shell-muted: #8ba8b4;
-  --shell-hover: rgba(255, 255, 255, 0.08);
-  --shell-active: #0ea5a0;
-  --shell-active-bg: rgba(14, 165, 160, 0.18);
-
-  --esfera-federal: #2563eb;
-  --esfera-estadual: #0d9488;
-  --esfera-municipal: #ea580c;
-  --status-pendencia: #d97706;
-  --status-regular: #059669;
+  /* Esferas e status (paleta Êxito) */
+  --esfera-federal: #006b2b;
+  --esfera-estadual: #6cdd81;
+  --esfera-municipal: #536259;
+  --status-pendencia: #b42318;
+  --status-regular: #006b2b;
 }
 
 @theme inline {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -51,7 +82,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
+  --color-muted: var(--surface-low);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
@@ -59,21 +90,43 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-shell: var(--shell);
-  --color-shell-deep: var(--shell-deep);
-  --color-shell-foreground: var(--shell-foreground);
-  --color-shell-muted: var(--shell-muted);
-  --color-shell-hover: var(--shell-hover);
-  --color-shell-active: var(--shell-active);
-  --color-shell-active-bg: var(--shell-active-bg);
+
+  --color-surface: var(--surface);
+  --color-surface-low: var(--surface-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-highest: var(--surface-highest);
+  --color-ink: var(--ink);
+  --color-exito-muted: var(--muted);
+  --color-line: var(--line);
+  --color-green: var(--green);
+  --color-green-hover: var(--green-hover);
+  --color-green-soft: var(--green-soft);
+  --color-green-fixed: var(--green-fixed);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-neutral-pill: var(--neutral-pill);
+  --color-secondary-border: var(--secondary-border);
+
   --color-esfera-federal: var(--esfera-federal);
   --color-esfera-estadual: var(--esfera-estadual);
   --color-esfera-municipal: var(--esfera-municipal);
   --color-status-pendencia: var(--status-pendencia);
   --color-status-regular: var(--status-regular);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+
+  --radius-lg: var(--radius-card);
+  --radius-md: var(--radius-ctl);
+  --radius-sm: var(--radius-ctl);
+  --radius-card: var(--radius-card);
+  --radius-ctl: var(--radius-ctl);
 }
 
 * {
@@ -89,7 +142,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 14px;
-  line-height: 1.45;
+  line-height: 20px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -104,7 +157,82 @@ select {
   font: inherit;
 }
 
+::placeholder {
+  color: var(--placeholder);
+}
+
 .tabular {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
+}
+
+.font-code {
+  font-family: var(--font-mono);
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.t-display {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 44px;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 640px) {
+  .t-display {
+    font-size: 28px;
+    line-height: 36px;
+    letter-spacing: -0.01em;
+  }
+}
+
+.t-title-lg {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.015em;
+}
+
+.t-title-md {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+}
+
+.t-title-sm {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.005em;
+}
+
+.t-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.t-brand {
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }

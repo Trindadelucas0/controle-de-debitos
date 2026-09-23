@@ -29,7 +29,7 @@ export default async function ParcelamentosPage({ searchParams }: Props) {
   return (
     <Suspense
       fallback={
-        <div className="px-4 py-5 text-sm text-muted-foreground">
+        <div className="px-4 py-5 text-sm text-exito-muted">
           Carregando parcelamentos…
         </div>
       }

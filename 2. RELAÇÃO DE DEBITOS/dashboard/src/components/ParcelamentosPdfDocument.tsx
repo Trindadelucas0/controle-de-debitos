@@ -1,3 +1,4 @@
+import { EXITO } from "@/lib/exito-palette";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { formatCompetencia } from "@/lib/competencia";
 import { formatCnpj } from "@/lib/format";
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     fontSize: 8,
     fontFamily: "Helvetica",
-    color: "#0f172a",
+    color: EXITO.ink,
   },
   title: {
     fontSize: 14,
@@ -29,29 +30,29 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 9,
-    color: "#64748b",
+    color: EXITO.muted,
     marginBottom: 12,
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#e2e8f0",
+    backgroundColor: EXITO.line,
     paddingVertical: 5,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: "#94a3b8",
+    borderBottomColor: EXITO.outline,
   },
   row: {
     flexDirection: "row",
     paddingVertical: 4,
     paddingHorizontal: 4,
     borderBottomWidth: 0.5,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: EXITO.line,
   },
-  rowAtivo: { backgroundColor: "#ecfdf5" },
-  rowEncerrado: { backgroundColor: "#e0f2fe" },
-  rowSaiu: { backgroundColor: "#f1f5f9" },
-  rowCancelado: { backgroundColor: "#fef2f2" },
-  rowErro: { backgroundColor: "#fffbeb" },
+  rowAtivo: { backgroundColor: EXITO.greenSoft },
+  rowEncerrado: { backgroundColor: EXITO.surfaceContainer },
+  rowSaiu: { backgroundColor: EXITO.surfaceLow },
+  rowCancelado: { backgroundColor: EXITO.dangerBg },
+  rowErro: { backgroundColor: EXITO.dangerBg },
   cell: { paddingRight: 3 },
   th: { fontFamily: "Helvetica-Bold", fontSize: 7 },
   colStatus: { width: "16%" },

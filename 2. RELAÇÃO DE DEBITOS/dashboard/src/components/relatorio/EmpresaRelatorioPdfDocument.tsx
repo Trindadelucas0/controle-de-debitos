@@ -1,3 +1,4 @@
+import { EXITO } from "@/lib/exito-palette";
 import {
   Document,
   Page,
@@ -39,13 +40,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 36,
     fontSize: 9,
     fontFamily: "Helvetica",
-    color: "#0f172a",
+    color: EXITO.ink,
   },
   header: {
     marginBottom: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: EXITO.line,
     alignItems: "center",
   },
   reportTitle: {
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     letterSpacing: 1.2,
     marginBottom: 8,
-    color: "#475569",
+    color: EXITO.muted,
     textAlign: "center",
   },
   title: {
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 9,
-    color: "#64748b",
+    color: EXITO.muted,
     marginBottom: 2,
     textAlign: "center",
   },
@@ -80,12 +81,12 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     marginBottom: 8,
     marginTop: 14,
-    color: "#0f172a",
+    color: EXITO.ink,
   },
   chartCard: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: EXITO.line,
     borderRadius: 4,
     padding: 10,
   },
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
   },
   chartDesc: {
     fontSize: 7,
-    color: "#64748b",
+    color: EXITO.muted,
     marginBottom: 8,
   },
   legendRow: {
@@ -117,11 +118,11 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 7,
-    color: "#475569",
+    color: EXITO.muted,
   },
   emptyChart: {
     fontSize: 8,
-    color: "#94a3b8",
+    color: EXITO.outline,
     marginTop: 24,
     textAlign: "center",
   },
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     width: "48%",
     flexGrow: 1,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: EXITO.line,
     borderRadius: 4,
     padding: 8,
   },
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
+    borderTopColor: EXITO.line,
   },
   esferaHeader: {
     flexDirection: "row",
@@ -156,45 +157,45 @@ const styles = StyleSheet.create({
   },
   esferaMeta: {
     fontSize: 8,
-    color: "#64748b",
+    color: EXITO.muted,
     marginTop: 2,
   },
   semDoc: {
     padding: 10,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: EXITO.surfaceLow,
     borderRadius: 4,
     fontSize: 8,
-    color: "#64748b",
+    color: EXITO.muted,
   },
   table: {
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: EXITO.line,
     borderRadius: 3,
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#f1f5f9",
+    backgroundColor: EXITO.surfaceLow,
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: EXITO.line,
     paddingVertical: 5,
     paddingHorizontal: 4,
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: EXITO.surfaceLow,
     paddingVertical: 4,
     paddingHorizontal: 4,
   },
   th: {
     fontSize: 6.5,
     fontFamily: "Helvetica-Bold",
-    color: "#475569",
+    color: EXITO.muted,
   },
   td: {
     fontSize: 6.5,
-    color: "#0f172a",
+    color: EXITO.ink,
   },
   tdRight: {
     fontSize: 6.5,
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     fontSize: 7,
-    color: "#94a3b8",
+    color: EXITO.outline,
   },
 });
 
@@ -232,9 +233,9 @@ function statusLabel(status: StatusEsfera | "pendencia" | "regular") {
 }
 
 function statusColors(status: StatusEsfera | "pendencia" | "regular") {
-  if (status === "pendencia") return { bg: "#fef3c7", fg: "#92400e" };
-  if (status === "regular") return { bg: "#d1fae5", fg: "#065f46" };
-  return { bg: "#e2e8f0", fg: "#475569" };
+  if (status === "pendencia") return { bg: EXITO.dangerBg, fg: EXITO.danger };
+  if (status === "regular") return { bg: EXITO.greenSoft, fg: EXITO.green };
+  return { bg: EXITO.surfaceHighest, fg: EXITO.muted };
 }
 
 function StatusBadge({ status }: { status: StatusEsfera | "pendencia" | "regular" }) {
@@ -328,7 +329,7 @@ function PieChartPdf({
               />
             );
           })}
-          <Circle cx={cx} cy={cy} r={r * 0.45} fill="#ffffff" />
+          <Circle cx={cx} cy={cy} r={r * 0.45} fill={EXITO.card} />
         </G>
       </Svg>
       {showLegend ? (

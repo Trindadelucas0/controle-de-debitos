@@ -76,8 +76,8 @@ function TituloChartCard({
     <Card
       className={cn(
         "transition-colors",
-        clickable && "cursor-pointer hover:border-slate-400 hover:shadow-sm",
-        active && "border-cyan-600 ring-2 ring-cyan-600/30",
+        clickable && "cursor-pointer hover:-translate-y-0.5 hover:border-green hover:shadow-[var(--shadow)]",
+        active && "border-green ring-2 ring-success-bg",
       )}
       onClick={onClick}
       role={clickable ? "button" : undefined}
@@ -131,7 +131,7 @@ function TituloChartCard({
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-slate-700">
+            <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-on-surface-variant">
               {item.composicao.map((slice) => (
                 <li key={slice.name} className="flex items-center gap-1.5">
                   <span
@@ -154,7 +154,7 @@ function TituloChartCard({
                 <li key={empresa.id}>
                   <Link
                     href={href}
-                    className="block truncate text-sm text-slate-800 underline-offset-2 hover:text-cyan-800 hover:underline"
+                    className="block truncate text-sm text-ink underline-offset-2 hover:text-green hover:underline"
                     onClick={(event) => event.stopPropagation()}
                   >
                     {empresa.nome}
@@ -164,12 +164,12 @@ function TituloChartCard({
             })}
           </ul>
         ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">
+          <p className="py-8 text-center text-sm text-exito-muted">
             Sem valores monetários neste título.
           </p>
         )}
         {clickable ? (
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          <p className="mt-2 text-center text-[11px] text-exito-muted">
             {active ? "Filtro ativo — clique para remover" : "Clique para filtrar empresas"}
           </p>
         ) : null}

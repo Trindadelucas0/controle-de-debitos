@@ -3,44 +3,36 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import {
-  Building2,
-  CalendarClock,
-  ClipboardList,
-  FileUp,
-  Landmark,
-  LayoutDashboard,
-  MapPin,
-  Search,
-} from "lucide-react";
 import { ESFERA_LABELS } from "@/lib/analytics";
 import { sortCompetencias } from "@/lib/competencia";
 import type { Esfera } from "@/lib/types";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 const ESFERAS: Esfera[] = ["federal", "estadual", "municipal"];
 
-const ESFERA_ICONS = {
-  federal: Landmark,
-  estadual: Building2,
-  municipal: MapPin,
-} as const;
+const ESFERA_ICONS: Record<Esfera, IconName> = {
+  federal: "account_balance",
+  estadual: "apartment",
+  municipal: "location_on",
+};
 
 type NavItem = {
   id: string;
   label: string;
   href: string;
   active: boolean;
-  icon: typeof LayoutDashboard;
+  icon: IconName;
   group: "main" | "esferas";
 };
 
 type Props = {
   competencias: string[];
   competenciaAtual: string;
+  onNavigate?: () => void;
 };
 
-export function SidebarNav({ competencias, competenciaAtual }: Props) {
+export function SidebarNav({ competencias, competenciaAtual, onNavigate }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
@@ -72,7 +64,7 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
         label: "Visão geral",
         href: withCompetencia("/"),
         active: isHome && !esferaAtiva,
-        icon: LayoutDashboard,
+        icon: "dashboard",
         group: "main",
       },
       {
@@ -80,7 +72,7 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
         label: "Importar PDFs",
         href: withCompetencia("/upload"),
         active: isUpload,
-        icon: FileUp,
+        icon: "upload_file",
         group: "main",
       },
       {
@@ -88,7 +80,7 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
         label: "Consultas",
         href: withCompetencia("/consultas"),
         active: isConsultas,
-        icon: ClipboardList,
+        icon: "assignment",
         group: "main",
       },
       {
@@ -96,7 +88,7 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
         label: "Parcelamentos",
         href: withCompetencia("/parcelamentos"),
         active: isParcelamentos,
-        icon: CalendarClock,
+        icon: "event_repeat",
         group: "main",
       },
       ...ESFERAS.map((esfera) => ({
@@ -121,72 +113,68 @@ export function SidebarNav({ competencias, competenciaAtual }: Props) {
   const esferaItems = filtered.filter((item) => item.group === "esferas");
 
   return (
-    <nav className="flex h-full flex-col text-sm text-shell-foreground">
-      <div className="border-b border-white/10 px-3 py-3">
+    <nav className="flex h-full flex-col text-sm text-ink">
+      <div className="border-b border-line px-3 py-3">
         <label className="relative block">
-          <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-shell-muted"
-            aria-hidden
+          <Icon
+            name="search"
+            size={16}
+            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-exito-muted"
           />
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Pesquisar"
-            className="h-9 w-full rounded-md border border-white/15 bg-shell-deep/60 py-2 pl-8 pr-3 text-sm text-shell-foreground placeholder:text-shell-muted outline-none focus:border-shell-active/60 focus:ring-1 focus:ring-shell-active/40"
+            className="h-10 w-full rounded-ctl border-0 bg-surface-low py-2 pl-8 pr-3 text-sm text-ink placeholder:text-[var(--placeholder)] outline-none focus-visible:ring-2 focus-visible:ring-green focus-visible:ring-offset-2"
           />
         </label>
       </div>
 
       <div className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
         {mainItems.map((item) => (
-          <NavLink key={item.id} item={item} />
+          <NavLink key={item.id} item={item} onNavigate={onNavigate} />
         ))}
 
         {esferaItems.length > 0 ? (
           <>
-            <div className="mt-4 px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-shell-muted">
-              Esferas
-            </div>
+            <div className="t-eyebrow mt-4 px-3 pb-1 text-exito-muted">Esferas</div>
             {esferaItems.map((item) => (
-              <NavLink key={item.id} item={item} />
+              <NavLink key={item.id} item={item} onNavigate={onNavigate} />
             ))}
           </>
         ) : null}
 
         {filtered.length === 0 ? (
-          <p className="px-3 py-2 text-xs text-shell-muted">Nenhum item encontrado.</p>
+          <p className="px-3 py-2 text-xs text-exito-muted">Nenhum item encontrado.</p>
         ) : null}
       </div>
     </nav>
   );
 }
 
-function NavLink({ item }: { item: NavItem }) {
-  const Icon = item.icon;
+function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const isEsfera = item.group === "esferas";
 
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={cn(
-        "group relative flex items-center gap-2.5 rounded-md px-3 transition-colors",
+        "group relative flex items-center gap-2.5 rounded-ctl px-3 transition-colors",
         isEsfera ? "py-3" : "py-2",
         item.active
-          ? "bg-shell-active-bg text-white"
-          : "text-shell-foreground/90 hover:bg-shell-hover",
+          ? "bg-green text-on-primary"
+          : "text-on-surface-variant hover:bg-surface-container",
       )}
     >
-      {item.active ? (
-        <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-r bg-shell-active" />
-      ) : null}
       <Icon
+        name={item.icon}
+        size={isEsfera ? 20 : 18}
         className={cn(
           "shrink-0",
-          isEsfera ? "size-5" : "size-4",
-          item.active ? "text-shell-active" : "text-shell-muted group-hover:text-shell-foreground",
+          item.active ? "text-on-primary" : "text-exito-muted group-hover:text-on-surface-variant",
         )}
-        aria-hidden
       />
       <span
         className={cn(

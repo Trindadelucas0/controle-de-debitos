@@ -1,20 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Building2,
-  CalendarDays,
-  CheckCircle2,
-  Eraser,
-  FileUp,
-  Landmark,
-  MapPin,
-  Trash2,
-  Upload,
-  type LucideIcon,
-} from "lucide-react";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { BlockingOverlay } from "@/components/BlockingOverlay";
@@ -93,32 +81,32 @@ const ZONES: {
   title: string;
   subtitle: string;
   accent: string;
-  icon: LucideIcon;
+  icon: IconName;
   iconTone: string;
 }[] = [
   {
     tipo: "ECAC",
     title: "Receita Federal (ECAC)",
     subtitle: "Esfera Federal · identifica empresa sozinho",
-    accent: "border-blue-200 bg-blue-50/40",
-    icon: Landmark,
-    iconTone: "bg-blue-600 text-white",
+    accent: "border-success-border bg-success-bg/40",
+    icon: "account_balance",
+    iconTone: "bg-green text-on-primary",
   },
   {
     tipo: "AGENCIANET",
     title: "Agenci@Net (SEFAZ)",
     subtitle: "Esfera Estadual · identifica empresa sozinho",
-    accent: "border-teal-200 bg-teal-50/40",
-    icon: Building2,
-    iconTone: "bg-teal-600 text-white",
+    accent: "border-line bg-surface-low",
+    icon: "apartment",
+    iconTone: "bg-green-fixed text-green",
   },
   {
     tipo: "MUNICIPAL",
     title: "Prefeitura (Municipal)",
     subtitle: "Esfera Municipal · identifica empresa sozinho",
-    accent: "border-orange-200 bg-orange-50/40",
-    icon: MapPin,
-    iconTone: "bg-orange-600 text-white",
+    accent: "border-line bg-surface-container/60",
+    icon: "location_on",
+    iconTone: "bg-on-surface-variant text-on-primary",
   },
 ];
 
@@ -709,8 +697,8 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       />
       <div>
         {busy ? (
-          <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-            <ArrowLeft className="size-3.5" aria-hidden />
+          <span className="inline-flex items-center gap-1.5 text-sm text-exito-muted">
+            <Icon name="arrow_back" size={14} />
             Aguarde o fim da operação para voltar
           </span>
         ) : (
@@ -718,19 +706,19 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
             href={competenciaEfetiva ? `/?competencia=${competenciaEfetiva}` : "/"}
             className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-2 hover:underline"
           >
-            <ArrowLeft className="size-3.5" aria-hidden />
+            <Icon name="arrow_back" size={14} />
             Voltar ao painel
           </Link>
         )}
         <div className="mt-3">
-          <PageHeader icon={FileUp} title="IMPORTAR RELATORIOS" />
+          <PageHeader icon="upload_file" title="IMPORTAR RELATORIOS" />
         </div>
       </div>
 
       <Card className="shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <CalendarDays className="size-4 text-primary" aria-hidden />
+            <Icon name="calendar_month" size={16} className="text-primary" />
             Competência
           </CardTitle>
           <CardDescription>Obrigatório — define a pasta MM-YYYY do arquivo</CardDescription>
@@ -790,7 +778,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               />
             </div>
           </label>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-exito-muted">
             Efetiva: <span className="font-medium text-foreground">{competenciaEfetiva || "—"}</span>
           </p>
         </CardContent>
@@ -799,15 +787,14 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       {phase !== "review" && phase !== "done" ? (
         <div className="grid gap-4 lg:grid-cols-3">
           {ZONES.map((zone) => {
-            const ZoneIcon = zone.icon;
             const zoneFiles = files.filter((f) => f.tipo === zone.tipo);
             return (
               <Card
                 key={zone.tipo}
                 className={cn(
-                  "border-dashed shadow-none transition-colors",
+                  "border-dashed shadow-[var(--shadow)] transition-colors",
                   zone.accent,
-                  dragOver === zone.tipo && "ring-2 ring-primary",
+                  dragOver === zone.tipo && "ring-2 ring-green",
                 )}
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -818,8 +805,8 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-sm">
-                    <span className={cn("inline-flex size-7 items-center justify-center rounded-md", zone.iconTone)}>
-                      <ZoneIcon className="size-4" aria-hidden />
+                    <span className={cn("inline-flex size-7 items-center justify-center rounded-ctl", zone.iconTone)}>
+                      <Icon name={zone.icon} size={16} />
                     </span>
                     {zone.title}
                   </CardTitle>
@@ -828,13 +815,13 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                 <CardContent>
                   <label
                     className={cn(
-                      "flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-slate-300 bg-white/70 px-3 py-6 text-center text-sm",
+                      "flex cursor-pointer flex-col items-center justify-center rounded-ctl border border-dashed border-outline-variant bg-surface-low px-3 py-6 text-center text-sm",
                       busy && "pointer-events-none opacity-60",
                     )}
                   >
-                    <Upload className="mb-2 size-8 text-slate-400" aria-hidden />
-                    <span className="font-medium text-slate-800">Arraste vários PDFs aqui</span>
-                    <span className="mt-1 text-xs text-muted-foreground">ou clique para escolher</span>
+                    <Icon name="upload" size={32} className="mb-2 text-exito-muted" />
+                    <span className="font-medium text-ink">Arraste vários PDFs aqui</span>
+                    <span className="mt-1 text-xs text-exito-muted">ou clique para escolher</span>
                     <input
                       type="file"
                       className="sr-only"
@@ -856,7 +843,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                         <span className="truncate">{f.file.name}</span>
                         <button
                           type="button"
-                          className="shrink-0 text-red-600 hover:underline"
+                          className="shrink-0 text-danger hover:underline"
                           disabled={busy}
                           onClick={() => removeFile(f.id)}
                         >
@@ -875,7 +862,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       <div className="flex flex-wrap items-center gap-3">
         {phase === "idle" || phase === "previewing" ? (
           <Button type="button" disabled={busy || files.length === 0} onClick={() => void onAnalisar()}>
-            <Upload className="size-4" aria-hidden />
+            <Icon name="upload" size={16} />
             {phase === "previewing"
               ? progress
                 ? `Analisando ${progress.current}/${progress.total}…`
@@ -891,7 +878,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               disabled={busy || selectedForCommit.length === 0}
               onClick={() => void onConfirmar()}
             >
-              <CheckCircle2 className="size-4" aria-hidden />
+              <Icon name="check_circle" size={16} />
               {selectedForCommit.length === 0
                 ? "Nada para gravar"
                 : `Confirmar e gravar no painel (${selectedForCommit.length})`}
@@ -914,7 +901,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
               setDeletedIds([]);
             }}
           >
-            <Eraser className="size-4" aria-hidden />
+            <Icon name="ink_eraser" size={16} />
             Limpar lista
           </Button>
         ) : null}
@@ -926,7 +913,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
             disabled={deleting}
             onClick={() => void excluirImportados(importadosOk)}
           >
-            <Trash2 className="size-4" aria-hidden />
+            <Icon name="delete" size={16} />
             {deleting ? "Excluindo…" : `Excluir o que foi importado (${importadosOk.length})`}
           </Button>
         ) : null}
@@ -945,14 +932,14 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         selectedForCommit.length === 0 ? (
           <p
             role="status"
-            className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+            className="rounded-md border border-danger-border bg-danger-bg px-3 py-2 text-sm text-danger"
           >
             A extração terminou, mas nada será gravado: os PDFs vieram com erro
             ou sem extração válida. Corrija o arquivo e analise de novo. PDFs já
             existentes na pasta podem ser marcados e confirmados para atualizar o painel.
           </p>
         ) : (
-          <p className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
+          <p className="rounded-md border border-line bg-surface-container px-3 py-2 text-sm text-ink">
             Extração ok. Os dados ainda <strong>não</strong> estão no painel. Marque o que quiser e
             clique em <strong>Confirmar e gravar no painel</strong>.
           </p>
@@ -962,7 +949,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
       {globalError && (
         <p
           role="alert"
-          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className="rounded-md border border-danger-border bg-error-container px-3 py-2 text-sm text-on-error-container"
         >
           {globalError}
         </p>
@@ -974,10 +961,10 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           className={cn(
             "rounded-md border px-4 py-3 text-sm",
             donePayload.ok && errorCount === 0
-              ? "border-emerald-300 bg-emerald-50 text-emerald-950"
+              ? "border-success-border bg-success-bg text-green"
               : donePayload.ok
-                ? "border-amber-300 bg-amber-50 text-amber-950"
-                : "border-red-200 bg-red-50 text-red-900",
+                ? "border-danger-border bg-danger-bg text-danger"
+                : "border-danger-border bg-error-container text-on-error-container",
           )}
         >
           <p className="text-base font-semibold tracking-tight">
@@ -997,7 +984,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
         </div>
       )}
       {donePayload?.aviso_global && (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p className="rounded-md border border-danger-border bg-danger-bg px-3 py-2 text-sm text-danger">
           {donePayload.aviso_global}
         </p>
       )}
@@ -1016,7 +1003,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
           </CardHeader>
           <div className="overflow-auto">
             <table className="w-full min-w-[960px] border-collapse text-left text-sm">
-              <thead className="border-b bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b bg-muted/40 text-[11px] uppercase tracking-wide text-exito-muted">
                 <tr>
                   {phase === "review" ? <th className="px-3 py-2">Incluir</th> : null}
                   <th className="px-3 py-2">#</th>
@@ -1049,9 +1036,9 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                       key={f.id}
                       className={cn(
                         "border-b border-border/70",
-                        f.status === "uploading" && "bg-sky-50/80",
-                        duplicado && "bg-amber-50/70",
-                        wasDeleted && "bg-slate-50 opacity-60",
+                        f.status === "uploading" && "bg-surface-container/80",
+                        duplicado && "bg-danger-bg/70",
+                        wasDeleted && "bg-surface-low opacity-60",
                       )}
                     >
                       {phase === "review" ? (
@@ -1073,32 +1060,32 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                           />
                         </td>
                       ) : null}
-                      <td className="px-3 py-2 tabular text-muted-foreground">{idx + 1}</td>
+                      <td className="px-3 py-2 tabular text-exito-muted">{idx + 1}</td>
                       <td className="px-3 py-2 align-top">
                         <div className="font-medium">{r?.arquivo_final || f.file.name}</div>
                         {r?.avisos?.length ? (
-                          <div className="mt-1 text-[11px] text-muted-foreground">
+                          <div className="mt-1 text-[11px] text-exito-muted">
                             {r.avisos.slice(0, 4).join(" · ")}
                           </div>
                         ) : null}
                         {f.error ? (
-                          <div className="mt-1 text-[11px] text-red-600">{f.error}</div>
+                          <div className="mt-1 text-[11px] text-danger">{f.error}</div>
                         ) : null}
                       </td>
                       <td className="px-3 py-2 align-top">
                         <Badge variant="outline">{r?.tipo || f.tipo}</Badge>
-                        <div className="mt-1 text-[11px] text-muted-foreground">{r?.esfera}</div>
+                        <div className="mt-1 text-[11px] text-exito-muted">{r?.esfera}</div>
                       </td>
                       <td className="px-3 py-2 align-top text-xs">
                         {r?.competencia ? formatCompetencia(r.competencia) : "—"}
                       </td>
                       <td className="px-3 py-2 align-top">
                         <span>{r?.empresa || "—"}</span>
-                        <div className="tabular text-[11px] text-muted-foreground">{r?.cnpj || ""}</div>
+                        <div className="tabular text-[11px] text-exito-muted">{r?.cnpj || ""}</div>
                       </td>
                       <td className="px-3 py-2 align-top text-xs">{r?.destino || "—"}</td>
                       <td className="px-3 py-2 align-top tabular">{r?.qtd_debitos ?? "—"}</td>
-                      <td className="px-3 py-2 align-top text-[11px] text-muted-foreground">
+                      <td className="px-3 py-2 align-top text-[11px] text-exito-muted">
                         {r?.titulos?.length
                           ? r.titulos.map((titulo) => formatTituloPendencia(titulo)).join(" · ")
                           : r?.classe === "SEM_PENDENCIA"
@@ -1114,7 +1101,7 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                         ) : duplicado ? (
                           <div className="space-y-1">
                             <Badge variant="outline">Duplicado</Badge>
-                            <div className="text-[11px] text-amber-900">
+                            <div className="text-[11px] text-danger">
                               Já importado — marque e confirme para atualizar o{" "}
                               {esferaUiLabel(r)}.
                             </div>
@@ -1143,14 +1130,14 @@ export function UploadPanel({ competencias, competenciaInicial }: Props) {
                           !wasDeleted ? (
                             <button
                               type="button"
-                              className="text-xs font-medium text-red-700 hover:underline disabled:opacity-50"
+                              className="text-xs font-medium text-danger hover:underline disabled:opacity-50"
                               disabled={deleting || busy}
                               onClick={() => void excluirImportados([f])}
                             >
                               Excluir
                             </button>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-xs text-exito-muted">—</span>
                           )}
                         </td>
                       ) : null}

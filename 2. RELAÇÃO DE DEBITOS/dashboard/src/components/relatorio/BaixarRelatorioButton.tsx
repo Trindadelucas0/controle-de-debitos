@@ -1,8 +1,8 @@
 "use client";
 
-import { FileDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import type { Empresa } from "@/lib/types";
 
 type Props = {
@@ -60,20 +60,21 @@ export function BaixarRelatorioButton({ empresa, competencia }: Props) {
     <div className="flex flex-col items-end gap-1">
       <Button
         type="button"
-        variant="outline"
         size="sm"
         onClick={baixar}
         disabled={gerando}
         className="gap-1.5"
       >
         {gerando ? (
-          <Loader2 className="size-3.5 animate-spin" aria-hidden />
+          <Icon name="progress_activity" size={14} className="animate-spin" />
         ) : (
-          <FileDown className="size-3.5" aria-hidden />
+          <Icon name="picture_as_pdf" size={14} />
         )}
         {gerando ? "Gerando…" : "Baixar relatório PDF"}
       </Button>
-      {erro ? <p className="max-w-[220px] text-right text-xs text-red-600">{erro}</p> : null}
+      {erro ? (
+        <p className="max-w-[220px] text-right text-xs text-danger">{erro}</p>
+      ) : null}
     </div>
   );
 }

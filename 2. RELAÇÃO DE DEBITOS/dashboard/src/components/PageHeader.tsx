@@ -1,9 +1,9 @@
-import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  icon: LucideIcon;
+  icon: IconName;
   title: string;
   description?: string;
   actions?: ReactNode;
@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function PageHeader({
-  icon: Icon,
+  icon,
   title,
   description,
   actions,
@@ -24,16 +24,16 @@ export function PageHeader({
       <div className="flex min-w-0 items-start gap-3">
         <span
           className={cn(
-            "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary",
+            "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-ctl bg-success-bg text-green",
             iconClassName,
           )}
         >
-          <Icon className="size-5" aria-hidden />
+          <Icon name={icon} size={20} />
         </span>
         <div className="min-w-0">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
+          <h2 className="t-title-lg text-ink">{title}</h2>
           {description ? (
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            <p className="mt-1 text-sm text-exito-muted">{description}</p>
           ) : null}
         </div>
       </div>

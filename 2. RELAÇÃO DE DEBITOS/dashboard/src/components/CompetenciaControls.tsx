@@ -1,8 +1,9 @@
 "use client";
 
-import { CalendarDays, GitCompare } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { formatCompetencia } from "@/lib/competencia";
+import { Icon } from "@/components/ui/icon";
+import { selectDenseClass } from "@/components/ui/select-native";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -37,7 +38,6 @@ export function CompetenciaControls({
       if (next.comparar) params.set("comparar", next.comparar);
       else params.delete("comparar");
     }
-    // Evita comparar a mesma competência
     if (params.get("comparar") === params.get("competencia")) {
       params.delete("comparar");
     }
@@ -51,13 +51,13 @@ export function CompetenciaControls({
   return (
     <div className={cn("flex flex-wrap items-end gap-3", className)}>
       {!hideCompetencia ? (
-        <label className="grid gap-1 text-xs font-medium text-slate-700">
+        <label className="grid gap-1 text-xs font-medium text-on-surface-variant">
           <span className="inline-flex items-center gap-1.5">
-            <CalendarDays className="size-3.5 text-primary" aria-hidden />
+            <Icon name="calendar_month" size={14} className="text-green" />
             Competência
           </span>
           <select
-            className="h-9 min-w-[140px] rounded-md border border-input bg-card px-2 text-sm"
+            className={cn(selectDenseClass, "min-w-[140px]")}
             value={competencia}
             onChange={(event) => pushParams({ competencia: event.target.value })}
           >
@@ -71,13 +71,13 @@ export function CompetenciaControls({
       ) : null}
 
       {allowCompare && (
-        <label className="grid gap-1 text-xs font-medium text-slate-700">
+        <label className="grid gap-1 text-xs font-medium text-on-surface-variant">
           <span className="inline-flex items-center gap-1.5">
-            <GitCompare className="size-3.5 text-primary" aria-hidden />
+            <Icon name="compare_arrows" size={14} className="text-green" />
             Comparar com
           </span>
           <select
-            className="h-9 min-w-[140px] rounded-md border border-input bg-card px-2 text-sm"
+            className={cn(selectDenseClass, "min-w-[140px]")}
             value={comparar ?? ""}
             onChange={(event) =>
               pushParams({ comparar: event.target.value ? event.target.value : null })
@@ -97,7 +97,7 @@ export function CompetenciaControls({
       )}
 
       {competencias.length < 2 && allowCompare && (
-        <p className="max-w-xs text-[11px] text-muted-foreground">
+        <p className="max-w-xs text-[11px] text-exito-muted">
           Inclua outra pasta MM-YYYY (ex.: 06-2026) e regenere os dados para comparar.
         </p>
       )}

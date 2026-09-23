@@ -1,17 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { useRouter } from "next/navigation";
-import {
-  CalendarClock,
-  CalendarDays,
-  FileDown,
-  FileSpreadsheet,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
 import { BlockingOverlay } from "@/components/BlockingOverlay";
 import { PageHeader } from "@/components/PageHeader";
 import { SiteEmissaoButton } from "@/components/SiteEmissaoButton";
@@ -141,19 +132,19 @@ function fold(value: string | null | undefined): string {
 }
 
 function rowTone(status: ParcelamentoStatus): string {
-  if (status === "ativo") return "bg-emerald-100/90 hover:bg-emerald-100";
-  if (status === "encerrado") return "bg-sky-100/90 hover:bg-sky-100";
-  if (status === "saiu") return "bg-slate-200/80 hover:bg-slate-200";
-  if (status === "cancelado") return "bg-red-100/90 hover:bg-red-100";
-  return "bg-amber-100/90 hover:bg-amber-100";
+  if (status === "ativo") return "bg-success-bg/90 hover:bg-success-bg";
+  if (status === "encerrado") return "bg-surface-container/90 hover:bg-surface-container";
+  if (status === "saiu") return "bg-neutral-pill hover:bg-surface-low";
+  if (status === "cancelado") return "bg-error-container/90 hover:bg-error-container";
+  return "bg-danger-bg/90 hover:bg-danger-bg";
 }
 
 const selectClass =
-  "h-8 w-full min-w-[9rem] rounded border border-black/10 bg-white/80 px-1.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-ring";
+  "h-8 w-full min-w-[9rem] rounded-ctl border-0 bg-surface-low px-1.5 text-xs text-ink outline-none focus-visible:ring-2 focus-visible:ring-green focus-visible:ring-offset-2";
 const situacaoSelectClass =
-  "h-8 w-full min-w-[13rem] rounded border border-black/10 bg-white/80 px-1.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-ring";
+  "h-8 w-full min-w-[13rem] rounded-ctl border-0 bg-surface-low px-1.5 text-xs text-ink outline-none focus-visible:ring-2 focus-visible:ring-green focus-visible:ring-offset-2";
 const cellInputClass =
-  "h-8 w-full min-w-[5rem] rounded border border-black/10 bg-white/80 px-1.5 text-xs shadow-none";
+  "h-8 w-full min-w-[5rem] rounded-ctl border-0 bg-surface-low px-1.5 text-xs shadow-none focus-visible:ring-2 focus-visible:ring-green focus-visible:ring-offset-2";
 
 export function ParcelamentosPanel({
   initialEmpresas,
@@ -730,17 +721,17 @@ export function ParcelamentosPanel({
       <BlockingOverlay open={busy} title={busyLabel} />
 
       <PageHeader
-        icon={CalendarClock}
+        icon="event_repeat"
         title="Parcelamentos"
         description={`Tabela da competência ${competenciaLabel} · mesmas colunas em todos os meses`}
         actions={
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={exportExcel}>
-              <FileSpreadsheet aria-hidden />
+              <Icon name="table_view" size={16} />
               Excel
             </Button>
             <Button type="button" variant="outline" onClick={() => void exportPdf()}>
-              <FileDown aria-hidden />
+              <Icon name="picture_as_pdf" size={16} />
               PDF
             </Button>
             <Button
@@ -751,7 +742,7 @@ export function ParcelamentosPanel({
               Gerar competência
             </Button>
             <Button type="button" onClick={() => setShowNova((v) => !v)}>
-              <Plus aria-hidden />
+              <Icon name="add" size={16} />
               Nova empresa
             </Button>
           </div>
@@ -760,9 +751,9 @@ export function ParcelamentosPanel({
 
       <div className="rounded-lg border border-border bg-card p-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <label className="grid gap-1 text-xs font-medium text-slate-700">
+          <label className="grid gap-1 text-xs font-medium text-on-surface-variant">
             <span className="inline-flex items-center gap-1.5">
-              <CalendarDays className="size-3.5 text-primary" aria-hidden />
+              <Icon name="calendar_month" size={14} className="text-primary" />
               Competência do parcelamento
             </span>
             <select
@@ -789,8 +780,8 @@ export function ParcelamentosPanel({
                 className={cn(
                   "rounded-md border px-2.5 py-1 text-xs font-semibold tabular-nums transition-colors",
                   id === competencia
-                    ? "border-emerald-600 bg-emerald-600 text-white"
-                    : "border-border bg-white text-slate-700 hover:border-emerald-400 hover:bg-emerald-50",
+                    ? "border-green bg-green text-white"
+                    : "border-line bg-card text-on-surface-variant hover:border-green hover:bg-success-bg",
                 )}
               >
                 {formatCompetencia(id)}
@@ -798,14 +789,14 @@ export function ParcelamentosPanel({
             ))}
           </div>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-xs text-exito-muted">
           Mostra só o mês atual e os 2 seguintes. Quando virar o mês, a janela
           avança sozinha. Cada competência abre a mesma tabela (Situação, COD,
           Empresa, Grupo, CNPJ, Tipo, Nº, Parcela atual, Total, Em aberto, Último
           mês, Vencimento, Obs e Ações).
         </p>
         {competencia && !compsJanela.includes(competencia) ? (
-          <p className="mt-2 text-xs text-amber-800">
+          <p className="mt-2 text-xs text-danger">
             Você está em {competenciaLabel}, fora da janela de 3 meses.{" "}
             <button
               type="button"
@@ -819,14 +810,14 @@ export function ParcelamentosPanel({
       </div>
 
       {compsGeradasInfo && compsGeradasInfo.length > 0 ? (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-950">
+        <div className="rounded-md border border-success-border bg-success-bg px-3 py-3 text-sm text-green">
           <p className="font-medium">
             Cronograma desta empresa:{" "}
             {compsGeradasInfo.length === 1
               ? `só o mês seguinte (${formatCompetencia(compsGeradasInfo[0])})`
               : `${compsGeradasInfo.length} meses até ${formatCompetencia(compsGeradasInfo[compsGeradasInfo.length - 1])}`}
           </p>
-          <p className="mt-1 text-xs text-emerald-900/80">
+          <p className="mt-1 text-xs text-green/80">
             Total 2 e parcela 1 → apenas 1 mês à frente. Total maior → cria
             automaticamente todos os meses restantes. Abra o mês para ver a
             tabela com os mesmos títulos.
@@ -859,13 +850,13 @@ export function ParcelamentosPanel({
       ) : null}
 
       {loadError ? (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p className="rounded-md border border-danger-border bg-danger-bg px-3 py-2 text-sm text-danger">
           Dados indisponíveis: {loadError}
         </p>
       ) : null}
 
       {!competenciaExiste ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950">
+        <div className="rounded-md border border-danger-border bg-danger-bg px-3 py-3 text-sm text-danger">
           A competência <strong>{formatCompetencia(competencia)}</strong> ainda não
           existe no controle de parcelamentos.
           {comps.length > 0 ? (
@@ -881,17 +872,17 @@ export function ParcelamentosPanel({
       ) : null}
 
       {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="rounded-md border border-danger-border bg-error-container px-3 py-2 text-sm text-on-error-container">
           {error}
         </p>
       ) : null}
 
       {showGerar ? (
         <div className="rounded-lg border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold text-slate-900">
+          <h3 className="text-sm font-semibold text-ink">
             Gerar nova competência
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-exito-muted">
             Cria o mês novo vazio. Só entram empresas com parcelamento quando você
             salva Total + Parcela atual (o cronograma preenche os meses à frente).
           </p>
@@ -917,7 +908,7 @@ export function ParcelamentosPanel({
 
       {showNova ? (
         <div className="rounded-lg border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold text-slate-900">Nova empresa</h3>
+          <h3 className="text-sm font-semibold text-ink">Nova empresa</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="space-y-1 sm:col-span-2">
               <span className="text-sm font-medium">Empresa *</span>
@@ -989,7 +980,7 @@ export function ParcelamentosPanel({
             </label>
             <fieldset className="space-y-2 sm:col-span-2 lg:col-span-3">
               <legend className="text-sm font-medium">Tipo de parcelamento</legend>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-exito-muted">
                 PGFN, SN e SN PERT preenchem o vencimento com o último dia útil
                 do mês. Municipal e estadual pedem data manual.
               </p>
@@ -1030,12 +1021,12 @@ export function ParcelamentosPanel({
                 }
               />
               {isTipoVencimentoAutomatico(nova.tipo) ? (
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-xs text-exito-muted">
                   Preenchido automaticamente (último dia útil). Você pode
                   ajustar.
                 </span>
               ) : nova.tipo === "municipal" || nova.tipo === "estadual" ? (
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-xs text-exito-muted">
                   Preenchimento manual.
                 </span>
               ) : null}
@@ -1051,7 +1042,7 @@ export function ParcelamentosPanel({
                   setNova((f) => ({ ...f, totalParcelas: e.target.value }))
                 }
               />
-              <span className="block text-xs text-muted-foreground">
+              <span className="block text-xs text-exito-muted">
                 Obrigatório: a empresa só entra nas grades pelo total.
               </span>
             </label>
@@ -1080,7 +1071,7 @@ export function ParcelamentosPanel({
 
       {editEmpresa ? (
         <div className="rounded-lg border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold text-slate-900">
+          <h3 className="text-sm font-semibold text-ink">
             Editar empresa (identidade / Nº fixo)
           </h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -1169,10 +1160,7 @@ export function ParcelamentosPanel({
 
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 sm:flex-row sm:flex-wrap sm:items-center">
         <label className="relative min-w-[220px] flex-1">
-          <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
+          <Icon name="search" size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-exito-muted" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -1260,31 +1248,31 @@ export function ParcelamentosPanel({
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border shadow-sm">
-        <div className="border-b border-emerald-300/80 bg-emerald-100/80 px-3 py-2 text-sm font-semibold text-slate-800">
+        <div className="border-b border-line bg-surface-container px-3 py-2 text-sm font-semibold text-ink">
           Tabela de parcelamentos — competência {competenciaLabel}
         </div>
         <table className="w-full min-w-[1200px] border-collapse text-left text-xs">
           <thead>
-            <tr className="bg-emerald-200/90 text-[11px] font-semibold uppercase tracking-wide text-slate-800">
-              <th className="border border-emerald-300/80 px-2 py-2">Situação</th>
-              <th className="border border-emerald-300/80 px-2 py-2">COD</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Empresa</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Site</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Grupo</th>
-              <th className="border border-emerald-300/80 px-2 py-2">CNPJ</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Tipo</th>
-              <th className="border border-emerald-300/80 px-2 py-2">
+            <tr className="bg-surface-container text-[11px] font-semibold uppercase tracking-wide text-ink">
+              <th className="border border-line px-2 py-2">Situação</th>
+              <th className="border border-line px-2 py-2">COD</th>
+              <th className="border border-line px-2 py-2">Empresa</th>
+              <th className="border border-line px-2 py-2">Site</th>
+              <th className="border border-line px-2 py-2">Grupo</th>
+              <th className="border border-line px-2 py-2">CNPJ</th>
+              <th className="border border-line px-2 py-2">Tipo</th>
+              <th className="border border-line px-2 py-2">
                 Nº parcelamento
               </th>
-              <th className="border border-emerald-300/80 px-2 py-2">
+              <th className="border border-line px-2 py-2">
                 Parcela atual {competenciaLabel}
               </th>
-              <th className="border border-emerald-300/80 px-2 py-2">Total</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Em aberto</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Último mês</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Vencimento</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Obs</th>
-              <th className="border border-emerald-300/80 px-2 py-2">Ações</th>
+              <th className="border border-line px-2 py-2">Total</th>
+              <th className="border border-line px-2 py-2">Em aberto</th>
+              <th className="border border-line px-2 py-2">Último mês</th>
+              <th className="border border-line px-2 py-2">Vencimento</th>
+              <th className="border border-line px-2 py-2">Obs</th>
+              <th className="border border-line px-2 py-2">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -1325,7 +1313,7 @@ export function ParcelamentosPanel({
               );
               return (
                 <tr key={id} className={cn(rowTone(draft.status))}>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <select
                       className={situacaoSelectClass}
                       aria-label="Situação"
@@ -1343,26 +1331,26 @@ export function ParcelamentosPanel({
                       ))}
                     </select>
                   </td>
-                  <td className="border border-black/10 px-2 py-1 align-middle font-medium tabular-nums">
+                  <td className="border border-line px-2 py-1 align-middle font-medium tabular-nums">
                     {card.empresa.cod ?? "—"}
                   </td>
-                  <td className="border border-black/10 px-2 py-1 align-middle font-medium">
+                  <td className="border border-line px-2 py-1 align-middle font-medium">
                     {card.empresa.empresa}
                   </td>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <SiteEmissaoButton
                       siteEmissao={card.empresa.siteEmissao}
                       tipo={draft.tipo as ParcelamentoTipo | ""}
                       showPlaceholder
                     />
                   </td>
-                  <td className="border border-black/10 px-2 py-1 align-middle">
+                  <td className="border border-line px-2 py-1 align-middle">
                     {card.empresa.grupo ?? ""}
                   </td>
-                  <td className="border border-black/10 px-2 py-1 align-middle whitespace-nowrap tabular-nums">
+                  <td className="border border-line px-2 py-1 align-middle whitespace-nowrap tabular-nums">
                     {formatCnpj(card.empresa.cnpj)}
                   </td>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <select
                       className={selectClass}
                       value={draft.tipo}
@@ -1385,10 +1373,10 @@ export function ParcelamentosPanel({
                       ))}
                     </select>
                   </td>
-                  <td className="border border-black/10 px-2 py-1 align-middle font-mono text-[11px]">
+                  <td className="border border-line px-2 py-1 align-middle font-mono text-[11px]">
                     {card.empresa.numeroParcelamento || "—"}
                   </td>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <Input
                       type="number"
                       min={1}
@@ -1401,7 +1389,7 @@ export function ParcelamentosPanel({
                       }
                     />
                   </td>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <Input
                       type="number"
                       min={1}
@@ -1414,15 +1402,15 @@ export function ParcelamentosPanel({
                       }
                     />
                   </td>
-                  <td className="border border-black/10 px-2 py-1 align-middle text-center tabular-nums text-muted-foreground">
+                  <td className="border border-line px-2 py-1 align-middle text-center tabular-nums text-exito-muted">
                     {preview.parcelasEmAberto ?? "—"}
                   </td>
-                  <td className="border border-black/10 px-2 py-1 align-middle text-center tabular-nums font-medium">
+                  <td className="border border-line px-2 py-1 align-middle text-center tabular-nums font-medium">
                     {preview.ultimaCompetencia
                       ? formatCompetencia(preview.ultimaCompetencia)
                       : "—"}
                   </td>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <Input
                       type="date"
                       className={cellInputClass}
@@ -1432,7 +1420,7 @@ export function ParcelamentosPanel({
                       }
                     />
                   </td>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <Input
                       className={cn(cellInputClass, "min-w-[8rem]")}
                       value={draft.observacao}
@@ -1441,7 +1429,7 @@ export function ParcelamentosPanel({
                       }
                     />
                   </td>
-                  <td className="border border-black/10 px-1.5 py-1 align-middle">
+                  <td className="border border-line px-1.5 py-1 align-middle">
                     <div className="flex flex-nowrap gap-1">
                       <Button
                         type="button"
@@ -1471,17 +1459,17 @@ export function ParcelamentosPanel({
                           })
                         }
                       >
-                        <Pencil className="size-3.5" aria-hidden />
+                        <Icon name="edit" size={14} />
                       </Button>
                       <Button
                         type="button"
                         size="sm"
                         variant="ghost"
-                        className="h-7 px-2 text-red-700"
+                        className="h-7 px-2 text-danger"
                         title="Remover só desta grade"
                         onClick={() => void removerDaGrade(card.empresa)}
                       >
-                        <Trash2 className="size-3.5" aria-hidden />
+                        <Icon name="delete" size={14} />
                       </Button>
                     </div>
                   </td>
@@ -1491,7 +1479,7 @@ export function ParcelamentosPanel({
           </tbody>
         </table>
         {filtered.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+          <p className="px-4 py-8 text-center text-sm text-exito-muted">
             Nenhuma empresa com parcelamento nesta competência. Use{" "}
             <strong>Nova empresa</strong> (com Total de parcelas) ou{" "}
             <strong>Incluir pelo total</strong> a partir do cadastro.
@@ -1513,18 +1501,18 @@ function Kpi({
 }) {
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-3">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <p className="text-xs font-medium uppercase tracking-wide text-exito-muted">
         {label}
       </p>
       <p
         className={cn(
           "mt-1 text-2xl font-bold tabular-nums",
-          tone === "ok" && "text-emerald-700",
-          tone === "info" && "text-sky-700",
-          tone === "warn" && "text-amber-700",
-          tone === "danger" && "text-red-700",
-          tone === "muted" && "text-slate-500",
-          !tone && "text-slate-900",
+          tone === "ok" && "text-green",
+          tone === "info" && "text-green",
+          tone === "warn" && "text-danger",
+          tone === "danger" && "text-danger",
+          tone === "muted" && "text-exito-muted",
+          !tone && "text-ink",
         )}
       >
         {value}

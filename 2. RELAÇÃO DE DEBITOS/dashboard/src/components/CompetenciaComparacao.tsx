@@ -20,7 +20,7 @@ function delta(a: number, b: number) {
 function DeltaValue({ value }: { value: number }) {
   const positive = value > 0;
   const negative = value < 0;
-  const cls = positive ? "text-amber-700" : negative ? "text-emerald-700" : "text-muted-foreground";
+  const cls = positive ? "text-danger" : negative ? "text-green" : "text-exito-muted";
   const prefix = positive ? "+" : "";
   return (
     <span className={`tabular text-sm font-semibold ${cls}`}>
@@ -89,7 +89,7 @@ export function CompetenciaComparacao({
       <CardContent className="space-y-4">
         <div className="overflow-x-auto rounded-md border">
           <table className="w-full min-w-[480px] text-sm">
-            <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+            <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-exito-muted">
               <tr>
                 <th className="px-3 py-2 font-medium">Indicador</th>
                 <th className="px-3 py-2 font-medium">{formatCompetencia(baseCompetencia)}</th>
@@ -132,11 +132,11 @@ export function CompetenciaComparacao({
             const o = other.esferas?.[esfera]?.totais.saldo ?? 0;
             return (
               <div key={esfera} className="rounded-md border bg-muted/20 px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-exito-muted">
                   {ESFERA_LABELS[esfera]}
                 </p>
                 <p className="mt-1 tabular text-sm">{formatBRL(b)}</p>
-                <p className="tabular text-xs text-muted-foreground">
+                <p className="tabular text-xs text-exito-muted">
                   vs {formatBRL(o)}
                 </p>
                 <div className="mt-1">

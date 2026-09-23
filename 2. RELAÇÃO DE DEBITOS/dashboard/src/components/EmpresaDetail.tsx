@@ -1,17 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Building2,
-  Download,
-  ExternalLink,
-  Landmark,
-  MapPin,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
 import {
   createColumnHelper,
   flexRender,
@@ -58,10 +49,10 @@ const columnHelper = createColumnHelper<DebitoLinha>();
 
 const ESFERAS: Esfera[] = ["federal", "estadual", "municipal"];
 
-const ESFERA_ICONS: Record<Esfera, LucideIcon> = {
-  federal: Landmark,
-  estadual: Building2,
-  municipal: MapPin,
+const ESFERA_ICONS: Record<Esfera, IconName> = {
+  federal: "account_balance",
+  estadual: "apartment",
+  municipal: "location_on",
 };
 
 type Props = {
@@ -97,14 +88,14 @@ export function EmpresaDetail({
           href={backHref}
           className="inline-flex items-center gap-1.5 text-sm text-primary underline-offset-2 transition-colors hover:underline"
         >
-          <ArrowLeft className="size-3.5" aria-hidden />
+          <Icon name="arrow_back" size={14} />
           Voltar para o painel
         </Link>
       </div>
 
       <header className="space-y-4">
         <PageHeader
-          icon={Building2}
+          icon="apartment"
           title={empresa.nome}
           description={[
             empresa.codigo
@@ -129,7 +120,7 @@ export function EmpresaDetail({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <ExternalLink />
+                    <Icon name="open_in_new" size={16} />
                     Abrir PDF
                   </a>
                 </Button>
@@ -149,7 +140,7 @@ export function EmpresaDetail({
         />
 
         {visibleAvisos(empresa.avisos).length > 0 && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <div className="rounded-md border border-danger-border bg-danger-bg px-3 py-2 text-sm text-danger">
             <ul className="list-disc space-y-1 pl-4">
               {visibleAvisos(empresa.avisos).map((aviso) => (
                 <li key={aviso}>{aviso}</li>
@@ -176,12 +167,11 @@ export function EmpresaDetail({
         <TabsList>
           {ESFERAS.map((esfera) => {
             const bucket = empresa.esferas?.[esfera];
-            const Icon = ESFERA_ICONS[esfera];
             return (
               <TabsTrigger key={esfera} value={esfera} className="gap-2">
-                <Icon className="size-3.5" aria-hidden />
+                <Icon name={ESFERA_ICONS[esfera]} size={14} />
                 {ESFERA_LABELS[esfera]}
-                <span className="rounded bg-background/80 px-1.5 py-0.5 text-[10px] tabular">
+                <span className="rounded bg-surface-low px-1.5 py-0.5 text-[10px] tabular">
                   {bucket?.qtdDocs ?? 0}
                 </span>
               </TabsTrigger>
@@ -297,10 +287,10 @@ function EsferaPanel({
     return (
       <Card>
         <CardContent className="space-y-3 py-8 text-center">
-          <p className="text-sm font-medium text-slate-800">
+          <p className="text-sm font-medium text-ink">
             Ainda não há documento {ESFERA_LABELS[esfera].toLowerCase()} nesta competência
           </p>
-          <p className="text-xs text-muted-foreground">Fonte: {ESFERA_FONTES[esfera]}</p>
+          <p className="text-xs text-exito-muted">Fonte: {ESFERA_FONTES[esfera]}</p>
           {arquivosOrfaos.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-2 pt-1">
               {arquivosOrfaos.map((arquivo) => (
@@ -310,7 +300,7 @@ function EsferaPanel({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <ExternalLink />
+                    <Icon name="open_in_new" size={16} />
                     Abrir {arquivo}
                   </a>
                 </Button>
@@ -346,7 +336,7 @@ function EsferaPanel({
 
       <Card className="overflow-hidden">
         {debitos.length > 0 || !cadastro ? (
-          <div className="border-b border-border px-4 py-3">
+          <div className="border-b border-line px-4 py-3">
             <h3 className="text-sm font-semibold">Lançamentos · {ESFERA_LABELS[esfera]}</h3>
           </div>
         ) : null}
@@ -368,34 +358,34 @@ function EsferaPanel({
             <DebitosTableBlock debitos={debitos} codigoEmpresa={empresa.codigo} />
           )
         ) : cadastro ? null : empresa.status === "regular" ? (
-          <div className="px-4 py-6 text-sm text-muted-foreground">
+          <div className="px-4 py-6 text-sm text-exito-muted">
             Nenhuma pendência detectada nesta esfera.
           </div>
         ) : (
-          <div className="px-4 py-6 text-sm text-muted-foreground">
+          <div className="px-4 py-6 text-sm text-exito-muted">
             Valores não extraídos automaticamente. Baixe o PDF abaixo para conferência.
           </div>
         )}
 
-        <div className={debitos.length > 0 || !cadastro ? "border-t border-border" : ""}>
-          <div className="border-b border-border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+        <div className={debitos.length > 0 || !cadastro ? "border-t border-line" : ""}>
+          <div className="border-b border-line px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-exito-muted">
             Arquivos · {ESFERA_LABELS[esfera]}
           </div>
           {deleteError ? (
-            <p className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800">
+            <p className="border-b border-danger-border bg-error-container px-4 py-2 text-sm text-on-error-container">
               {deleteError}
             </p>
           ) : null}
           <ul>
             {arquivos.length === 0 ? (
-              <li className="px-4 py-3 text-sm text-muted-foreground">
+              <li className="px-4 py-3 text-sm text-exito-muted">
                 Nenhum arquivo nesta esfera
               </li>
             ) : (
               arquivos.map((arquivo) => (
                 <li
                   key={arquivo}
-                  className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3 last:border-b-0"
+                  className="flex flex-wrap items-center justify-between gap-3 border-b border-line/60 px-4 py-3 last:border-b-0"
                 >
                   <span className="text-sm">{arquivo}</span>
                   <div className="flex flex-wrap items-center gap-2">
@@ -405,7 +395,7 @@ function EsferaPanel({
                         target="_blank"
                         rel="noreferrer"
                       >
-                        <ExternalLink />
+                        <Icon name="open_in_new" size={16} />
                         Abrir PDF
                       </a>
                     </Button>
@@ -414,7 +404,7 @@ function EsferaPanel({
                         href={pdfHref(empresa.id, arquivo, competencia, true)}
                         download={arquivo}
                       >
-                        <Download />
+                        <Icon name="download" size={16} />
                         Baixar
                       </a>
                     </Button>
@@ -425,7 +415,7 @@ function EsferaPanel({
                       disabled={deletingFile !== null}
                       onClick={() => excluirArquivo(arquivo)}
                     >
-                      <Trash2 />
+                      <Icon name="delete" size={16} />
                       {deletingFile === arquivo ? "Excluindo…" : "Excluir"}
                     </Button>
                   </div>
@@ -473,7 +463,7 @@ function DiagnosticoFiscalCard({ cadastro }: { cadastro: DocumentoCadastro }) {
         <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {cadastro.situacaoEmpresa ? (
             <div>
-              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-exito-muted">
                 Situação
               </dt>
               <dd className="mt-1">
@@ -488,18 +478,18 @@ function DiagnosticoFiscalCard({ cadastro }: { cadastro: DocumentoCadastro }) {
           ) : null}
           {cadastro.responsavel ? (
             <div>
-              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-exito-muted">
                 Responsável
               </dt>
-              <dd className="mt-1 text-sm text-slate-800">{cadastro.responsavel}</dd>
+              <dd className="mt-1 text-sm text-ink">{cadastro.responsavel}</dd>
             </div>
           ) : null}
           {certidao?.tipo ? (
             <div className="sm:col-span-2">
-              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-exito-muted">
                 Certidão
               </dt>
-              <dd className="mt-1 flex flex-col gap-1 text-sm text-slate-800 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
+              <dd className="mt-1 flex flex-col gap-1 text-sm text-ink sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
                 <Badge
                   variant={certidaoTipoBadge(certidao.tipo)}
                   className="w-fit normal-case tracking-normal"
@@ -512,12 +502,12 @@ function DiagnosticoFiscalCard({ cadastro }: { cadastro: DocumentoCadastro }) {
                   </span>
                 ) : null}
                 {certidao.emissao ? (
-                  <span className="tabular text-muted-foreground">
+                  <span className="tabular text-exito-muted">
                     Emissão {certidao.emissao}
                   </span>
                 ) : null}
                 {certidao.validade ? (
-                  <span className="tabular text-muted-foreground">
+                  <span className="tabular text-exito-muted">
                     Validade {certidao.validade}
                   </span>
                 ) : null}
@@ -527,7 +517,7 @@ function DiagnosticoFiscalCard({ cadastro }: { cadastro: DocumentoCadastro }) {
         </dl>
 
         {cadastro.diagnosticoLimpo ? (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          <p className="rounded-md border border-success-border bg-success-bg px-3 py-2 text-sm text-green">
             Não foram detectadas pendências/exigibilidades suspensas nos controles da
             Receita Federal e da Procuradoria-Geral da Fazenda Nacional.
           </p>
@@ -535,7 +525,7 @@ function DiagnosticoFiscalCard({ cadastro }: { cadastro: DocumentoCadastro }) {
 
         {qsa.length > 0 ? (
           <div>
-            <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+            <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-exito-muted">
               Sócios e administradores
             </h4>
             <QsaTable socios={qsa} />
@@ -551,7 +541,7 @@ function QsaTable({ socios }: { socios: CadastroSocio[] }) {
     <>
       <div className="hidden overflow-auto sm:block">
         <table className="w-full min-w-[520px] border-collapse text-left text-sm">
-          <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+          <thead className="border-b border-line bg-surface-low text-[11px] uppercase tracking-[0.06em] text-exito-muted">
             <tr>
               <th className="px-3 py-2 font-semibold">CPF/CNPJ</th>
               <th className="px-3 py-2 font-semibold">Nome</th>
@@ -564,7 +554,7 @@ function QsaTable({ socios }: { socios: CadastroSocio[] }) {
             {socios.map((socio) => (
               <tr
                 key={socio.cpfCnpj}
-                className="border-b border-border/70 last:border-b-0"
+                className="border-b border-line/70 last:border-b-0"
               >
                 <td className="px-3 py-2 align-top tabular">{socio.cpfCnpj}</td>
                 <td className="px-3 py-2 align-top font-semibold">{socio.nome}</td>
@@ -578,12 +568,12 @@ function QsaTable({ socios }: { socios: CadastroSocio[] }) {
           </tbody>
         </table>
       </div>
-      <ul className="divide-y divide-border rounded-md border border-border sm:hidden">
+      <ul className="divide-y divide-border rounded-md border border-line sm:hidden">
         {socios.map((socio) => (
           <li key={socio.cpfCnpj} className="space-y-1 px-3 py-3">
-            <p className="text-sm font-semibold text-slate-800">{socio.nome}</p>
-            <p className="tabular text-xs text-muted-foreground">{socio.cpfCnpj}</p>
-            <p className="text-xs text-slate-700">
+            <p className="text-sm font-semibold text-ink">{socio.nome}</p>
+            <p className="tabular text-xs text-exito-muted">{socio.cpfCnpj}</p>
+            <p className="text-xs text-on-surface-variant">
               {[socio.qualificacao, socio.situacaoCadastral, socio.capSocial]
                 .filter(Boolean)
                 .join(" · ")}
@@ -649,7 +639,7 @@ function DebitosTableBlock({
       columnHelper.accessor("saldo", {
         header: "Sdo. devedor",
         cell: (info) => (
-          <span className="tabular text-[11px] font-semibold text-cyan-800 sm:text-sm">
+          <span className="tabular text-[11px] font-semibold text-green sm:text-sm">
             {formatDebitoValor(info.row.original, info.getValue())}
           </span>
         ),
@@ -694,16 +684,16 @@ function DebitosTableBlock({
   return (
     <div>
       {heading ? (
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border bg-slate-50 px-4 py-2.5">
-          <h4 className="text-sm font-semibold text-slate-800">{heading}</h4>
-          <p className="text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line bg-surface-low px-4 py-2.5">
+          <h4 className="text-sm font-semibold text-ink">{heading}</h4>
+          <p className="text-xs text-exito-muted">
             {formatItensETotal(debitos.length, subtotal ?? 0)}
           </p>
         </div>
       ) : null}
       <div className="overflow-auto">
         <table className="w-full min-w-[900px] border-collapse text-left text-sm">
-          <thead className="border-b border-border bg-[#F7F9FC] text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+          <thead className="border-b border-line bg-surface-low text-[11px] uppercase tracking-[0.06em] text-exito-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -726,7 +716,7 @@ function DebitosTableBlock({
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
-                className="border-b border-border/70 transition-colors hover:bg-slate-50"
+                className="border-b border-line/70 transition-colors hover:bg-surface-low"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-3 py-2 align-top">

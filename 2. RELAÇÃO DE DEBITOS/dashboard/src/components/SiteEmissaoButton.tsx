@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import {
   labelSiteEmissao,
@@ -31,7 +31,7 @@ export function SiteEmissaoButton({
 
   if (!href) {
     if (!showPlaceholder) return null;
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-exito-muted">—</span>;
   }
 
   return (
@@ -50,7 +50,7 @@ export function SiteEmissaoButton({
           if (stopPropagation) e.stopPropagation();
         }}
       >
-        <ExternalLink className="size-3" aria-hidden />
+        <Icon name="open_in_new" size={12} />
         {label}
       </a>
     </Button>
