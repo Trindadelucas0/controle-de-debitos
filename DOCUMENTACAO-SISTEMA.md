@@ -233,13 +233,17 @@ Excluir no detalhe da empresa ou na revisão usa o mesmo rebuild curto. Se a exc
 
 ## 11. Deploy / ambiente
 
-Servidor Êxito: ver `GIT.TXT`.
+Servidor Êxito: `root@179.199.149.12`, repo `/root/PROJETOS/exito/controle-de-debitos`, PM2 `exito-debitos`, porta 6999. Ver `GIT.TXT` para script completo.
 
-1. Backup de `empresas.json` e `cadastro-consultas.json`
-2. `git pull`
-3. Devolver os JSON
+1. **Backup dos 3 JSON** em `/tmp/debitos-data-backup`:
+   - `empresas.json` (débitos)
+   - `cadastro-consultas.json` (consultas manuais)
+   - `parcelamentos.json` (acordos operacionais)
+2. `git pull --ff-only origin main`
+3. **Devolver os 3 JSON** do backup e validar md5
 4. `npm run build` em `2. RELAÇÃO DE DEBITOS/dashboard`
-5. `pm2 restart dashboard-debitos`
+5. `pm2 restart exito-debitos`
+6. **Nunca rodar `git clean -fd`** (apaga PDFs e inbox)
 
 ## 12. Ao atualizar este documento
 

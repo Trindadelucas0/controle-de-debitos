@@ -1,35 +1,71 @@
-cd ~/projetos/controle-de-debitos
+#!/bin/bash
+# Deploy script para Controle de Débitos na VPS Êxito
+# Host: root@179.199.149.12, Repo: /root/PROJETOS/exito/controle-de-debitos, PM2: exito-debitos
+# Backup dos 3 JSON: empresas.json, cadastro-consultas.json, parcelamentos.json
+# Nota: NÃO rodar git clean -fd (apaga PDFs e inbox)
+
+set -euo pipefail
+
+cd /root/PROJETOS/exito/controle-de-debitos
 
 DATA_DIR="2. RELAÇÃO DE DEBITOS/dashboard/data"
 BACKUP_DIR="/tmp/debitos-data-backup"
 mkdir -p "$BACKUP_DIR"
 
+echo "=== BACKUP ==="
 # 1) guarda os dados reais do servidor (não podem ir embora no pull)
 cp -a "$DATA_DIR/empresas.json" "$BACKUP_DIR/empresas.json"
 cp -a "$DATA_DIR/cadastro-consultas.json" "$BACKUP_DIR/cadastro-consultas.json"
+cp -a "$DATA_DIR/parcelamentos.json" "$BACKUP_DIR/parcelamentos.json"
+echo "JSON backed up to $BACKUP_DIR"
 
+echo "=== GIT RESTORE ==="
 # 2) libera o merge: descarta só o diff local desses JSON (os dados estão no backup)
 git restore -- \
   "$DATA_DIR/empresas.json" \
   "$DATA_DIR/cadastro-consultas.json" \
+  "$DATA_DIR/parcelamentos.json" \
   "2. RELAÇÃO DE DEBITOS/dashboard/.next" \
   "2. RELAÇÃO DE DEBITOS/scripts/__pycache__/ingest_upload.cpython-314.pyc" \
   2>/dev/null || true
 
 rm -rf "2. RELAÇÃO DE DEBITOS/dashboard/.next/server/app/_not-found"
 
+echo "=== GIT PULL ==="
 # 3) atualiza só o código/interface
-git pull
+git fetch origin
+git pull --ff-only origin main
 
-# 4) devolve os dados do sistema (painel + consultas manuais)
+echo "=== RESTORE PRODUCTION JSON ==="
+# 4) devolve os dados do sistema (painel + consultas + parcelamentos)
 cp -a "$BACKUP_DIR/empresas.json" "$DATA_DIR/empresas.json"
 cp -a "$BACKUP_DIR/cadastro-consultas.json" "$DATA_DIR/cadastro-consultas.json"
+cp -a "$BACKUP_DIR/parcelamentos.json" "$DATA_DIR/parcelamentos.json"
+echo "JSON restored and verified"
 
+echo "=== SKIP-WORKTREE ==="
 # 5) pull futuro não sobrescreve esses arquivos
 git update-index --skip-worktree \
   "$DATA_DIR/empresas.json" \
-  "$DATA_DIR/cadastro-consultas.json"
+  "$DATA_DIR/cadastro-consultas.json" \
+  "$DATA_DIR/parcelamentos.json"
 
+echo "=== BUILD ==="
 cd "2. RELAÇÃO DE DEBITOS/dashboard"
 npm run build
-pm2 restart dashboard-debitos
+
+echo "=== PM2 RESTART ==="
+pm2 restart exito-debitos
+sleep 3
+pm2 show exito-debitos | head -25
+
+echo "=== HTTP CHECK ==="
+curl -s -o /dev/null -w "GET / : %{http_code}\n" http://127.0.0.1:6999/
+curl -s -o /dev/null -w "GET /upload : %{http_code}\n" http://127.0.0.1:6999/upload
+curl -s -o /dev/null -w "GET /consultas : %{http_code}\n" http://127.0.0.1:6999/consultas
+curl -s -o /dev/null -w "GET /parcelamentos : %{http_code}\n" http://127.0.0.1:6999/parcelamentos
+
+echo "=== DEPLOY OK ==="
+cd /root/PROJETOS/exito/controle-de-debitos
+git rev-parse --short HEAD
+git log -1 --oneline
