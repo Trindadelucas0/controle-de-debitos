@@ -1262,6 +1262,246 @@ def text_to_ecac_literals(text: str) -> list[str]:
     return literals
 
 
+# Relatório "Informações de Apoio": blocos sem BRL que ainda assim são pendência.
+APOIO_BLOCO_RE = re.compile(
+    r"^(?:pendencia\s*-+\s*)?(?:"
+    r"inscricao \(sida\)|"
+    r"inscricao com exigibilidade suspensa \(sida\)|"
+    r"processo fiscal \(sief\)|"
+    r"parcelamento com exigibilidade suspensa \((?:parcsn/parcmei|sispar)\)"
+    r")$"
+)
+APOIO_INSCRICAO_RE = re.compile(r"^\d{2}\.\d\.\d{2}\.\d{6}-\d{2}$")
+APOIO_PROCESSO_RE = re.compile(r"^\d{5}\.\d{3}\.\d{3}/\d{4}-\d{2}$")
+APOIO_CONTA_RE = re.compile(r"^\d{6,12}$")
+APOIO_RECEITA_RE = re.compile(r"^\d{4}-")
+APOIO_PARCSN_RE = re.compile(r"^(?P<receita>.+?)\s+-\s+(?P<situacao>EM PARCELAMENTO.*)$", re.I)
+APOIO_FIM_DE_BLOCO = (
+    "diagnostico fiscal na",
+    "dados cadastrais",
+    "socios e administradores",
+    "certidao emitida",
+    "final do relatorio",
+)
+
+
+def _apoio_fold(token: str) -> str:
+    return fold(_strip_ecac_decoration(token)).strip()
+
+
+def _apoio_bloco_kind(folded: str) -> str | None:
+    """Um dos cinco cabeçalhos do Apoio → sida | processo | sispar | parcsn."""
+    if not APOIO_BLOCO_RE.match(folded):
+        return None
+    if "sida" in folded:
+        return "sida"
+    if "sief" in folded:
+        return "processo"
+    if "sispar" in folded:
+        return "sispar"
+    return "parcsn"
+
+
+def _apoio_fim_de_bloco(folded: str) -> bool:
+    if folded.startswith("pendencia") or "exigibilidade suspensa" in folded:
+        return True
+    return any(mark in folded for mark in APOIO_FIM_DE_BLOCO)
+
+
+def _apoio_situacao(texto: str) -> str:
+    f = fold(texto)
+    if "em parcelamento" in f or "negociada no sispar" in f or "parcelamento convencional" in f:
+        return "PARCELADO"
+    if "a ser cobrada" in f or "devedor" in f:
+        return "DEVEDOR"
+    return re.sub(r"\s+", " ", texto).strip().upper()
+
+
+def _apoio_rotulo_at(tokens: list[str], j: int, rotulo: str) -> tuple[str, int]:
+    """Lê `Rótulo: valor` na mesma linha ou com o valor na linha seguinte (literais PDF)."""
+    if j >= len(tokens):
+        return "", j
+    head, sep, rest = tokens[j].partition(":")
+    if not sep or fold(head).strip() != rotulo:
+        return "", j
+    value = rest.strip()
+    if value or j + 1 >= len(tokens):
+        return value, j + 1
+    return tokens[j + 1].strip(), j + 2
+
+
+def _parse_apoio_inscricao_at(tokens: list[str], i: int) -> tuple[dict | None, int]:
+    """Inscrição | Receita (1-3 linhas) | Inscrito em | Ajuizado em? | Processo? | Tipo | Situação:"""
+    n = len(tokens)
+    j = i + 1
+    receita_parts: list[str] = []
+    while j < n and len(receita_parts) < 3 and not VCTO_LIT_RE.match(tokens[j].strip()):
+        receita_parts.append(tokens[j].strip())
+        j += 1
+    if not receita_parts or not APOIO_RECEITA_RE.match(receita_parts[0]):
+        return None, i + 1
+    if j >= n or not VCTO_LIT_RE.match(tokens[j].strip()):
+        return None, i + 1
+    j += 1
+    if j < n and VCTO_LIT_RE.match(tokens[j].strip()):
+        j += 1
+    processo = ""
+    if j < n and APOIO_PROCESSO_RE.match(tokens[j].strip()):
+        processo = tokens[j].strip()
+        j += 1
+    for k in (j, j + 1):
+        situacao, after = _apoio_rotulo_at(tokens, k, "situacao")
+        if situacao:
+            return {
+                "receita": re.sub(r"\s+", " ", " ".join(receita_parts)),
+                "situacao": _apoio_situacao(situacao),
+                "inscricao": tokens[i].strip(),
+                "numero_lancamento": processo,
+            }, after
+    return None, i + 1
+
+
+def _parse_apoio_processo_at(tokens: list[str], i: int) -> tuple[dict | None, int]:
+    """Processo | Situação | Localização"""
+    if i + 1 >= len(tokens) or _apoio_fim_de_bloco(_apoio_fold(tokens[i + 1])):
+        return None, i + 1
+    situacao = _apoio_situacao(tokens[i + 1])
+    j = i + 2
+    localizacao = ""
+    if j < len(tokens) and not _apoio_fim_de_bloco(_apoio_fold(tokens[j])):
+        localizacao = re.sub(r"\s+", " ", tokens[j]).strip()
+        j += 1
+    receita = f"Processo fiscal - {localizacao}" if localizacao else "Processo fiscal"
+    return {
+        "receita": receita,
+        "situacao": situacao,
+        "numero_lancamento": tokens[i].strip(),
+    }, j
+
+
+def _parse_apoio_conta_at(tokens: list[str], i: int) -> tuple[dict | None, int]:
+    """Conta | Tipo de parcelamento | Modalidade:"""
+    if i + 1 >= len(tokens):
+        return None, i + 1
+    tipo = re.sub(r"\s+", " ", tokens[i + 1]).strip()
+    if "parcelamento" not in fold(tipo):
+        return None, i + 1
+    modalidade, j = _apoio_rotulo_at(tokens, i + 2, "modalidade")
+    return {
+        "receita": re.sub(r"\s+", " ", modalidade) or tipo,
+        "situacao": _apoio_situacao(tipo),
+        "numero_lancamento": tokens[i].strip(),
+    }, j
+
+
+def _parse_apoio_parcsn_at(tokens: list[str], i: int) -> tuple[dict | None, int]:
+    """Linha única `SIMPLES NACIONAL - EM PARCELAMENTO`."""
+    match = APOIO_PARCSN_RE.match(re.sub(r"\s+", " ", tokens[i]).strip())
+    if not match:
+        return None, i + 1
+    return {
+        "receita": match.group("receita").strip().upper(),
+        "situacao": _apoio_situacao(match.group("situacao")),
+    }, i + 1
+
+
+def _parse_apoio_linha_at(kind: str, tokens: list[str], i: int) -> tuple[dict | None, int]:
+    token = tokens[i].strip()
+    if kind == "sida" and APOIO_INSCRICAO_RE.match(token):
+        return _parse_apoio_inscricao_at(tokens, i)
+    if kind == "processo" and APOIO_PROCESSO_RE.match(token):
+        return _parse_apoio_processo_at(tokens, i)
+    if kind == "sispar" and APOIO_CONTA_RE.match(token):
+        return _parse_apoio_conta_at(tokens, i)
+    if kind == "parcsn":
+        return _parse_apoio_parcsn_at(tokens, i)
+    return None, i + 1
+
+
+def _make_apoio_row(fields: dict, titulo: str, origem: str, arquivo: str, esfera: str) -> dict:
+    return _make_debito_row(
+        receita=fields["receita"],
+        pa="",
+        vencimento="",
+        original=0.0,
+        saldo=0.0,
+        multa=0.0,
+        juros=0.0,
+        consolidado=0.0,
+        situacao=fields["situacao"],
+        origem=origem,
+        arquivo=arquivo,
+        codigo=codigo_from_filename(arquivo),
+        esfera=esfera,
+        numero_lancamento=fields.get("numero_lancamento") or None,
+        inscricao=fields.get("inscricao") or None,
+        titulo=titulo,
+    )
+
+
+def _apoio_row_id(row: dict) -> str:
+    """Inscrição (SIDA), processo (SIEF) ou conta (SISPAR); PARCSN usa a receita."""
+    return row.get("inscricao") or row.get("numero_lancamento") or fold(row.get("receita") or "")
+
+
+def parse_ecac_apoio_sem_valor(
+    tokens: list[str],
+    origem: str,
+    arquivo: str,
+    esfera: str,
+) -> list[dict]:
+    """Informações de Apoio: inscrição, processo fiscal e parcelamento sem BRL → lançamento valor 0.
+
+    Só lê os cinco cabeçalhos de APOIO_BLOCO_RE e para em "Final do Relatório".
+    CND/QSA/situação continuam em parse_ecac_apoio_certidao.
+    """
+    if not any("informacoes de apoio" in fold(token) for token in tokens):
+        return []
+    rows: list[dict] = []
+    seen: set[str] = set()
+    bloco: tuple[str, str] | None = None
+    i = 0
+    while i < len(tokens):
+        folded = _apoio_fold(tokens[i])
+        if folded.startswith("final do relatorio"):
+            break
+        kind = _apoio_bloco_kind(folded)
+        if kind or _apoio_fim_de_bloco(folded):
+            bloco = (kind, normalize_ecac_titulo(tokens[i])) if kind else None
+            i += 1
+            continue
+        if bloco is None:
+            i += 1
+            continue
+        fields, i = _parse_apoio_linha_at(bloco[0], tokens, i)
+        if not fields:
+            continue
+        row = _make_apoio_row(fields, bloco[1], origem, arquivo, esfera)
+        row_id = _apoio_row_id(row)
+        if row_id not in seen:
+            seen.add(row_id)
+            rows.append(row)
+    return rows
+
+
+def append_apoio_sem_valor(merged: list[dict], apoio_rows: list[dict]) -> list[dict]:
+    """pymupdf repete páginas e o diagnóstico com valor pode já ter o número: não duplica."""
+    seen = {
+        numero
+        for row in merged
+        for numero in (row.get("inscricao"), row.get("numero_lancamento"))
+        if numero
+    }
+    out = list(merged)
+    for row in apoio_rows:
+        row_id = _apoio_row_id(row)
+        if row_id in seen:
+            continue
+        seen.add(row_id)
+        out.append(row)
+    return out
+
+
 def parse_ecac_debitos(
     text: str,
     origem: str,
@@ -1270,9 +1510,11 @@ def parse_ecac_debitos(
     path: Path | None = None,
 ) -> list[dict]:
     lit_rows: list[dict] = []
+    literals: list[str] = []
     if path is not None and path.exists():
         try:
-            lit_rows = parse_ecac_from_literals(pdf_string_literals(path), origem, arquivo, esfera)
+            literals = pdf_string_literals(path)
+            lit_rows = parse_ecac_from_literals(literals, origem, arquivo, esfera)
         except Exception:
             lit_rows = []
     text_rows: list[dict] = []
@@ -1287,7 +1529,10 @@ def parse_ecac_debitos(
         merged = merge_ecac_rows(merged, text_rows) if merged else text_rows
     if regex_rows:
         merged = merge_ecac_rows(merged, regex_rows) if merged else regex_rows
-    return merged
+    apoio_rows: list[dict] = []
+    for tokens in (text_to_ecac_literals(text), literals):
+        apoio_rows.extend(parse_ecac_apoio_sem_valor(tokens, origem, arquivo, esfera))
+    return append_apoio_sem_valor(merged, apoio_rows)
 
 
 BRL_TOKEN_RE = r"\d{1,3}(?:\.\d{3})*,\d{2}"

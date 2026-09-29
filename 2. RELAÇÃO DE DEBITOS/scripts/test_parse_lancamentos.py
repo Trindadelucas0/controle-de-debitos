@@ -10,9 +10,11 @@ SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 
 from build_dashboard_data import (  # noqa: E402
+    parse_ecac_apoio_sem_valor,
     parse_ecac_debitos,
     parse_ecac_debitos_regex,
     parse_ecac_from_literals,
+    resolve_pdf_text,
 )
 
 FIXTURE_DCTFWEB_SIEF_TEXT = """
@@ -57,6 +59,7 @@ FIXTURE_DCTFWEB_SIEF_LITERALS = [
 from extrair_debitos import (  # noqa: E402
     decode_pdf_literal_bytes,
     find_pdf_by_name,
+    parse_ecac_apoio_certidao,
     pdf_string_literals,
     resolve_month_dir,
 )
@@ -286,6 +289,327 @@ def test_fixture_outras_secoes_ecac(failures: list[str]) -> None:
     assert_true(proc is not None and "1099-01" in (proc.get("receita") or ""), "outras: linha processo", failures)
     parc = next((r for r in rows if r.get("titulo") == "PARCELAMENTO (PARCSN/PARCMEI)"), None)
     assert_true(parc is not None and "SIMPLES" in (parc.get("receita") or ""), "outras: linha parcelamento", failures)
+
+
+FIXTURE_APOIO_21_TEXT = """
+INFORMAÇÕES DE APOIO PARA EMISSÃO DE CERTIDÃO
+CNPJ: 53.870.461 - THE MINAS GASTRO BAR LTDA
+Dados Cadastrais da Matriz ______________________________________________________________________________________
+CNPJ: 53.870.461/0001-81
+Responsável: 117.851.596-66 - LARISSA IZABEL NUNES LEMOS
+Situação: ATIVA
+Natureza Jurídica: 206-2 - SOCIEDADE EMPRESARIA LIMITADA
+Sócios e Administradores ________________________________________________________________________________________
+CPF/CNPJ
+Nome
+Qualificação
+Situação Cadastral
+Cap. Social
+Cap. Votante
+123.837.876-55
+WILKER ZUETE ROCHA
+SÓCIO
+REGULAR
+50,00%
+117.851.596-66
+LARISSA IZABEL NUNES LEMOS
+SÓCIO-ADMINISTRADOR
+REGULAR
+50,00%
+_____________________________________ Diagnóstico Fiscal na Receita Federal _____________________________________
+Parcelamento com Exigibilidade Suspensa (PARCSN/PARCMEI) ________________________________________________________
+CNPJ: 53.870.461/0001-81
+SIMPLES NACIONAL - EM PARCELAMENTO
+Pendência - Processo Fiscal (SIEF) ______________________________________________________________________________
+CNPJ: 53.870.461/0001-81
+Processo
+Situação
+Localização
+10641.078.734/2026-50
+DEVEDOR
+SETOR PROC ELETRONICO REFIS DRF BSB DF
+__________________________ Diagnóstico Fiscal na Procuradoria-Geral da Fazenda Nacional _________________________
+Página: 1 / 2
+MINISTÉRIO DA FAZENDA
+INFORMAÇÕES DE APOIO PARA EMISSÃO DE CERTIDÃO
+CNPJ: 53.870.461 - THE MINAS GASTRO BAR LTDA
+Inscrição com Exigibilidade Suspensa (SIDA) _____________________________________________________________________
+CNPJ: 53.870.461/0001-81
+Inscrição
+Receita
+Inscrito em
+Ajuizado em
+Processo
+Tipo de Devedor
+10.4.25.009172-06
+1507-SIMPLES
+NACIONAL
+27/01/2025
+12376.074.851/2025-76
+DEVEDOR PRINCIPAL
+Situação: ATIVA NAO AJUIZAVEL NEGOCIADA NO SISPAR
+Parcelamento com Exigibilidade Suspensa (SISPAR) ________________________________________________________________
+CNPJ: 53.870.461/0001-81
+Conta
+014959465
+PARCELAMENTO CONVENCIONAL
+Modalidade: PARCELAMENTO SEM GARANTIA  SIMPLES NACIONAL
+_________________________________________________________________________________________________________________
+Final do Relatório
+O período de solicitação da opção pelo Simples Nacional para 2027 mudou para SETEMBRO 2026!
+Página: 2 / 2
+"""
+
+FIXTURE_APOIO_80_TEXT = """
+INFORMAÇÕES DE APOIO PARA EMISSÃO DE CERTIDÃO
+CNPJ: 00.598.375 - COMERCIAL AVICOLA PROGRESSO LTDA
+Dados Cadastrais da Matriz ______________________________________________________________________________________
+CNPJ: 00.598.375/0001-03
+Responsável: 011.179.911-21 - MICHEL MOMO DOS SANTOS
+Situação: ATIVA
+Sócios e Administradores ________________________________________________________________________________________
+CPF/CNPJ
+Nome
+Qualificação
+Situação Cadastral
+Cap. Social
+Cap. Votante
+011.179.911-21
+MICHEL MOMO DOS SANTOS
+SÓCIO-ADMINISTRADOR
+REGULAR
+100,00%
+Certidão Emitida ________________________________________________________________________________________________
+CNPJ: 00.598.375/0001-03
+Certidão Positiva com Efeitos de Negativa:  1E33.816E.A6A7.BD03
+Emissão: 25/08/2026
+Data de Validade: 21/02/2027
+_____________________________________ Diagnóstico Fiscal na Receita Federal _____________________________________
+Não foram detectadas pendências/exigibilidades suspensas para o contribuinte nos controles da Receita Federal.
+__________________________ Diagnóstico Fiscal na Procuradoria-Geral da Fazenda Nacional _________________________
+Pendência - Inscrição (SIDA) ____________________________________________________________________________________
+CNPJ: 00.598.375/0001-03
+Inscrição
+Receita
+Inscrito em
+Ajuizado em
+Processo
+Tipo de Devedor
+10.6.26.022639-00
+5382-OUTRAS MULTAS
+11/09/2026
+21016.004.192/2020-86
+DEVEDOR PRINCIPAL
+Situação: ATIVA A SER COBRADA
+Página: 1 / 2
+MINISTÉRIO DA FAZENDA
+INFORMAÇÕES DE APOIO PARA EMISSÃO DE CERTIDÃO
+CNPJ: 00.598.375 - COMERCIAL AVICOLA PROGRESSO LTDA
+Inscrição com Exigibilidade Suspensa (SIDA) _____________________________________________________________________
+CNPJ: 00.598.375/0001-03
+Inscrição
+Receita
+Inscrito em
+Ajuizado em
+Processo
+Tipo de Devedor
+10.2.24.011742-86
+3551-IRPJ
+11/11/2024
+17227.720.254/2024-71
+DEVEDOR PRINCIPAL
+Situação: ATIVA NAO AJUIZAVEL NEGOCIADA NO SISPAR
+10.6.24.004595-02
+4834-- MULTA
+ISOLADA
+22/04/2024
+19321.048.099/2024-10
+DEVEDOR PRINCIPAL
+Situação: ATIVA NAO AJUIZAVEL NEGOCIADA NO SISPAR
+10.6.24.022055-83
+1804-CONTRIBUICAO
+SOCIAL
+11/11/2024
+17227.720.254/2024-71
+DEVEDOR PRINCIPAL
+Situação: ATIVA NAO AJUIZAVEL NEGOCIADA NO SISPAR
+Parcelamento com Exigibilidade Suspensa (SISPAR) ________________________________________________________________
+CNPJ: 00.598.375/0001-03
+Conta
+012825627
+PARCELAMENTO CONVENCIONAL
+Modalidade: PARCELAMENTO SEM GARANTIA  PESSOA JURIDICA  DIVIDA NAO PREVIDENCIARIA  ATE 15 MILHOES DE REAIS
+_________________________________________________________________________________________________________________
+Final do Relatório
+Página: 2 / 2
+"""
+
+FIXTURE_APOIO_715_TEXT = """
+INFORMAÇÕES DE APOIO PARA EMISSÃO DE CERTIDÃO
+CNPJ: 55.061.632 - CENTRO MEDICO ESPECIALIZADO TJJ LTDA
+Dados Cadastrais da Matriz ______________________________________________________________________________________
+CNPJ: 55.061.632/0001-57
+Responsável: 016.885.031-10 - JHEFFERSON BRANDAO BRETA
+Situação: ATIVA
+Sócios e Administradores ________________________________________________________________________________________
+CPF/CNPJ
+Nome
+Qualificação
+Situação Cadastral
+Cap. Social
+Cap. Votante
+019.591.031-13
+TUANNY DAMASCENO COELHO BRETA
+SÓCIO
+REGULAR
+49,00%
+016.885.031-10
+JHEFFERSON BRANDAO BRETA
+SÓCIO-ADMINISTRADOR
+REGULAR
+50,00%
+Certidão Emitida ________________________________________________________________________________________________
+CNPJ: 55.061.632/0001-57
+Certidão Positiva com Efeitos de Negativa:  CAEE.4D71.2DBD.662A
+Emissão: 10/12/2025
+Data de Validade: 08/06/2026
+_____________________________________ Diagnóstico Fiscal na Receita Federal _____________________________________
+Não foram detectadas pendências/exigibilidades suspensas para o contribuinte nos controles da Receita Federal.
+__________________________ Diagnóstico Fiscal na Procuradoria-Geral da Fazenda Nacional _________________________
+Pendência - Inscrição (SIDA) ____________________________________________________________________________________
+CNPJ: 55.061.632/0001-57
+Inscrição
+Receita
+Inscrito em
+Ajuizado em
+Processo
+Tipo de Devedor
+10.4.26.093566-16
+4133-CONTR.
+SEGURADOS
+24/08/2026
+14966.799.357/2026-84
+DEVEDOR PRINCIPAL
+Situação: ATIVA A SER COBRADA
+Página: 1 / 2
+MINISTÉRIO DA FAZENDA
+INFORMAÇÕES DE APOIO PARA EMISSÃO DE CERTIDÃO
+CNPJ: 55.061.632 - CENTRO MEDICO ESPECIALIZADO TJJ LTDA
+_________________________________________________________________________________________________________________
+Final do Relatório
+O período de solicitação da opção pelo Simples Nacional para 2027 mudou para SETEMBRO 2026!
+Página: 2 / 2
+"""
+
+# Literais do PDF 715: "Situação:" e o valor chegam em tokens separados.
+FIXTURE_APOIO_715_LITERALS = [
+    "INFORMAÇÕES DE APOIO PARA EMISSÃO DE CERTIDÃO",
+    "Pendência - Inscrição (SIDA) ____________________________________________________________________________________",
+    "CNPJ: 55.061.632/0001-57",
+    "Inscrição",
+    "Receita",
+    "Inscrito em",
+    "Ajuizado em",
+    "Processo",
+    "Tipo de Devedor",
+    "10.4.26.093566-16",
+    "4133-CONTR.",
+    "SEGURADOS",
+    "24/08/2026",
+    "14966.799.357/2026-84",
+    "DEVEDOR PRINCIPAL",
+    "Situação:",
+    "ATIVA A SER COBRADA",
+    "Final do Relatório",
+]
+
+APOIO_ESPERADO = {
+    "21": (
+        FIXTURE_APOIO_21_TEXT,
+        [
+            ("PARCELAMENTO SUSPENSO", "SIMPLES NACIONAL", "PARCELADO", None, None),
+            ("PROCESSO FISCAL (SIEF)", "Processo fiscal", "DEVEDOR", "10641.078.734/2026-50", None),
+            ("INSCRICAO SUSPENSA", "1507-SIMPLES NACIONAL", "PARCELADO", "12376.074.851/2025-76", "10.4.25.009172-06"),
+            ("PARCELAMENTO SUSPENSO", "PARCELAMENTO SEM GARANTIA", "PARCELADO", "014959465", None),
+        ],
+    ),
+    "80": (
+        FIXTURE_APOIO_80_TEXT,
+        [
+            ("INSCRICAO (SIDA)", "5382-OUTRAS MULTAS", "DEVEDOR", "21016.004.192/2020-86", "10.6.26.022639-00"),
+            ("INSCRICAO SUSPENSA", "3551-IRPJ", "PARCELADO", "17227.720.254/2024-71", "10.2.24.011742-86"),
+            ("INSCRICAO SUSPENSA", "4834-- MULTA ISOLADA", "PARCELADO", "19321.048.099/2024-10", "10.6.24.004595-02"),
+            ("INSCRICAO SUSPENSA", "1804-CONTRIBUICAO SOCIAL", "PARCELADO", "17227.720.254/2024-71", "10.6.24.022055-83"),
+            ("PARCELAMENTO SUSPENSO", "PARCELAMENTO SEM GARANTIA", "PARCELADO", "012825627", None),
+        ],
+    ),
+    "715": (
+        FIXTURE_APOIO_715_TEXT,
+        [
+            ("INSCRICAO (SIDA)", "4133-CONTR. SEGURADOS", "DEVEDOR", "14966.799.357/2026-84", "10.4.26.093566-16"),
+        ],
+    ),
+}
+
+
+def _assert_apoio_rows(label: str, rows: list[dict], esperado: list[tuple], failures: list[str]) -> None:
+    assert_true(len(rows) == len(esperado), f"apoio {label}: esperado {len(esperado)}, obtido {len(rows)} {rows}", failures)
+    for row, (titulo, receita, situacao, lanc, insc) in zip(rows, esperado):
+        got = (row.get("titulo"), row.get("situacao"), row.get("numero_lancamento"), row.get("inscricao"))
+        assert_true(got == (titulo, situacao, lanc, insc), f"apoio {label}: linha {got}", failures)
+        assert_true((row.get("receita") or "").startswith(receita), f"apoio {label}: receita={row.get('receita')}", failures)
+        assert_true(row.get("consolidado") == 0 and row.get("saldo") == 0, f"apoio {label}: valor != 0", failures)
+
+
+def test_fixture_apoio_sem_valor_ecac(failures: list[str]) -> None:
+    """Informações de Apoio: inscrição/processo/parcelamento sem BRL viram lançamento valor 0."""
+    for codigo, (text, esperado) in APOIO_ESPERADO.items():
+        rows = parse_ecac_debitos(text, "ECAC", f"{codigo}-ECAC.pdf", "federal")
+        _assert_apoio_rows(codigo, rows, esperado, failures)
+        assert_true(
+            not any("%" in (r.get("receita") or "") or "2027" in (r.get("receita") or "") for r in rows),
+            f"apoio {codigo}: QSA ou aviso do Simples virou lançamento",
+            failures,
+        )
+        cad = parse_ecac_apoio_certidao(text)
+        assert_true(cad.get("situacaoEmpresa") == "ATIVA", f"apoio {codigo}: situacaoEmpresa={cad.get('situacaoEmpresa')}", failures)
+        assert_true(bool(cad.get("qsa")), f"apoio {codigo}: qsa ausente", failures)
+
+    literal_rows = parse_ecac_apoio_sem_valor(FIXTURE_APOIO_715_LITERALS, "ECAC", "715-ECAC.pdf", "federal")
+    _assert_apoio_rows("715 literais", literal_rows, APOIO_ESPERADO["715"][1], failures)
+
+    pagina_1, pagina_2 = FIXTURE_APOIO_80_TEXT.split("Página: 1 / 2")
+    repetido = pagina_1 * 2 + pagina_2 * 2
+    duplicado = parse_ecac_debitos(repetido, "ECAC", "80-ECAC.pdf", "federal")
+    assert_true(len(duplicado) == 5, f"apoio 80 repetido: esperado 5, obtido {len(duplicado)}", failures)
+
+    com_valor = parse_ecac_debitos("\n".join(FIXTURE_OUTRAS_SECOES_LITERALS), "ECAC", "30-ECAC.pdf", "federal")
+    sida = next((r for r in com_valor if r.get("titulo") == "INSCRICAO (SIDA)"), None)
+    assert_true(sida is not None and sida.get("original") == 100.0, f"outras: SIDA com valor mudou {sida}", failures)
+
+
+def test_pdfs_apoio_sem_valor_reais(failures: list[str]) -> None:
+    base = Path(
+        r"C:\Users\trind\.cursor\projects\d-controle-de-debitos\attachments"
+        r"\bc801986-3436-49f2-aeec-be29b832dbb3"
+    )
+    casos = {
+        "21-ECAC-n_oimportou.pdf": 4,
+        "80-ECAC_n_o_importou.pdf": 5,
+        "715-ECAC_n_o_importou.pdf": 1,
+    }
+    for name, esperado in casos.items():
+        path = base / name
+        if not path.exists():
+            print(f"skip {name} (anexo ausente)")
+            continue
+        text, _mode, _ = resolve_pdf_text(path, "ECAC")
+        rows = parse_ecac_debitos(text, "ECAC", name, "federal", path=path)
+        assert_true(len(rows) == esperado, f"pdf {name}: esperado {esperado}, obtido {len(rows)}", failures)
+        assert_true(all(r.get("consolidado") == 0 for r in rows), f"pdf {name}: valor != 0", failures)
+        cad = parse_ecac_apoio_certidao(text)
+        assert_true(cad.get("situacaoEmpresa") == "ATIVA", f"pdf {name}: situacaoEmpresa", failures)
+        assert_true(bool(cad.get("qsa")), f"pdf {name}: qsa ausente", failures)
 
 
 def test_cid_literal_caesar(failures: list[str]) -> None:
@@ -699,6 +1023,8 @@ def main() -> int:
     test_fixture_omissao_ecf_ano_calendario(failures)
     test_fixture_sief_4_trim(failures)
     test_fixture_outras_secoes_ecac(failures)
+    test_fixture_apoio_sem_valor_ecac(failures)
+    test_pdfs_apoio_sem_valor_reais(failures)
     test_cid_literal_caesar(failures)
     test_pdf_138_conect_calibracao(failures)
     test_sample_86(month, failures)

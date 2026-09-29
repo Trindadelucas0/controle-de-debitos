@@ -2,8 +2,8 @@
 
 | Item | Valor |
 |------|--------|
-| Versão do sistema | 1.5.0 — Layout Êxito |
-| Última atualização | 23/09/2026 (identidade visual Êxito: verde #006b2b, Inter, Material Symbols, sidebar clara) |
+| Versão do sistema | 1.5.1 — Layout Êxito |
+| Última atualização | 29/09/2026 (ECAC Informações de Apoio: inscrição SIDA, processo fiscal SIEF e parcelamento PARCSN/SISPAR sem valor viram lançamento R$ 0,00) |
 | Fonte oficial | Este arquivo |
 | Guia rápido | `2. RELAÇÃO DE DEBITOS/COMO_RODAR.txt` |
 | Deploy | `GIT.TXT` |
@@ -29,6 +29,7 @@ Para ver o desenho de cada tela e o que cada botão faz, use [WIREFRAMES-TELAS.m
 
 | Versão | Nome | O que mudou | Onde |
 |--------|------|-------------|------|
+| 1.5.1 | Layout Êxito | ECAC *Informações de Apoio* com 0 lançamentos (ex. 21, 80, 715): os blocos *Pendência - Inscrição (SIDA)*, *Inscrição com Exigibilidade Suspensa (SIDA)*, *Pendência - Processo Fiscal (SIEF)* e *Parcelamento com Exigibilidade Suspensa (PARCSN/PARCMEI e SISPAR)* passam a gerar lançamento com valor 0 (situação DEVEDOR ou PARCELADO). CND/QSA/situação continuam só no card | `scripts/build_dashboard_data.py` (`parse_ecac_apoio_sem_valor`) |
 | 1.5.0 | Layout Êxito | Chrome claro (fundo `#f9f9ff`, verde `#006b2b`); Inter + Material Symbols; sidebar 288px com gaveta abaixo de 1024px; gráficos e PDFs na paleta Êxito | `globals.css`, `ShellFrame`, todas as telas |
 | 1.4.1 | Diagnóstico fiscal ECAC | Teto de parcelas **240**; vários acordos no mesmo CNPJ (clonar linha; unicidade CNPJ + nº de parcelamento não vazio); seletor **Incluir pelo total** não esconde quem já está na grade | `/parcelamentos` |
 | 1.4.0 | Diagnóstico fiscal ECAC | Todo ECAC *Informações de Apoio* grava CND/QSA/situação no documento (`cadastro`); aba Federal mostra o card acima da grade; CND/QSA Regular **não** viram lançamento nem entram no Excel | `/empresas/[slug]` aba Federal, `extrair_debitos.py` (`parse_ecac_apoio_certidao`) |
@@ -97,7 +98,7 @@ Critério das linhas do Excel de débitos: **inverso** — entra SIEF, SIDA, Age
 |-------|----------------|----------------|------------------|--------|
 | Federal | Diagnóstico fiscal | Card acima da grade (ou no lugar do vazio Regular): situação ATIVA/INAPTA/BAIXADA/NULA, responsável, certidão (tipo/número/emissão/validade), tabela de sócios | Só se o PDF ECAC tiver o bloco *Informações de Apoio*; `cadastro` omitido se vazio | `EmpresaDetail.tsx` + `parse_ecac_apoio_certidao` |
 | Federal | Frase limpa | Texto da Receita (“não foram detectadas pendências…”) | Só quando `diagnosticoLimpo` (frase da Receita, não só PGFN, e sem sinal de pendência) | `Documento.cadastro.diagnosticoLimpo` |
-| Federal | Lançamentos | Grade de débitos/omissões como antes | INAPTA e irregularidade cadastral continuam como lançamento; CND/QSA Regular não | `parse_ecac_debitos` |
+| Federal | Lançamentos | Grade de débitos/omissões como antes | INAPTA e irregularidade cadastral continuam como lançamento; CND/QSA Regular não. Inscrição SIDA, processo fiscal SIEF e parcelamento PARCSN/SISPAR do relatório Apoio entram com valor 0 (**Nº lanç.** = processo ou conta; **Inscrição** no Excel) | `parse_ecac_debitos` → `parse_ecac_apoio_sem_valor` |
 
 ### Importar relatórios (`/upload`)
 
@@ -150,7 +151,18 @@ Menu **Parcelamentos**. Controle operacional mensal (não é a extração de PDF
 - Consulta (grade clássica): inscrição / ano / receita / tributo (descrição até **120** caracteres) / QPA opcional / valor BRL. Exemplos longos: “insc dat-ocupacao area publica propaganda”, “ocupacao area publica por meio de propaganda”.
 - Bloco **A VENCER**: só quando o chunk tem cabeçalho próprio (`Identificação` + `Código de Receita`) e **não** tem grade clássica (`Valor Débito` / `Tributo`). Se a mesma inscrição+ano já veio da grade clássica com valor > 0, não cria linha A VENCER zerada. Na consulta Agenci@Net o valor BRL pode não existir — o painel mostra **A vencer (sem valor na consulta)**.
 - CND sem débitos: `SEM_PENDENCIA`, 0 linhas — importação permitida **somente** se `is_legitimate_sem_pendencia` (CND GDF, consulta sem bloco “Consta(m)… débito(s)”, CND federal, ECAC “não foram detectadas pendências” sem sinais de Receita) **ou** se o bloco Apoio foi extraído (`cadastro`). PDF ilegível ou sem layout **não** grava como `sem_pendencias`.
-- **ECAC Informações de Apoio:** CND (Negativa / Positiva / CPEN), QSA e situação cadastral (ATIVA/INAPTA/BAIXADA/NULA) vão em `documento.cadastro` de **todo** ECAC com esse bloco. **Não** são lançamento monetário e **não** entram no Excel de débitos. `CPF Representante Legal` / `Qualif. Resp.` não entram como sócio. INAPTA e irregularidade cadastral no diagnóstico fiscal **continuam** no parser de débitos.
+- **ECAC Informações de Apoio:** CND (Negativa / Positiva / CPEN), QSA e situação cadastral (ATIVA/INAPTA/BAIXADA/NULA) vão em `documento.cadastro` de **todo** ECAC com esse bloco. **Não** são lançamento monetário e **não** entram na grade nem no Excel de débitos. `CPF Representante Legal` / `Qualif. Resp.` não entram como sócio. INAPTA e irregularidade cadastral no diagnóstico fiscal **continuam** no parser de débitos.
+- **ECAC Informações de Apoio — pendências sem valor:** inscrição, processo fiscal e parcelamento impressos no mesmo relatório passam a ser **lançamento com valor 0** (entram na grade Federal e no Excel de débitos com R$ 0,00). Só estes cinco blocos são lidos, até *Final do Relatório* (`parse_ecac_apoio_sem_valor`):
+
+  | Bloco do PDF | Título no painel | Receita | Nº lanç. | Inscrição |
+  |--------------|------------------|---------|----------|-----------|
+  | Pendência - Inscrição (SIDA) | `INSCRICAO (SIDA)` | código + nome (junta a receita quebrada em 2 linhas) | processo | nº da inscrição |
+  | Inscrição com Exigibilidade Suspensa (SIDA) | `INSCRICAO SUSPENSA` | idem | processo | nº da inscrição |
+  | Pendência - Processo Fiscal (SIEF) | `PROCESSO FISCAL (SIEF)` | `Processo fiscal - {localização}` | processo | — |
+  | Parcelamento com Exigibilidade Suspensa (PARCSN/PARCMEI) | `PARCELAMENTO SUSPENSO` | ex. `SIMPLES NACIONAL` | — | — |
+  | Parcelamento com Exigibilidade Suspensa (SISPAR) | `PARCELAMENTO SUSPENSO` | modalidade | conta | — |
+
+  Situação **DEVEDOR** quando o texto diz DEVEDOR ou ATIVA A SER COBRADA; **PARCELADO** quando diz EM PARCELAMENTO, NEGOCIADA NO SISPAR ou PARCELAMENTO CONVENCIONAL. Coluna *Ajuizado em* vazia não desloca o processo. pymupdf repete cada página: dedupe por inscrição, processo ou conta; se o diagnóstico com valor já trouxe o mesmo número, a cópia sem valor não entra. QSA (ex. 50,00%) e o aviso do Simples Nacional 2027 **não** viram lançamento. PDF sem o cabeçalho *Informações de Apoio para Emissão de Certidão* não passa por esta regra.
 - **Identidade da empresa = CNPJ** (14 dígitos). Vários códigos do escritório na mesma linha (ex. **14, 75, 79** da DT Tintas) = mesma matriz `/0001`, não filiais da Receita. Novo PDF com o mesmo CNPJ anexa na pasta existente (`match_empresa`). Filial federal (`/0002`, `/0003`) não entra nos totais se já houver ECAC da matriz na pasta.
 - Mesmo hash na pasta da empresa + commit: `ok`, não `duplicado` bloqueante; aviso `PDF já existia — painel reindexado`.
 - Preview de mesmo hash: `duplicado: true` só para o badge; confirmação continua habilitada.
@@ -200,6 +212,7 @@ Menu **Parcelamentos**. Controle operacional mensal (não é a extração de PDF
 3. Na aba **Federal**, o card **Diagnóstico fiscal** mostra situação, responsável, certidão e sócios — inclusive quando não há lançamento (CND limpa).
 4. A frase “não foram detectadas pendências…” só aparece quando a Receita (não só a PGFN) está limpa.
 5. CND/QSA Regular não saem no **Exportar débitos**. INAPTA e omissões continuam na grade e no Excel de omissões.
+6. Relatório *Informações de Apoio* com inscrição SIDA, processo fiscal ou parcelamento (sem valor em reais): na revisão do **Analisar** a coluna **LANÇ.** mostra a quantidade de blocos (ex. 21 → 4, 80 → 5, 715 → 1) e o saldo fica **R$ 0,00** — é normal. O checkbox **Incluir** liga porque há lançamento. Na aba Federal as linhas aparecem com situação DEVEDOR ou PARCELADO.
 
 **Agenci@Net 149 (A VENCER):** pode ter **1 lançamento** e saldo **R$ 0,00** — é normal; a SEFAZ não informa valor BRL nessa tela. No detalhe aparece *A vencer (sem valor na consulta)*.
 
