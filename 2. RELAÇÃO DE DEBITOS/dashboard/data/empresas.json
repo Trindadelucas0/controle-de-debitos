@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-08-31T14:37:37",
+  "gerado_em": "2026-09-29T09:53:46",
   "competencias": [
     "06-2026",
     "07-2026",
@@ -779,15 +779,15 @@
     },
     "08-2026": {
       "competencia": "08-2026",
-      "gerado_em": "2026-08-31T14:37:37",
-      "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
+      "gerado_em": "2026-09-29T09:53:46",
+      "pasta_mes": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
       "totais_gerais": {
-        "empresas": 9,
-        "com_pendencia": 8,
+        "empresas": 12,
+        "com_pendencia": 11,
         "regulares": 1,
         "saldo": 14217.56,
         "consolidado": 16251.98,
-        "docs_federal": 4,
+        "docs_federal": 7,
         "docs_estadual": 7,
         "docs_municipal": 2
       },
@@ -1004,6 +1004,462 @@
           "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\BELEZA MARK",
           "avisos": [],
           "qtd_debitos": 3,
+          "competencia": "08-2026"
+        },
+        {
+          "id": "715-centro-medico-especializado-tjj-ltda",
+          "nome": "CENTRO MEDICO ESPECIALIZADO TJJ LTDA",
+          "cnpj": "55.061.632/0001-57",
+          "codigo": "715",
+          "codigos": [
+            "715"
+          ],
+          "status": "pendencia",
+          "tipos": [
+            "INSCRICAO"
+          ],
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "debitos": [
+            {
+              "receita": "4133-CONTR. SEGURADOS",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "715-ECAC.pdf",
+              "codigo": "715",
+              "esfera": "federal",
+              "numero_lancamento": "14966.799.357/2026-84",
+              "inscricao": "10.4.26.093566-16",
+              "titulo": "INSCRICAO (SIDA)"
+            }
+          ],
+          "documentos": [
+            {
+              "arquivo": "715-ECAC.pdf",
+              "codigo": "715",
+              "esfera": "federal",
+              "origemLabel": "ECAC",
+              "statusDoc": "pendencia",
+              "debitos": [
+                {
+                  "receita": "4133-CONTR. SEGURADOS",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "715-ECAC.pdf",
+                  "codigo": "715",
+                  "esfera": "federal",
+                  "numero_lancamento": "14966.799.357/2026-84",
+                  "inscricao": "10.4.26.093566-16",
+                  "titulo": "INSCRICAO (SIDA)"
+                }
+              ],
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "cadastro": {
+                "situacaoEmpresa": "ATIVA",
+                "responsavel": "016.885.031-10 - JHEFFERSON BRANDAO BRETA",
+                "qsa": [
+                  {
+                    "cpfCnpj": "019.591.031-13",
+                    "nome": "TUANNY DAMASCENO COELHO BRETA",
+                    "qualificacao": "SÓCIO",
+                    "situacaoCadastral": "REGULAR",
+                    "capSocial": "49,00%"
+                  },
+                  {
+                    "cpfCnpj": "016.885.031-10",
+                    "nome": "JHEFFERSON BRANDAO BRETA",
+                    "qualificacao": "SÓCIO-ADMINISTRADOR",
+                    "situacaoCadastral": "REGULAR",
+                    "capSocial": "50,00%"
+                  },
+                  {
+                    "cpfCnpj": "046.262.271-12",
+                    "nome": "JESSICA BRANDAO BRETA",
+                    "qualificacao": "SÓCIO",
+                    "situacaoCadastral": "REGULAR",
+                    "capSocial": "1,00%"
+                  }
+                ],
+                "certidao": {
+                  "tipo": "Positiva com Efeitos de Negativa",
+                  "numero": "CAEE.4D71.2DBD.662A",
+                  "emissao": "10/12/2025",
+                  "validade": "08/06/2026"
+                },
+                "diagnosticoLimpo": false
+              }
+            }
+          ],
+          "esferas": {
+            "federal": {
+              "qtdDocs": 1,
+              "status": "pendencia",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [
+                "715-ECAC.pdf"
+              ],
+              "qtd_debitos": 1
+            },
+            "estadual": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            },
+            "municipal": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            }
+          },
+          "temFederal": true,
+          "temEstadual": false,
+          "temMunicipal": false,
+          "arquivos": [
+            "715-ECAC.pdf"
+          ],
+          "pasta": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\CENTRO MEDICO ESPECIALIZADO TJJ LTDA",
+          "avisos": [],
+          "qtd_debitos": 1,
+          "competencia": "08-2026"
+        },
+        {
+          "id": "80-comercial-avicola-progresso-ltda",
+          "nome": "COMERCIAL AVICOLA PROGRESSO LTDA",
+          "cnpj": "00.598.375/0001-03",
+          "codigo": "80",
+          "codigos": [
+            "80"
+          ],
+          "status": "pendencia",
+          "tipos": [
+            "INSCRICAO",
+            "INSCRICAO_SUSPENSA",
+            "PARCELAMENTO_SUSPENSO"
+          ],
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "debitos": [
+            {
+              "receita": "5382-OUTRAS MULTAS",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "21016.004.192/2020-86",
+              "inscricao": "10.6.26.022639-00",
+              "titulo": "INSCRICAO (SIDA)"
+            },
+            {
+              "receita": "3551-IRPJ",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "17227.720.254/2024-71",
+              "inscricao": "10.2.24.011742-86",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "4834-- MULTA ISOLADA",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "19321.048.099/2024-10",
+              "inscricao": "10.6.24.004595-02",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "1804-CONTRIBUICAO SOCIAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "17227.720.254/2024-71",
+              "inscricao": "10.6.24.022055-83",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "PARCELAMENTO SEM GARANTIA PESSOA JURIDICA DIVIDA NAO PREVIDENCIARIA ATE 15 MILHOES DE REAIS",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "012825627",
+              "titulo": "PARCELAMENTO SUSPENSO"
+            }
+          ],
+          "documentos": [
+            {
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "origemLabel": "ECAC",
+              "statusDoc": "pendencia",
+              "debitos": [
+                {
+                  "receita": "5382-OUTRAS MULTAS",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "80-ECAC.pdf",
+                  "codigo": "80",
+                  "esfera": "federal",
+                  "numero_lancamento": "21016.004.192/2020-86",
+                  "inscricao": "10.6.26.022639-00",
+                  "titulo": "INSCRICAO (SIDA)"
+                },
+                {
+                  "receita": "3551-IRPJ",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "PARCELADO",
+                  "origem": "ECAC",
+                  "arquivo": "80-ECAC.pdf",
+                  "codigo": "80",
+                  "esfera": "federal",
+                  "numero_lancamento": "17227.720.254/2024-71",
+                  "inscricao": "10.2.24.011742-86",
+                  "titulo": "INSCRICAO SUSPENSA"
+                },
+                {
+                  "receita": "4834-- MULTA ISOLADA",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "PARCELADO",
+                  "origem": "ECAC",
+                  "arquivo": "80-ECAC.pdf",
+                  "codigo": "80",
+                  "esfera": "federal",
+                  "numero_lancamento": "19321.048.099/2024-10",
+                  "inscricao": "10.6.24.004595-02",
+                  "titulo": "INSCRICAO SUSPENSA"
+                },
+                {
+                  "receita": "1804-CONTRIBUICAO SOCIAL",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "PARCELADO",
+                  "origem": "ECAC",
+                  "arquivo": "80-ECAC.pdf",
+                  "codigo": "80",
+                  "esfera": "federal",
+                  "numero_lancamento": "17227.720.254/2024-71",
+                  "inscricao": "10.6.24.022055-83",
+                  "titulo": "INSCRICAO SUSPENSA"
+                },
+                {
+                  "receita": "PARCELAMENTO SEM GARANTIA PESSOA JURIDICA DIVIDA NAO PREVIDENCIARIA ATE 15 MILHOES DE REAIS",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "PARCELADO",
+                  "origem": "ECAC",
+                  "arquivo": "80-ECAC.pdf",
+                  "codigo": "80",
+                  "esfera": "federal",
+                  "numero_lancamento": "012825627",
+                  "titulo": "PARCELAMENTO SUSPENSO"
+                }
+              ],
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "cadastro": {
+                "situacaoEmpresa": "ATIVA",
+                "responsavel": "011.179.911-21 - MICHEL MOMO DOS SANTOS",
+                "qsa": [
+                  {
+                    "cpfCnpj": "011.179.911-21",
+                    "nome": "MICHEL MOMO DOS SANTOS",
+                    "qualificacao": "SÓCIO-ADMINISTRADOR",
+                    "situacaoCadastral": "REGULAR",
+                    "capSocial": "100,00%"
+                  }
+                ],
+                "certidao": {
+                  "tipo": "Positiva com Efeitos de Negativa",
+                  "numero": "1E33.816E.A6A7.BD03",
+                  "emissao": "25/08/2026",
+                  "validade": "21/02/2027"
+                },
+                "diagnosticoLimpo": false
+              }
+            }
+          ],
+          "esferas": {
+            "federal": {
+              "qtdDocs": 1,
+              "status": "pendencia",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [
+                "80-ECAC.pdf"
+              ],
+              "qtd_debitos": 5
+            },
+            "estadual": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            },
+            "municipal": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            }
+          },
+          "temFederal": true,
+          "temEstadual": false,
+          "temMunicipal": false,
+          "arquivos": [
+            "80-ECAC.pdf"
+          ],
+          "pasta": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\COMERCIAL AVICOLA PROGRESSO LTDA",
+          "avisos": [],
+          "qtd_debitos": 5,
           "competencia": "08-2026"
         },
         {
@@ -2792,6 +3248,258 @@
           "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\RENATO HENRIQUE DIAS -ME",
           "avisos": [],
           "qtd_debitos": 19,
+          "competencia": "08-2026"
+        },
+        {
+          "id": "21-the-minas-gastro-bar-ltda",
+          "nome": "THE MINAS GASTRO BAR LTDA",
+          "cnpj": "53.870.461/0001-81",
+          "codigo": "21",
+          "codigos": [
+            "21"
+          ],
+          "status": "pendencia",
+          "tipos": [
+            "PROCESSO FISCAL",
+            "INSCRICAO_SUSPENSA",
+            "PARCELAMENTO_SUSPENSO"
+          ],
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "debitos": [
+            {
+              "receita": "SIMPLES NACIONAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "titulo": "PARCELAMENTO SUSPENSO"
+            },
+            {
+              "receita": "Processo fiscal - SETOR PROC ELETRONICO REFIS DRF BSB DF",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "numero_lancamento": "10641.078.734/2026-50",
+              "titulo": "PROCESSO FISCAL (SIEF)"
+            },
+            {
+              "receita": "1507-SIMPLES NACIONAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "numero_lancamento": "12376.074.851/2025-76",
+              "inscricao": "10.4.25.009172-06",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "PARCELAMENTO SEM GARANTIA SIMPLES NACIONAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "numero_lancamento": "014959465",
+              "titulo": "PARCELAMENTO SUSPENSO"
+            }
+          ],
+          "documentos": [
+            {
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "origemLabel": "ECAC",
+              "statusDoc": "pendencia",
+              "debitos": [
+                {
+                  "receita": "SIMPLES NACIONAL",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "PARCELADO",
+                  "origem": "ECAC",
+                  "arquivo": "21-ECAC.pdf",
+                  "codigo": "21",
+                  "esfera": "federal",
+                  "titulo": "PARCELAMENTO SUSPENSO"
+                },
+                {
+                  "receita": "Processo fiscal - SETOR PROC ELETRONICO REFIS DRF BSB DF",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "DEVEDOR",
+                  "origem": "ECAC",
+                  "arquivo": "21-ECAC.pdf",
+                  "codigo": "21",
+                  "esfera": "federal",
+                  "numero_lancamento": "10641.078.734/2026-50",
+                  "titulo": "PROCESSO FISCAL (SIEF)"
+                },
+                {
+                  "receita": "1507-SIMPLES NACIONAL",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "PARCELADO",
+                  "origem": "ECAC",
+                  "arquivo": "21-ECAC.pdf",
+                  "codigo": "21",
+                  "esfera": "federal",
+                  "numero_lancamento": "12376.074.851/2025-76",
+                  "inscricao": "10.4.25.009172-06",
+                  "titulo": "INSCRICAO SUSPENSA"
+                },
+                {
+                  "receita": "PARCELAMENTO SEM GARANTIA SIMPLES NACIONAL",
+                  "pa": "",
+                  "vencimento": "",
+                  "original": 0.0,
+                  "saldo": 0.0,
+                  "multa": 0.0,
+                  "juros": 0.0,
+                  "consolidado": 0.0,
+                  "situacao": "PARCELADO",
+                  "origem": "ECAC",
+                  "arquivo": "21-ECAC.pdf",
+                  "codigo": "21",
+                  "esfera": "federal",
+                  "numero_lancamento": "014959465",
+                  "titulo": "PARCELAMENTO SUSPENSO"
+                }
+              ],
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "cadastro": {
+                "situacaoEmpresa": "ATIVA",
+                "responsavel": "117.851.596-66 - LARISSA IZABEL NUNES LEMOS",
+                "qsa": [
+                  {
+                    "cpfCnpj": "123.837.876-55",
+                    "nome": "WILKER ZUETE ROCHA",
+                    "qualificacao": "SÓCIO",
+                    "situacaoCadastral": "REGULAR",
+                    "capSocial": "50,00%"
+                  },
+                  {
+                    "cpfCnpj": "117.851.596-66",
+                    "nome": "LARISSA IZABEL NUNES LEMOS",
+                    "qualificacao": "SÓCIO-ADMINISTRADOR",
+                    "situacaoCadastral": "REGULAR",
+                    "capSocial": "50,00%"
+                  }
+                ],
+                "diagnosticoLimpo": false
+              }
+            }
+          ],
+          "esferas": {
+            "federal": {
+              "qtdDocs": 1,
+              "status": "pendencia",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [
+                "21-ECAC.pdf"
+              ],
+              "qtd_debitos": 4
+            },
+            "estadual": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            },
+            "municipal": {
+              "qtdDocs": 0,
+              "status": "sem_documento",
+              "totais": {
+                "original": 0.0,
+                "saldo": 0.0,
+                "multa": 0.0,
+                "juros": 0.0,
+                "consolidado": 0.0
+              },
+              "arquivos": [],
+              "qtd_debitos": 0
+            }
+          },
+          "temFederal": true,
+          "temEstadual": false,
+          "temMunicipal": false,
+          "arquivos": [
+            "21-ECAC.pdf"
+          ],
+          "pasta": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\THE MINAS GASTRO BAR LTDA",
+          "avisos": [],
+          "qtd_debitos": 4,
           "competencia": "08-2026"
         },
         {
@@ -44527,14 +45235,14 @@
     }
   },
   "competencia": "08-2026",
-  "pasta_mes": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
+  "pasta_mes": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026",
   "totais_gerais": {
-    "empresas": 9,
-    "com_pendencia": 8,
+    "empresas": 12,
+    "com_pendencia": 11,
     "regulares": 1,
     "saldo": 14217.56,
     "consolidado": 16251.98,
-    "docs_federal": 4,
+    "docs_federal": 7,
     "docs_estadual": 7,
     "docs_municipal": 2
   },
@@ -44751,6 +45459,462 @@
       "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\BELEZA MARK",
       "avisos": [],
       "qtd_debitos": 3,
+      "competencia": "08-2026"
+    },
+    {
+      "id": "715-centro-medico-especializado-tjj-ltda",
+      "nome": "CENTRO MEDICO ESPECIALIZADO TJJ LTDA",
+      "cnpj": "55.061.632/0001-57",
+      "codigo": "715",
+      "codigos": [
+        "715"
+      ],
+      "status": "pendencia",
+      "tipos": [
+        "INSCRICAO"
+      ],
+      "totais": {
+        "original": 0.0,
+        "saldo": 0.0,
+        "multa": 0.0,
+        "juros": 0.0,
+        "consolidado": 0.0
+      },
+      "debitos": [
+        {
+          "receita": "4133-CONTR. SEGURADOS",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "715-ECAC.pdf",
+          "codigo": "715",
+          "esfera": "federal",
+          "numero_lancamento": "14966.799.357/2026-84",
+          "inscricao": "10.4.26.093566-16",
+          "titulo": "INSCRICAO (SIDA)"
+        }
+      ],
+      "documentos": [
+        {
+          "arquivo": "715-ECAC.pdf",
+          "codigo": "715",
+          "esfera": "federal",
+          "origemLabel": "ECAC",
+          "statusDoc": "pendencia",
+          "debitos": [
+            {
+              "receita": "4133-CONTR. SEGURADOS",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "715-ECAC.pdf",
+              "codigo": "715",
+              "esfera": "federal",
+              "numero_lancamento": "14966.799.357/2026-84",
+              "inscricao": "10.4.26.093566-16",
+              "titulo": "INSCRICAO (SIDA)"
+            }
+          ],
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "cadastro": {
+            "situacaoEmpresa": "ATIVA",
+            "responsavel": "016.885.031-10 - JHEFFERSON BRANDAO BRETA",
+            "qsa": [
+              {
+                "cpfCnpj": "019.591.031-13",
+                "nome": "TUANNY DAMASCENO COELHO BRETA",
+                "qualificacao": "SÓCIO",
+                "situacaoCadastral": "REGULAR",
+                "capSocial": "49,00%"
+              },
+              {
+                "cpfCnpj": "016.885.031-10",
+                "nome": "JHEFFERSON BRANDAO BRETA",
+                "qualificacao": "SÓCIO-ADMINISTRADOR",
+                "situacaoCadastral": "REGULAR",
+                "capSocial": "50,00%"
+              },
+              {
+                "cpfCnpj": "046.262.271-12",
+                "nome": "JESSICA BRANDAO BRETA",
+                "qualificacao": "SÓCIO",
+                "situacaoCadastral": "REGULAR",
+                "capSocial": "1,00%"
+              }
+            ],
+            "certidao": {
+              "tipo": "Positiva com Efeitos de Negativa",
+              "numero": "CAEE.4D71.2DBD.662A",
+              "emissao": "10/12/2025",
+              "validade": "08/06/2026"
+            },
+            "diagnosticoLimpo": false
+          }
+        }
+      ],
+      "esferas": {
+        "federal": {
+          "qtdDocs": 1,
+          "status": "pendencia",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [
+            "715-ECAC.pdf"
+          ],
+          "qtd_debitos": 1
+        },
+        "estadual": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        },
+        "municipal": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        }
+      },
+      "temFederal": true,
+      "temEstadual": false,
+      "temMunicipal": false,
+      "arquivos": [
+        "715-ECAC.pdf"
+      ],
+      "pasta": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\CENTRO MEDICO ESPECIALIZADO TJJ LTDA",
+      "avisos": [],
+      "qtd_debitos": 1,
+      "competencia": "08-2026"
+    },
+    {
+      "id": "80-comercial-avicola-progresso-ltda",
+      "nome": "COMERCIAL AVICOLA PROGRESSO LTDA",
+      "cnpj": "00.598.375/0001-03",
+      "codigo": "80",
+      "codigos": [
+        "80"
+      ],
+      "status": "pendencia",
+      "tipos": [
+        "INSCRICAO",
+        "INSCRICAO_SUSPENSA",
+        "PARCELAMENTO_SUSPENSO"
+      ],
+      "totais": {
+        "original": 0.0,
+        "saldo": 0.0,
+        "multa": 0.0,
+        "juros": 0.0,
+        "consolidado": 0.0
+      },
+      "debitos": [
+        {
+          "receita": "5382-OUTRAS MULTAS",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "80-ECAC.pdf",
+          "codigo": "80",
+          "esfera": "federal",
+          "numero_lancamento": "21016.004.192/2020-86",
+          "inscricao": "10.6.26.022639-00",
+          "titulo": "INSCRICAO (SIDA)"
+        },
+        {
+          "receita": "3551-IRPJ",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "PARCELADO",
+          "origem": "ECAC",
+          "arquivo": "80-ECAC.pdf",
+          "codigo": "80",
+          "esfera": "federal",
+          "numero_lancamento": "17227.720.254/2024-71",
+          "inscricao": "10.2.24.011742-86",
+          "titulo": "INSCRICAO SUSPENSA"
+        },
+        {
+          "receita": "4834-- MULTA ISOLADA",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "PARCELADO",
+          "origem": "ECAC",
+          "arquivo": "80-ECAC.pdf",
+          "codigo": "80",
+          "esfera": "federal",
+          "numero_lancamento": "19321.048.099/2024-10",
+          "inscricao": "10.6.24.004595-02",
+          "titulo": "INSCRICAO SUSPENSA"
+        },
+        {
+          "receita": "1804-CONTRIBUICAO SOCIAL",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "PARCELADO",
+          "origem": "ECAC",
+          "arquivo": "80-ECAC.pdf",
+          "codigo": "80",
+          "esfera": "federal",
+          "numero_lancamento": "17227.720.254/2024-71",
+          "inscricao": "10.6.24.022055-83",
+          "titulo": "INSCRICAO SUSPENSA"
+        },
+        {
+          "receita": "PARCELAMENTO SEM GARANTIA PESSOA JURIDICA DIVIDA NAO PREVIDENCIARIA ATE 15 MILHOES DE REAIS",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "PARCELADO",
+          "origem": "ECAC",
+          "arquivo": "80-ECAC.pdf",
+          "codigo": "80",
+          "esfera": "federal",
+          "numero_lancamento": "012825627",
+          "titulo": "PARCELAMENTO SUSPENSO"
+        }
+      ],
+      "documentos": [
+        {
+          "arquivo": "80-ECAC.pdf",
+          "codigo": "80",
+          "esfera": "federal",
+          "origemLabel": "ECAC",
+          "statusDoc": "pendencia",
+          "debitos": [
+            {
+              "receita": "5382-OUTRAS MULTAS",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "21016.004.192/2020-86",
+              "inscricao": "10.6.26.022639-00",
+              "titulo": "INSCRICAO (SIDA)"
+            },
+            {
+              "receita": "3551-IRPJ",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "17227.720.254/2024-71",
+              "inscricao": "10.2.24.011742-86",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "4834-- MULTA ISOLADA",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "19321.048.099/2024-10",
+              "inscricao": "10.6.24.004595-02",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "1804-CONTRIBUICAO SOCIAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "17227.720.254/2024-71",
+              "inscricao": "10.6.24.022055-83",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "PARCELAMENTO SEM GARANTIA PESSOA JURIDICA DIVIDA NAO PREVIDENCIARIA ATE 15 MILHOES DE REAIS",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "80-ECAC.pdf",
+              "codigo": "80",
+              "esfera": "federal",
+              "numero_lancamento": "012825627",
+              "titulo": "PARCELAMENTO SUSPENSO"
+            }
+          ],
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "cadastro": {
+            "situacaoEmpresa": "ATIVA",
+            "responsavel": "011.179.911-21 - MICHEL MOMO DOS SANTOS",
+            "qsa": [
+              {
+                "cpfCnpj": "011.179.911-21",
+                "nome": "MICHEL MOMO DOS SANTOS",
+                "qualificacao": "SÓCIO-ADMINISTRADOR",
+                "situacaoCadastral": "REGULAR",
+                "capSocial": "100,00%"
+              }
+            ],
+            "certidao": {
+              "tipo": "Positiva com Efeitos de Negativa",
+              "numero": "1E33.816E.A6A7.BD03",
+              "emissao": "25/08/2026",
+              "validade": "21/02/2027"
+            },
+            "diagnosticoLimpo": false
+          }
+        }
+      ],
+      "esferas": {
+        "federal": {
+          "qtdDocs": 1,
+          "status": "pendencia",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [
+            "80-ECAC.pdf"
+          ],
+          "qtd_debitos": 5
+        },
+        "estadual": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        },
+        "municipal": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        }
+      },
+      "temFederal": true,
+      "temEstadual": false,
+      "temMunicipal": false,
+      "arquivos": [
+        "80-ECAC.pdf"
+      ],
+      "pasta": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\COMERCIAL AVICOLA PROGRESSO LTDA",
+      "avisos": [],
+      "qtd_debitos": 5,
       "competencia": "08-2026"
     },
     {
@@ -46539,6 +47703,258 @@
       "pasta": "C:\\Users\\trind\\Desktop\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\RENATO HENRIQUE DIAS -ME",
       "avisos": [],
       "qtd_debitos": 19,
+      "competencia": "08-2026"
+    },
+    {
+      "id": "21-the-minas-gastro-bar-ltda",
+      "nome": "THE MINAS GASTRO BAR LTDA",
+      "cnpj": "53.870.461/0001-81",
+      "codigo": "21",
+      "codigos": [
+        "21"
+      ],
+      "status": "pendencia",
+      "tipos": [
+        "PROCESSO FISCAL",
+        "INSCRICAO_SUSPENSA",
+        "PARCELAMENTO_SUSPENSO"
+      ],
+      "totais": {
+        "original": 0.0,
+        "saldo": 0.0,
+        "multa": 0.0,
+        "juros": 0.0,
+        "consolidado": 0.0
+      },
+      "debitos": [
+        {
+          "receita": "SIMPLES NACIONAL",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "PARCELADO",
+          "origem": "ECAC",
+          "arquivo": "21-ECAC.pdf",
+          "codigo": "21",
+          "esfera": "federal",
+          "titulo": "PARCELAMENTO SUSPENSO"
+        },
+        {
+          "receita": "Processo fiscal - SETOR PROC ELETRONICO REFIS DRF BSB DF",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "DEVEDOR",
+          "origem": "ECAC",
+          "arquivo": "21-ECAC.pdf",
+          "codigo": "21",
+          "esfera": "federal",
+          "numero_lancamento": "10641.078.734/2026-50",
+          "titulo": "PROCESSO FISCAL (SIEF)"
+        },
+        {
+          "receita": "1507-SIMPLES NACIONAL",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "PARCELADO",
+          "origem": "ECAC",
+          "arquivo": "21-ECAC.pdf",
+          "codigo": "21",
+          "esfera": "federal",
+          "numero_lancamento": "12376.074.851/2025-76",
+          "inscricao": "10.4.25.009172-06",
+          "titulo": "INSCRICAO SUSPENSA"
+        },
+        {
+          "receita": "PARCELAMENTO SEM GARANTIA SIMPLES NACIONAL",
+          "pa": "",
+          "vencimento": "",
+          "original": 0.0,
+          "saldo": 0.0,
+          "multa": 0.0,
+          "juros": 0.0,
+          "consolidado": 0.0,
+          "situacao": "PARCELADO",
+          "origem": "ECAC",
+          "arquivo": "21-ECAC.pdf",
+          "codigo": "21",
+          "esfera": "federal",
+          "numero_lancamento": "014959465",
+          "titulo": "PARCELAMENTO SUSPENSO"
+        }
+      ],
+      "documentos": [
+        {
+          "arquivo": "21-ECAC.pdf",
+          "codigo": "21",
+          "esfera": "federal",
+          "origemLabel": "ECAC",
+          "statusDoc": "pendencia",
+          "debitos": [
+            {
+              "receita": "SIMPLES NACIONAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "titulo": "PARCELAMENTO SUSPENSO"
+            },
+            {
+              "receita": "Processo fiscal - SETOR PROC ELETRONICO REFIS DRF BSB DF",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "DEVEDOR",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "numero_lancamento": "10641.078.734/2026-50",
+              "titulo": "PROCESSO FISCAL (SIEF)"
+            },
+            {
+              "receita": "1507-SIMPLES NACIONAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "numero_lancamento": "12376.074.851/2025-76",
+              "inscricao": "10.4.25.009172-06",
+              "titulo": "INSCRICAO SUSPENSA"
+            },
+            {
+              "receita": "PARCELAMENTO SEM GARANTIA SIMPLES NACIONAL",
+              "pa": "",
+              "vencimento": "",
+              "original": 0.0,
+              "saldo": 0.0,
+              "multa": 0.0,
+              "juros": 0.0,
+              "consolidado": 0.0,
+              "situacao": "PARCELADO",
+              "origem": "ECAC",
+              "arquivo": "21-ECAC.pdf",
+              "codigo": "21",
+              "esfera": "federal",
+              "numero_lancamento": "014959465",
+              "titulo": "PARCELAMENTO SUSPENSO"
+            }
+          ],
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "cadastro": {
+            "situacaoEmpresa": "ATIVA",
+            "responsavel": "117.851.596-66 - LARISSA IZABEL NUNES LEMOS",
+            "qsa": [
+              {
+                "cpfCnpj": "123.837.876-55",
+                "nome": "WILKER ZUETE ROCHA",
+                "qualificacao": "SÓCIO",
+                "situacaoCadastral": "REGULAR",
+                "capSocial": "50,00%"
+              },
+              {
+                "cpfCnpj": "117.851.596-66",
+                "nome": "LARISSA IZABEL NUNES LEMOS",
+                "qualificacao": "SÓCIO-ADMINISTRADOR",
+                "situacaoCadastral": "REGULAR",
+                "capSocial": "50,00%"
+              }
+            ],
+            "diagnosticoLimpo": false
+          }
+        }
+      ],
+      "esferas": {
+        "federal": {
+          "qtdDocs": 1,
+          "status": "pendencia",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [
+            "21-ECAC.pdf"
+          ],
+          "qtd_debitos": 4
+        },
+        "estadual": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        },
+        "municipal": {
+          "qtdDocs": 0,
+          "status": "sem_documento",
+          "totais": {
+            "original": 0.0,
+            "saldo": 0.0,
+            "multa": 0.0,
+            "juros": 0.0,
+            "consolidado": 0.0
+          },
+          "arquivos": [],
+          "qtd_debitos": 0
+        }
+      },
+      "temFederal": true,
+      "temEstadual": false,
+      "temMunicipal": false,
+      "arquivos": [
+        "21-ECAC.pdf"
+      ],
+      "pasta": "D:\\controle-de-debitos\\2. RELAÇÃO DE DEBITOS\\2. RELAÇÃO DE DEBITOS\\08-2026\\pendencias\\THE MINAS GASTRO BAR LTDA",
+      "avisos": [],
+      "qtd_debitos": 4,
       "competencia": "08-2026"
     },
     {
