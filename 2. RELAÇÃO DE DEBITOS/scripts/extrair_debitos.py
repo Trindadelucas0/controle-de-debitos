@@ -612,6 +612,12 @@ NOME_BLOQUEADOS = (
     "informacoes de apoio",
 )
 
+NOME_ROTULOS_PORTAL = (
+    "portal do cidadao",
+    "prefeitura",
+    "consulta",
+)
+
 
 def cnpj_checksum_ok(digits: str) -> bool:
     raw = re.sub(r"\D", "", digits)
@@ -662,7 +668,8 @@ def clean_company_name(name: str | None) -> str | None:
     name = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", name)
     name = re.sub(r"\s+", " ", name).strip(" -.,;:|_")
     name = re.split(
-        r"Dados Cadastrais|Certid|UA de|Endere|Diagn[oó]stico|D[eé]bito|Parcelamento|Receita|CPF\s*/\s*CNPJ|CPF/CNPJ",
+        r"Dados Cadastrais|Certid|UA de|Endere|Diagn[oó]stico|D[eé]bito|Parcelamento|Receita|CPF\s*/\s*CNPJ|CPF/CNPJ"
+        r"|Inscri[cç][aã]o\s+(?:Municipal|Estadual)",
         name,
         flags=re.I,
     )[0]
@@ -689,6 +696,20 @@ def _next_nonempty_line(text: str, start: int) -> str | None:
         if cleaned:
             return cleaned
     return None
+
+
+def _nome_linha_seguinte(text: str) -> str | None:
+    """Unaí extrato de dívida: "Nome:" sozinho na linha e a razão na linha de baixo."""
+    m = re.search(r"^[ \t\u00a0]*Nome[ \t]*:[ \t\u00a0]*$", text, re.I | re.M)
+    if not m:
+        return None
+    cand = _next_nonempty_line(text, m.end())
+    if not cand or cand.endswith(":"):
+        return None
+    cand = re.split(r"Endere|CPF|CNPJ", cand, flags=re.I)[0]
+    if any(token in fold(cand) for token in NOME_ROTULOS_PORTAL):
+        return None
+    return clean_company_name(cand)
 
 
 def extract_company(text: str) -> tuple[str | None, str | None]:
@@ -840,6 +861,10 @@ def extract_company(text: str) -> tuple[str | None, str | None]:
                     digits = re.sub(r"\D", "", cand_cnpj)
                     if len(digits) >= 14:
                         cnpj = format_cnpj_digits(digits[:14])
+
+    # 6b) Unaí extrato de dívida: Documento: {cnpj} antes de Nome:\n{razão}\nEndereço:
+    if not name:
+        name = _nome_linha_seguinte(text)
 
     # 7) Agenci@net URL/path com 14 dígitos
     if not cnpj:

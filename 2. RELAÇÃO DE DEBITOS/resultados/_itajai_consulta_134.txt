@@ -1,0 +1,118 @@
+TMI - Tributos Municipais Inteligentes
+Município de Itajaí
+Home
+Contato
+Senhas
+Perguntas frequentes
+Administrador
+CNPJ/CPF*: 59.983.818/0002-03
+Situação do débito:
+Consultar  Limpar
+Ano inicial: 
+Ano final: 
+Aberto
+Os valores apresentados estão atualizados até 30/09/2026, estes podem sofrer alterações caso sejam emitidos em outras datas.
+Contribuinte
+CPF/CNPJ: 59.983.818/0002-03
+Nome: ART FORT COMERCIO E IMPORTACAO LTDA
+Inscrição Municipal: 367518
+Dívida
+Ano Tipo débito
+Parcela
+Tipo
+Situação
+Lançamento
+Vencimento
+Valor original Desconto Vlr. juros Vlr. multa
+Vlr. correção
+Vlr. honorário Vlr. corrig
+CMC: 367518
+TAXA DE LICENCA E LOCALIZACAO(7)
+2026 Exercício
+1
+Normal
+Aberto
+13/01/2026
+28/02/2026
+505,18
+0,00
+35,36
+50,52
+0,00
+0,00
+59
+Total de registros: 1
+Total de valores:
+505,18
+0,00
+35,36
+50,52
+0,00
+0,00
+59
+Englobar
+Desenvolvido por Pública
+30/09/2026, 10:48
+TMI - Tributos Municipais Inteligentes - Município de Itajaí
+https://iss.itajai.sc.gov.br/sefaz/jsp/externo/debitoContigencia/consulta.jsp
+1/1
+
+
+TMI - Tributos Municipais Inteligentes
+Município de Itajaí
+Home
+Contato
+Senhas
+Perguntas frequentes
+Administrador
+CNPJ/CPF*: 59.983.818/0002-03
+Situação do débito:
+Consultar  Limpar
+Ano inicial: 
+Ano final: 
+Aberto
+Os valores apresentados estão atualizados até 30/09/2026, estes podem sofrer alterações caso sejam emitidos em outras datas.
+Contribuinte
+CPF/CNPJ: 59.983.818/0002-03
+Nome: ART FORT COMERCIO E IMPORTACAO LTDA
+Inscrição Municipal: 367518
+Dívida
+Ano Tipo débito
+Parcela
+Tipo
+Situação
+Lançamento
+Vencimento
+Valor original Desconto Vlr. juros Vlr. multa
+Vlr. correção
+Vlr. honorário Vlr. corrig
+CMC: 367518
+TAXA DE LICENCA E LOCALIZACAO(7)
+2026 Exercício
+1
+Normal
+Aberto
+13/01/2026
+28/02/2026
+505,18
+0,00
+35,36
+50,52
+0,00
+0,00
+59
+Total de registros: 1
+Total de valores:
+505,18
+0,00
+35,36
+50,52
+0,00
+0,00
+59
+Englobar
+Desenvolvido por Pública
+30/09/2026, 10:48
+TMI - Tributos Municipais Inteligentes - Município de Itajaí
+https://iss.itajai.sc.gov.br/sefaz/jsp/externo/debitoContigencia/consulta.jsp
+1/1

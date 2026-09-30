@@ -947,9 +947,11 @@ def text_is_really_empty(text: str) -> bool:
 
 
 def cleanup_municipal_nome(nome: str | None, text: str) -> str | None:
-    """Nome Unaí compacto (Nome:EMPRESA CPF/CNPJ:) e cola ME+CPF."""
+    """Nome Unaí compacto (Nome:EMPRESA CPF/CNPJ:), cola ME+CPF e Itajaí (…Inscrição Municipal:)."""
     if nome:
-        cleaned = re.split(r"(?i)CPF\s*/\s*CNPJ|CNPJ\s*:", nome)[0]
+        cleaned = re.split(
+            r"(?i)CPF\s*/\s*CNPJ|CNPJ\s*:|Inscri[cç][aã]o\s+municipal", nome
+        )[0]
         cleaned = re.sub(r"(?i)[\s\-]*CPF\s*/?\s*$", "", cleaned).strip(" -.,;:|_")
         if cleaned and len(re.findall(r"[A-Za-zÁ-ú]", cleaned)) >= 5:
             return cleaned[:140]
@@ -960,7 +962,8 @@ def cleanup_municipal_nome(nome: str | None, text: str) -> str | None:
     )
     if not m:
         return nome
-    cleaned = re.sub(r"(?i)[\s\-]*CPF\s*/?\s*$", "", m.group(1)).strip(" -.,;:|_")
+    cleaned = re.split(r"(?i)Inscri[cç][aã]o\s+municipal", m.group(1))[0]
+    cleaned = re.sub(r"(?i)[\s\-]*CPF\s*/?\s*$", "", cleaned).strip(" -.,;:|_")
     cleaned = re.sub(r"\s+", " ", cleaned)
     if cleaned and len(re.findall(r"[A-Za-zÁ-ú]", cleaned)) >= 5:
         return cleaned[:140]

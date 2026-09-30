@@ -2089,6 +2089,29 @@ ITAJAI_TRIBUTO_RS_RE = re.compile(
     r"([A-ZÁ-Ú][A-ZÁ-Ú0-9 /().-]{3,80}?)\s*:\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})",
     re.I,
 )
+# Itajaí — TMI "Consulta de débitos" (portal). pymupdf põe cada coluna numa linha:
+# Tributo / Ano Tipo / Parcela / Tipo / Situação / Lançamento / Vencimento /
+# Original Desconto Juros Multa Correção Honorário Corrigido
+_BRL = r"\d{1,3}(?:\.\d{3})*,\d{2}"
+ITAJAI_CONSULTA_ROW_RE = re.compile(
+    r"^(?P<tributo>[A-ZÁ-Ú][^\n]{3,80}?)[ \t]*\n\s*"
+    r"(?P<ano>20\d{2})[ \t]+(?P<tipo>[^\n\d]{3,30}?)[ \t]*\n\s*"
+    r"(?P<parc>\d{1,3})\s+"
+    r"(?P<tipo_lanc>[^\n\d]{3,30}?)[ \t]*\n\s*"
+    r"(?P<situacao>[^\n\d]{3,30}?)[ \t]*\n\s*"
+    r"(?P<lancamento>\d{2}/\d{2}/\d{4})\s+"
+    r"(?P<venc>\d{2}/\d{2}/\d{4})\s+"
+    rf"(?P<original>{_BRL})\s+"
+    rf"(?P<desconto>{_BRL})\s+"
+    rf"(?P<juros>{_BRL})\s+"
+    rf"(?P<multa>{_BRL})\s+"
+    rf"(?P<correcao>{_BRL})\s+"
+    rf"(?P<honorario>{_BRL})\s+"
+    r"(?P<corrigido>\d[\d.,]*)",
+    re.M,
+)
+ITAJAI_CONSULTA_REGISTROS_RE = re.compile(r"Total\s+de\s+registros\s*:\s*(\d+)", re.I)
+ITAJAI_CONSULTA_TOTAL_RE = re.compile(rf"Total\s+de\s+valores\s*:\s*({_BRL})", re.I)
 
 BC_SKIP_TRIBUTOS = {
     "portal",
@@ -2401,6 +2424,81 @@ def parse_municipal_itajai_guia(text: str, arquivo: str) -> list[dict]:
     ]
 
 
+def _itajai_corrigido(match: re.Match) -> float | None:
+    """Vlr. corrig da consulta TMI; a impressão do portal corta a coluna.
+
+    Valor completo impresso → usa direto. Cortado (ex. "59" de 591,06) → soma
+    as colunas impressas e só aceita se os dígitos iniciais baterem.
+    """
+    printed = match.group("corrigido")
+    if re.fullmatch(_BRL, printed):
+        return parse_brl(printed)
+    soma = (
+        parse_brl(match.group("original"))
+        - parse_brl(match.group("desconto"))
+        + parse_brl(match.group("juros"))
+        + parse_brl(match.group("multa"))
+        + parse_brl(match.group("correcao"))
+        + parse_brl(match.group("honorario"))
+    )
+    soma = round(soma, 2)
+    if not f"{soma:.2f}".replace(".", "").startswith(re.sub(r"\D", "", printed)):
+        return None
+    return soma
+
+
+def parse_municipal_itajai_consulta(text: str, arquivo: str) -> list[dict]:
+    """Layout Itajaí-SC — TMI Consulta de débitos (tabela do portal, sem boleto)."""
+    codigo = codigo_from_filename(arquivo)
+    rows: list[dict] = []
+    seen: set[tuple] = set()
+    for match in ITAJAI_CONSULTA_ROW_RE.finditer(text):
+        key = (
+            match.group("tributo").strip(),
+            match.group("ano"),
+            match.group("parc"),
+            match.group("venc"),
+            match.group("original"),
+        )
+        # PDF traz a tabela repetida (2 vias no texto)
+        if key in seen:
+            continue
+        seen.add(key)
+        consolidado = _itajai_corrigido(match)
+        if consolidado is None:
+            return []
+        original = parse_brl(match.group("original"))
+        tipo = re.sub(r"\s+", " ", match.group("tipo")).strip()
+        rows.append(
+            _make_debito_row(
+                receita=re.sub(r"\s+", " ", match.group("tributo")).strip().upper(),
+                pa=match.group("ano"),
+                vencimento=match.group("venc"),
+                original=original,
+                saldo=original,
+                multa=parse_brl(match.group("multa")),
+                juros=parse_brl(match.group("juros")),
+                consolidado=consolidado,
+                situacao="DIVIDA ATIVA" if fold(tipo) == "divida ativa" else "DEVEDOR",
+                origem="MUNICIPAL",
+                arquivo=arquivo,
+                codigo=codigo,
+                esfera="municipal",
+                numero_lancamento=match.group("parc"),
+            )
+        )
+
+    registros_m = ITAJAI_CONSULTA_REGISTROS_RE.search(text)
+    if registros_m and int(registros_m.group(1)) != len(rows):
+        return []
+    total_m = ITAJAI_CONSULTA_TOTAL_RE.search(text)
+    if total_m and rows:
+        soma_original = round(sum(row["original"] for row in rows), 2)
+        if abs(soma_original - parse_brl(total_m.group(1))) > 0.01:
+            return []
+    return rows
+
+
 def parse_municipal_debitos(text: str, arquivo: str) -> tuple[list[dict], str | None, list[str]]:
     """Retorna (linhas, layout, avisos)."""
     avisos: list[str] = []
@@ -2411,6 +2509,12 @@ def parse_municipal_debitos(text: str, arquivo: str) -> tuple[list[dict], str | 
         rows = parse_municipal_unai_parcelamento(text, arquivo)
     elif layout == "itajai_guia":
         rows = parse_municipal_itajai_guia(text, arquivo)
+        # Fallback: consulta de débitos do portal TMI (sem guia/boleto)
+        if not rows:
+            rows_consulta = parse_municipal_itajai_consulta(text, arquivo)
+            if rows_consulta:
+                rows = rows_consulta
+                layout = "itajai_consulta"
     elif layout == "unai_divida":
         rows = parse_municipal_unai_divida(text, arquivo)
         # Fallback: alguns PDFs Unaí só têm guia de parcelamento
